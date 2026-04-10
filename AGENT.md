@@ -6,6 +6,7 @@
 - **DRY (Don't Repeat Yourself)**: Avoid redundant code and logic; abstract common functionality into reusable components.
 - **ACID (Data Integrity)**: While typically for databases, we apply these principles to our Predictability Engine's data processing (Atomicity of calculations, Consistency of metrics, Isolation of simulations, Durability of results).
 - **YAGNI (You Ain't Gonna Need It)**: Only implement features when they are truly needed; avoid over-engineering.
+- **Fail-Fast & Descriptive Errors**: Implement robust error handling that catches issues early and provides clear, actionable feedback to the user or AI agent.
 
 #### HOLISTIC TESTING STRATEGY (Based on Janet Gregory & Lisa Crispin)
 Testing is not a phase — it is woven into every stage of the development lifecycle.
@@ -47,6 +48,9 @@ Testing is not a phase — it is woven into every stage of the development lifec
 - **Naming Convention**: HTML outputs follow `[input_basename]_[chart_type].html` if not specified.
 - **Duplicate Detection**: **jscpd** (Configured for 4 lines / 25 tokens).
 - **Browser Validation**: **Playwright** (Used for verifying HTML chart rendering in the pipeline).
+- **Security Analysis**: **bundler-audit** (Continuous scanning of dependencies).
+- **API Documentation**: **YARD** (Documentation of internal library).
+- **Benchmarking**: **benchmark-ips** (Performance monitoring for simulations).
 - **Coverage**: SimpleCov.
 - **AI Evaluation**: Custom evaluation scripts for LLM outputs.
 - **CI/CD**: GitHub Actions (ready for implementation).
