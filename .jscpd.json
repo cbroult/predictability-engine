@@ -10,7 +10,8 @@
     "coverage/**",
     "node_modules/**",
     "tmp/**",
-    "report/**"
+    "report/**",
+    "doc/**"
   ],
   "absolute": true
 }
