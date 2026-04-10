@@ -170,3 +170,34 @@ Feature: Visualization command
     When I run `predictability-engine summary sample_data.csv --no-color`
     Then the exit status should be 0
     And the output should not contain ANSI color codes
+
+  Scenario: Dynamic verification of HTML report updates
+    Given a file named "dynamic_test.csv" with:
+      """
+      id,title,start_date,end_date
+      PROJ-1,Item 1,2026-03-01,2026-03-02
+      PROJ-2,Item 2,2026-03-01,2026-03-02
+      PROJ-3,Item 3,2026-03-01,2026-03-02
+      PROJ-4,Item 4,2026-03-01,2026-03-02
+      PROJ-5,Item 5,2026-03-01,2026-03-02
+      """
+    When I run `predictability-engine viz html_all dynamic_test.csv`
+    Then the exit status should be 0
+    And a file named "dynamic_test_all.html" should contain "Total Items:</strong> 5"
+    Given a file named "dynamic_test.csv" with:
+      """
+      id,title,start_date,end_date
+      PROJ-1,Item 1,2026-03-01,2026-03-02
+      PROJ-2,Item 2,2026-03-01,2026-03-02
+      PROJ-3,Item 3,2026-03-01,2026-03-02
+      PROJ-4,Item 4,2026-03-01,2026-03-02
+      PROJ-5,Item 5,2026-03-01,2026-03-02
+      PROJ-6,Item 6,2026-03-01,2026-03-02
+      PROJ-7,Item 7,2026-03-01,2026-03-02
+      PROJ-8,Item 8,2026-03-01,2026-03-02
+      PROJ-9,Item 9,2026-03-01,2026-03-02
+      PROJ-10,Item 10,2026-03-01,2026-03-02
+      """
+    When I run `predictability-engine viz html_all dynamic_test.csv`
+    Then the exit status should be 0
+    And a file named "dynamic_test_all.html" should contain "Total Items:</strong> 10"

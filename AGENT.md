@@ -19,6 +19,7 @@ Testing is not a phase — it is woven into every stage of the development lifec
 3. **Build (Continuous Integration)**:
    - Use **TDD with RSpec** for unit-level design and regression coverage.
    - Use **ATDD/BDD with Cucumber/Aruba** to drive implementation of CLI features.
+   - Implement **Dynamic Verification** scenarios in BDD to ensure reports correctly update when input data changes.
    - Enforce code style and quality with **RuboCop**.
 4. **Deploy & Release (Continuous Deployment & Release on Demand)**:
    - Automate the pipeline to ensure that every change that passes tests is potentially releasable.
