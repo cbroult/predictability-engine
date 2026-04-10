@@ -1,0 +1,62 @@
+# predictability-engine.yml — build and push the predictability-engine CI image
+#
+# The predictability-engine image pre-installs predictability-engine + cbp-org CA cert.
+#
+# Triggers:
+#   - push to main that changes Dockerfile.predictability-engine
+#   - manual
+
+when:
+  - event: push
+    branch: main
+    path: Dockerfile.predictability-engine
+  - event: manual
+    branch: main
+
+clone:
+  git:
+    image: woodpeckerci/plugin-git:2.8.0
+    settings:
+      skip_verify: true
+
+steps:
+  - name: build-and-push-predictability-engine
+    image: ruby:4.0.2-alpine
+    environment:
+      CBP_ORG_CA_CERT:
+        from_secret: cbp_org_ca_cert
+      NEXUS_DEPLOY_KEY:
+        from_secret: nexus_deploy_key
+    commands:
+      - apk add --no-cache openssh-client
+      - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+      - printf '%s\n' "${NEXUS_DEPLOY_KEY}" | sed 's/\\n/\n/g' | tr -d '\r' > ~/.ssh/ci_deploy
+      - chmod 600 ~/.ssh/ci_deploy
+      - echo "[nexus.cbp-org.internal]:32523 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPaRph2p4g/e4VpJHSn6mL5Qe32tPciyNCYsM5iEcuBB" >> ~/.ssh/known_hosts
+      - printf '%s' "${CBP_ORG_CA_CERT}" > /tmp/cbp-ca.b64
+      - REMOTE_TMPDIR=$(ssh -i ~/.ssh/ci_deploy -p 32523 -o StrictHostKeyChecking=yes -o BatchMode=yes root@nexus.cbp-org.internal 'mktemp -d')
+      - scp -O -i ~/.ssh/ci_deploy -P 32523 -o StrictHostKeyChecking=yes Dockerfile.predictability-engine /tmp/cbp-ca.b64 root@nexus.cbp-org.internal:${REMOTE_TMPDIR}/
+      - >-
+        ssh -i ~/.ssh/ci_deploy -p 32523 -o StrictHostKeyChecking=yes -o BatchMode=yes
+        root@nexus.cbp-org.internal
+        "docker build
+         --build-arg CBP_ORG_CA_CERT_B64=\"\$(cat ${REMOTE_TMPDIR}/cbp-ca.b64)\"
+         -f ${REMOTE_TMPDIR}/Dockerfile.predictability-engine
+         -t docker-registry.cbp-org.internal/predictability-engine:latest
+         ${REMOTE_TMPDIR}
+         && docker push docker-registry.cbp-org.internal/predictability-engine:latest
+         && rm -rf ${REMOTE_TMPDIR}
+         && echo 'predictability-engine:latest pushed to docker-registry.cbp-org.internal'"
+
+  - name: badge
+    image: docker-registry.cbp-org.internal/badge-reporter:latest
+    when:
+      status: [success, failure]
+    backend_options:
+      docker:
+        network_mode: host
+    environment:
+      BADGE_SECRET:
+        from_secret: badge_service_token
+    commands:
+      - badge report predictability-engine

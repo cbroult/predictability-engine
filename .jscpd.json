@@ -12,7 +12,8 @@
     "tmp/**",
     "report/**",
     "doc/**",
-    "*.html"
+    "*.html",
+    ".woodpecker/**"
   ],
   "absolute": true
 }

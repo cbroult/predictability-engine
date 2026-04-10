@@ -1,0 +1,29 @@
+when:
+  event: [pull_request, manual]
+
+clone:
+  git:
+    image: woodpeckerci/plugin-git:2.8.0
+    settings:
+      skip_verify: true
+
+steps:
+  - name: cpd
+    image: node:22-alpine
+    commands:
+      # Strict copy-paste detection: threshold 0 means any duplication above min-lines fails.
+      # Configuration is read from .jscpd.json at the repo root.
+      - npx --yes jscpd
+
+  - name: badge
+    image: docker-registry.cbp-org.internal/badge-reporter:latest
+    when:
+      status: [success, failure]
+    backend_options:
+      docker:
+        network_mode: host
+    environment:
+      BADGE_SECRET:
+        from_secret: badge_service_token
+    commands:
+      - badge report code-quality

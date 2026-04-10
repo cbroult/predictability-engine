@@ -3,18 +3,18 @@
 require 'spec_helper'
 
 RSpec.describe PredictabilityEngine::Calculators::CycleTime do
-  let(:item1) { instance_double(PredictabilityEngine::Models::WorkItem, completed?: true, cycle_time: 5) }
-  let(:item2) { instance_double(PredictabilityEngine::Models::WorkItem, completed?: true, cycle_time: 10) }
-  let(:item3) { instance_double(PredictabilityEngine::Models::WorkItem, completed?: false) }
+  let(:short_cycle_item) { instance_double(PredictabilityEngine::Models::WorkItem, completed?: true, cycle_time: 5) }
+  let(:long_cycle_item) { instance_double(PredictabilityEngine::Models::WorkItem, completed?: true, cycle_time: 10) }
+  let(:incomplete_item) { instance_double(PredictabilityEngine::Models::WorkItem, completed?: false) }
 
   describe '.distribution' do
     it 'returns sorted cycle times of completed items' do
-      items = [item2, item1, item3]
+      items = [long_cycle_item, short_cycle_item, incomplete_item]
       expect(described_class.distribution(items)).to eq([5, 10])
     end
 
     it 'returns empty array if no completed items' do
-      expect(described_class.distribution([item3])).to eq([])
+      expect(described_class.distribution([incomplete_item])).to eq([])
     end
   end
 
@@ -34,7 +34,7 @@ RSpec.describe PredictabilityEngine::Calculators::CycleTime do
     end
 
     it 'returns nil if no completed items' do
-      expect(described_class.percentile([item3], 50)).to be_nil
+      expect(described_class.percentile([incomplete_item], 50)).to be_nil
     end
   end
 end

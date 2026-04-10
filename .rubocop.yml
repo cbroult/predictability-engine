@@ -1,26 +1,92 @@
+plugins:
+  - rubocop-rspec
+  - rubocop-rake
+
 AllCops:
   NewCops: enable
+  SuggestExtensions: false
   Exclude:
-    - 'vendor/**/*'
-    - 'Gemfile'
-    - 'Gemfile.lock'
+    - "Dockerfile*"
 
-Layout/LineLength:
-  Max: 120
+# --- Style ---
 
-Metrics/MethodLength:
-  Max: 20
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
 
-Metrics/BlockLength:
-  AllowedMethods:
-    - describe
-    - context
-    - feature
-    - scenario
-    - Given
-    - When
-    - Then
-    - And
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: single_quotes
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
 
 Style/Documentation:
+  Enabled: false
+
+# --- Metrics ---
+
+Metrics/MethodLength:
+  Max: 30
+  CountAsOne:
+    - heredoc
+    - hash
+    - array
+
+Metrics/AbcSize:
+  Max: 35
+
+Metrics/CyclomaticComplexity:
+  Max: 8
+
+Metrics/ClassLength:
+  Max: 200
+
+Metrics/BlockLength:
+  Exclude:
+    - "spec/**/*"
+    - "features/**/*"
+    - "Rakefile"
+    - "rakelib/**/*.rake"
+    - "*.gemspec"
+
+Metrics/ModuleLength:
+  Exclude:
+    - "features/**/*"
+
+# --- Lint ---
+
+Lint/NonLocalExitFromIterator:
+  Enabled: false
+
+Lint/EmptyBlock:
+  Exclude:
+    - "spec/**/*"
+
+# --- Naming ---
+
+Naming/MethodParameterName:
+  AllowedNames:
+    - e
+    - f
+    - to
+
+# --- Gemspec ---
+
+Gemspec/DevelopmentDependencies:
+  Enabled: false
+
+# --- RSpec ---
+
+RSpec/MultipleExpectations:
+  Max: 8
+
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
+
+RSpec/ExampleLength:
+  Max: 25
+
+RSpec/AnyInstance:
+  Enabled: false
+
+RSpec/MessageSpies:
   Enabled: false

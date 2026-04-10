@@ -1,0 +1,24 @@
+# Dockerfile.predictability-engine — lightweight image for CI predictability reports
+#
+# Pre-installs predictability-engine and the cbp-org root CA.
+#
+# Rebuild when:
+#   - predictability-engine version changes
+#   - cbp-org root CA rotates
+
+FROM ruby:4.0.2-alpine
+
+# CBP_ORG_CA_CERT_B64: base64-encoded cbp-org root CA certificate.
+ARG CBP_ORG_CA_CERT_B64
+
+# Install CA cert into system trust store
+RUN apk add --no-cache ca-certificates && \
+    echo "${CBP_ORG_CA_CERT_B64}" | base64 -d \
+      > /usr/local/share/ca-certificates/cbp-org-root-ca.crt && \
+    update-ca-certificates
+
+# Install predictability-engine
+RUN gem install predictability-engine --source https://gems.cbp-org.internal --no-document
+
+# Entrypoint could be the engine itself
+ENTRYPOINT ["predictability-engine"]

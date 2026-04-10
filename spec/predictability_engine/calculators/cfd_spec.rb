@@ -3,25 +3,25 @@
 require 'spec_helper'
 
 RSpec.describe PredictabilityEngine::Calculators::Cfd do
-  let(:date1) { Date.new(2026, 3, 1) }
-  let(:date2) { Date.new(2026, 3, 2) }
+  let(:start_date) { Date.new(2026, 3, 1) }
+  let(:end_date) { Date.new(2026, 3, 2) }
 
-  let(:item1) do
+  let(:completed_item) do
     instance_double(PredictabilityEngine::Models::WorkItem,
-                    start_date: date1, end_date: date2, completed?: true)
+                    start_date: start_date, end_date: end_date, completed?: true)
   end
-  let(:item2) do
+  let(:wip_item) do
     instance_double(PredictabilityEngine::Models::WorkItem,
-                    start_date: date1, end_date: nil, completed?: false)
+                    start_date: start_date, end_date: nil, completed?: false)
   end
 
   describe '.calculate' do
     it 'returns cumulative counts for each day' do
-      items = [item1, item2]
-      cfd = described_class.calculate(items, start_date: date1, end_date: date2)
+      items = [completed_item, wip_item]
+      cfd = described_class.calculate(items, start_date: start_date, end_date: end_date)
 
-      expect(cfd[0]).to include(date: date1, arrived: 2, departed: 0, wip: 2)
-      expect(cfd[1]).to include(date: date2, arrived: 2, departed: 1, wip: 1)
+      expect(cfd[0]).to include(date: start_date, arrived: 2, departed: 0, wip: 2)
+      expect(cfd[1]).to include(date: end_date, arrived: 2, departed: 1, wip: 1)
     end
 
     it 'returns empty array if no items' do
@@ -31,12 +31,12 @@ RSpec.describe PredictabilityEngine::Calculators::Cfd do
 
   describe '.forecast_summary' do
     it 'returns nil if no WIP items' do
-      expect(described_class.forecast_summary([item1])).to be_nil
+      expect(described_class.forecast_summary([completed_item])).to be_nil
     end
 
     it 'returns forecast metrics when WIP exists' do
       # Need real MonteCarlo results to be mocked or used
-      items = [item1, item2]
+      items = [completed_item, wip_item]
       summary = described_class.forecast_summary(items)
       expect(summary).to include(:today, :wip, :total_items, :departed_so_far, :p50, :p85, :p95)
       expect(summary[:wip]).to eq(1)

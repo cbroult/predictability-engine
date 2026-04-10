@@ -11,7 +11,7 @@ module PredictabilityEngine
     def load_csv(file_path)
       CSV.foreach(file_path, headers: true) do |row|
         @work_items << Models::WorkItem.new(
-          id: row['id'] || row['Issue key'],
+          item_id: row['id'] || row['Issue key'],
           title: row['title'] || row['Summary'],
           start_date: row['start_date'] || row['Created'], # Fallback, should ideally be transition date
           end_date: row['end_date'] || row['Resolved']

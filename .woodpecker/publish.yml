@@ -1,0 +1,46 @@
+# publish.yml — build and publish predictability-engine gem to gems.cbp-org.internal
+#
+# Triggers:
+#   - push to main (auto-publish on every merge)
+#   - manual (ad-hoc publish on demand)
+#
+# Required Woodpecker secrets (org-level cbp-org):
+#   gem_user            — Geminabox username
+#   gem_password        — Geminabox password
+#   badge_service_token — Write token for badge.cbp-org.internal
+#   cbp_org_ca_cert     — Base64-encoded cbp-org root CA certificate
+
+variables:
+  - &network_host
+    backend_options:
+      docker:
+        network_mode: host
+
+when:
+  event: [push, manual]
+  branch: main
+
+steps:
+  - name: publish-gem
+    image: ruby:4.0.2-alpine
+    environment:
+      GEM_USER:
+        from_secret: gem_user
+      GEM_PASSWORD:
+        from_secret: gem_password
+      CBP_ORG_CA_CERT:
+        from_secret: cbp_org_ca_cert
+    commands:
+      - apk add --no-cache build-base curl
+      - sh scripts/publish-gem.sh
+
+  - name: badge
+    image: docker-registry.cbp-org.internal/badge-reporter:latest
+    when:
+      status: [success, failure]
+    <<: *network_host
+    environment:
+      BADGE_SECRET:
+        from_secret: badge_service_token
+    commands:
+      - badge report publish
