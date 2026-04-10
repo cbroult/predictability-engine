@@ -1,0 +1,7 @@
+--title "Predictability Engine API Documentation"
+--output-dir doc
+--readme README.md
+--markup markdown
+--protected
+--private
+lib/**/*.rb
