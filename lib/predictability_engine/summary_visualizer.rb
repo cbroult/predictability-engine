@@ -11,9 +11,12 @@ module PredictabilityEngine
           <li><strong>Total Items:</strong> #{work_items.size}</li>
           <li><strong>Completed Items:</strong> #{m[:completed].size}</li>
           <li><strong>Average Throughput:</strong> #{m[:tp_avg].round(2)} items/day</li>
-          <li><strong>Cycle Time (p50):</strong> #{m[:p50]} days</li>
-          <li><strong>Cycle Time (p85):</strong> #{m[:p85]} days</li>
-          <li><strong>Cycle Time (p95):</strong> #{m[:p95]} days</li>
+        </ul>
+        <h3>Cycle Time Percentiles</h3>
+        <ul>
+          <li><strong>50th Percentile:</strong> #{m[:p50]} days</li>
+          <li><strong>85th Percentile:</strong> #{m[:p85]} days</li>
+          <li><strong>95th Percentile:</strong> #{m[:p95]} days</li>
         </ul>
       HTML
     end

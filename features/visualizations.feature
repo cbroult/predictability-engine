@@ -64,8 +64,8 @@ Feature: Visualization command
       """
     When I run `predictability-engine viz html_all my_team_data.csv`
     Then the exit status should be 0
-    And the output should contain "Dashboard generated at my_team_data_dashboard.html"
-    And a file named "my_team_data_dashboard.html" should exist
+    And the output should contain "Dashboard generated at my_team_data_all.html"
+    And a file named "my_team_data_all.html" should exist
 
   Scenario: Validating HTML output in a browser
     Given a file named "browser_test.csv" with:
@@ -76,9 +76,9 @@ Feature: Visualization command
       """
     When I run `predictability-engine viz html_all browser_test.csv`
     Then the exit status should be 0
-    And the HTML file "browser_test_dashboard.html" should be valid and visible in a browser
-    And a file named "browser_test_dashboard.html" should contain "Flow Metrics Summary"
-    And a file named "browser_test_dashboard.html" should contain "Cycle Time Scatter Plot"
+    And the HTML file "browser_test_all.html" should be valid and visible in a browser
+    And a file named "browser_test_all.html" should contain "Flow Metrics Summary"
+    And a file named "browser_test_all.html" should contain "Cycle Time Scatter Plot"
 
   Scenario: Running viz forecasted_cfd on sample data
     Given a file named "wip_data.csv" with:

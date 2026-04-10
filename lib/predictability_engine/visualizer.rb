@@ -9,21 +9,22 @@ module PredictabilityEngine
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Predictability Engine Dashboard</title>
+      <title>{{TITLE}}</title>
       <script src="https://cdn.jsdelivr.net/npm/vega@6"></script>
       <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
       <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
       <style>
         body { font-family: sans-serif; margin: 20px; }
-        .chart-container { margin-bottom: 50px; }
+        .section { margin-bottom: 50px; }
+        .chart-container { width: 100%; height: 400px; margin-top: 10px; }
       </style>
     </head>
     <body>
-      <h1>Predictability Metrics Dashboard</h1>
+      <h1>{{TITLE}}</h1>
       <div class="summary-container">
         {{SUMMARY_CONTENT}}
       </div>
-      <div class="chart-container">
+      <div class="charts-container">
         {{CHART_CONTENT}}
       </div>
     </body>
@@ -68,10 +69,11 @@ module PredictabilityEngine
       VegaVisualizer.dashboard(items)
     end
 
-    def self.to_full_html(chart, work_items = nil)
-      html = HTML_TEMPLATE.gsub('{{CHART_CONTENT}}', chart.to_html)
+    def self.to_full_html(content_or_chart, work_items = nil, title: 'Predictability Engine Dashboard')
+      html = HTML_TEMPLATE.gsub('{{TITLE}}', title)
       summary = work_items ? SummaryVisualizer.metrics_html(work_items) : ''
-      html.gsub('{{SUMMARY_CONTENT}}', summary)
+      content = content_or_chart.respond_to?(:to_html) ? content_or_chart.to_html : content_or_chart
+      html.gsub('{{SUMMARY_CONTENT}}', summary).gsub('{{CHART_CONTENT}}', content)
     end
   end
 end

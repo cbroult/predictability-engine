@@ -42,8 +42,16 @@ module PredictabilityEngine
     end
 
     def render_html
-      chart = VegaVisualizer.dashboard(@items)
-      Visualizer.to_full_html(chart, @items)
+      charts = [
+        "<div class='section'><h2>Cycle Time Scatter Plot</h2>" \
+        "#{VegaVisualizer.cycle_time_scatter(@items).to_html}</div>",
+        "<div class='section'><h2>Throughput Histogram</h2>" \
+        "#{VegaVisualizer.throughput_histogram(@items).to_html}</div>",
+        "<div class='section'><h2>Forecasted Cumulative Flow Diagram</h2>" \
+        "#{VegaVisualizer.forecasted_cfd(@items).to_html}</div>"
+      ].join("\n")
+
+      Visualizer.to_full_html(charts, @items, title: @title)
     end
 
     def render_pdf

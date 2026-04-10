@@ -81,7 +81,7 @@ module PredictabilityEngine
     def html_all(file, output = nil)
       manager = DataManager.new
       manager.load_csv(file)
-      output ||= "#{File.basename(file, '.*')}_dashboard.html"
+      output ||= "#{File.basename(file, '.*')}_all.html"
       report = Report.generate_all(manager.work_items)
       File.write(output, report.render(:html))
       puts "Dashboard generated at #{output}"
