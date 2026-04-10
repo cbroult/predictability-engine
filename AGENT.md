@@ -36,6 +36,7 @@ Testing is not a phase — it is woven into every stage of the development lifec
 
 #### GIT & VERSION CONTROL
 - **Conventional Commits**: Use a standardized commit message format (e.g., `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `test:`, `chore:`) to ensure a readable and automated history.
+- **Regular Commits**: Commit changes frequently to maintain a granular and reversible history. This ensures that every meaningful change is documented and can be easily rolled back or reviewed.
 - **Git Authoring**: Always include Junie as a co-author when applicable (`--trailer "Co-authored-by: Junie <junie@jetbrains.com>"`).
 
 #### TOOLS & AUTOMATION
