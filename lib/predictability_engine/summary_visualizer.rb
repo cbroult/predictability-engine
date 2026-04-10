@@ -18,17 +18,21 @@ module PredictabilityEngine
       HTML
     end
 
-    def self.metrics_terminal(work_items)
+    def self.metrics_terminal(work_items, color: false)
       m = calculate_metrics(work_items)
 
+      bold = color ? "\e[1m" : ''
+      cyan = color ? "\e[36m" : ''
+      reset = color ? "\e[0m" : ''
+
       [
-        'Flow Metrics Summary',
+        "#{bold}Flow Metrics Summary#{reset}",
         '--------------------',
         "Total Items: #{work_items.size}",
         "Completed Items: #{m[:completed].size}",
         "Average Throughput: #{m[:tp_avg].round(2)} items/day",
         '',
-        'Cycle Time Percentiles:',
+        "#{cyan}Cycle Time Percentiles:#{reset}",
         "  50th Percentile: #{m[:p50]} days",
         "  85th Percentile: #{m[:p85]} days",
         "  95th Percentile: #{m[:p95]} days",

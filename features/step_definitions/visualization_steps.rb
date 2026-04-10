@@ -8,3 +8,11 @@ Then(/^the HTML file "([^"]*)" should be valid and visible in a browser$/) do |f
   expect(content).to include('vega')
   expect(content).to match(/vg-canvas|vega-embed/)
 end
+
+Then(/^the output should contain ANSI color codes$/) do
+  expect(last_command_started.output).to match(/\e\[\d+m/)
+end
+
+Then(/^the output should not contain ANSI color codes$/) do
+  expect(last_command_started.output).not_to match(/\e\[\d+m/)
+end

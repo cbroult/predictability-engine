@@ -32,20 +32,20 @@ module PredictabilityEngine
   private_constant :HTML_TEMPLATE
 
   class Visualizer
-    def self.cycle_time_scatter(items)
-      TerminalVisualizer.cycle_time_scatter(items)
+    def self.cycle_time_scatter(items, color: false)
+      TerminalVisualizer.cycle_time_scatter(items, color: color)
     end
 
-    def self.throughput_histogram(items)
-      TerminalVisualizer.throughput_histogram(items)
+    def self.throughput_histogram(items, color: false)
+      TerminalVisualizer.throughput_histogram(items, color: color)
     end
 
-    def self.cfd_plot(items)
-      TerminalVisualizer.cfd_plot(items)
+    def self.cfd_plot(items, color: false)
+      TerminalVisualizer.cfd_plot(items, color: color)
     end
 
-    def self.forecasted_cfd_plot(items)
-      TerminalVisualizer.forecasted_cfd_plot(items)
+    def self.forecasted_cfd_plot(items, color: false)
+      TerminalVisualizer.forecasted_cfd_plot(items, color: color)
     end
 
     def self.vega_cycle_time_scatter(items)

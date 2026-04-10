@@ -11,25 +11,27 @@ module PredictabilityEngine
       true
     end
 
+    class_option :color, type: :boolean, default: true, desc: 'Enable/disable color output for terminal charts'
+
     desc 'scatter FILE', 'Show Cycle Time scatter plot'
     def scatter(file)
       manager = DataManager.new
       manager.load_csv(file)
-      puts Visualizer.cycle_time_scatter(manager.work_items)
+      puts Visualizer.cycle_time_scatter(manager.work_items, color: options[:color])
     end
 
     desc 'throughput FILE', 'Show Throughput histogram'
     def throughput(file)
       manager = DataManager.new
       manager.load_csv(file)
-      puts Visualizer.throughput_histogram(manager.work_items)
+      puts Visualizer.throughput_histogram(manager.work_items, color: options[:color])
     end
 
     desc 'cfd FILE', 'Show Cumulative Flow Diagram'
     def cfd(file)
       manager = DataManager.new
       manager.load_csv(file)
-      puts Visualizer.cfd_plot(manager.work_items)
+      puts Visualizer.cfd_plot(manager.work_items, color: options[:color])
     end
 
     desc 'html_scatter FILE [OUTPUT]', 'Generate Vega-Lite HTML scatter plot'
@@ -57,7 +59,7 @@ module PredictabilityEngine
     def forecasted_cfd(file)
       manager = DataManager.new
       manager.load_csv(file)
-      puts Visualizer.forecasted_cfd_plot(manager.work_items)
+      puts Visualizer.forecasted_cfd_plot(manager.work_items, color: options[:color])
     end
 
     desc 'html_forecasted_cfd FILE [OUTPUT]', 'Generate Vega-Lite HTML Forecasted CFD'
@@ -72,7 +74,7 @@ module PredictabilityEngine
       manager = DataManager.new
       manager.load_csv(file)
       report = Report.generate_all(manager.work_items)
-      puts report.render(:terminal)
+      puts report.render(:terminal, color: options[:color])
     end
 
     desc 'html_all FILE [OUTPUT]', 'Generate a combined HTML dashboard'
@@ -110,18 +112,20 @@ module PredictabilityEngine
     desc 'viz SUBCOMMAND ...ARGS', 'Visualization commands'
     subcommand 'viz', Viz
     desc 'summary FILE', 'Load data from FILE and show flow metrics summary'
+    method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
     def summary(file)
       manager = DataManager.new
       manager.load_csv(file)
-      puts SummaryVisualizer.metrics_terminal(manager.work_items)
+      puts SummaryVisualizer.metrics_terminal(manager.work_items, color: options[:color])
     end
 
     desc 'report FILE FORMAT [OUTPUT]', 'Generate a full report in various formats (terminal, html, pdf)'
+    method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
     def report(file, format = 'terminal', output = nil)
       manager = DataManager.new
       manager.load_csv(file)
       report = Report.generate_all(manager.work_items)
-      content = report.render(format)
+      content = report.render(format, color: options[:color])
 
       if output || format != 'terminal'
         output ||= "#{File.basename(file, '.*')}_report.#{format}"

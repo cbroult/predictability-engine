@@ -109,3 +109,64 @@ Feature: Visualization command
     Then the exit status should be 0
     And a file named "wip_data_forecasted_cfd.html" should exist
     And the HTML file "wip_data_forecasted_cfd.html" should be valid and visible in a browser
+    And a file named "wip_data_forecasted_cfd.html" should contain "Flow Metrics Summary"
+
+  Scenario: Running viz all with color enabled
+    Given a file named "sample_data.csv" with:
+      """
+      id,title,start_date,end_date
+      PROJ-1,Item 1,2026-03-01,2026-03-05
+      """
+    When I run `predictability-engine viz all sample_data.csv --color`
+    Then the exit status should be 0
+    And the output should contain ANSI color codes
+
+  Scenario: Running viz all with color disabled
+    Given a file named "sample_data.csv" with:
+      """
+      id,title,start_date,end_date
+      PROJ-1,Item 1,2026-03-01,2026-03-05
+      """
+    When I run `predictability-engine viz all sample_data.csv --no-color`
+    Then the exit status should be 0
+    And the output should not contain ANSI color codes
+
+  Scenario: Running report with color enabled
+    Given a file named "sample_data.csv" with:
+      """
+      id,title,start_date,end_date
+      PROJ-1,Item 1,2026-03-01,2026-03-05
+      """
+    When I run `predictability-engine report sample_data.csv terminal --color`
+    Then the exit status should be 0
+    And the output should contain ANSI color codes
+
+  Scenario: Running report with color disabled
+    Given a file named "sample_data.csv" with:
+      """
+      id,title,start_date,end_date
+      PROJ-1,Item 1,2026-03-01,2026-03-05
+      """
+    When I run `predictability-engine report sample_data.csv terminal --no-color`
+    Then the exit status should be 0
+    And the output should not contain ANSI color codes
+
+  Scenario: Running summary with color enabled
+    Given a file named "sample_data.csv" with:
+      """
+      id,title,start_date,end_date
+      PROJ-1,Item 1,2026-03-01,2026-03-05
+      """
+    When I run `predictability-engine summary sample_data.csv --color`
+    Then the exit status should be 0
+    And the output should contain ANSI color codes
+
+  Scenario: Running summary with color disabled
+    Given a file named "sample_data.csv" with:
+      """
+      id,title,start_date,end_date
+      PROJ-1,Item 1,2026-03-01,2026-03-05
+      """
+    When I run `predictability-engine summary sample_data.csv --no-color`
+    Then the exit status should be 0
+    And the output should not contain ANSI color codes

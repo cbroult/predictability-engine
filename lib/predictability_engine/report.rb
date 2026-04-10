@@ -13,10 +13,10 @@ module PredictabilityEngine
       new(items, title: 'Full Predictability Dashboard')
     end
 
-    def render(format)
+    def render(format, color: false)
       case format.to_sym
       when :terminal, :console, :ascii
-        render_terminal
+        render_terminal(color: color)
       when :html
         render_html
       when :pdf
@@ -28,16 +28,16 @@ module PredictabilityEngine
 
     private
 
-    def render_terminal
+    def render_terminal(color: false)
       [
         "=== #{@title} ===",
-        SummaryVisualizer.metrics_terminal(@items),
+        SummaryVisualizer.metrics_terminal(@items, color: color),
         "\n=== Cycle Time Scatter Plot ===",
-        TerminalVisualizer.cycle_time_scatter(@items),
+        TerminalVisualizer.cycle_time_scatter(@items, color: color),
         "\n=== Throughput Histogram ===",
-        TerminalVisualizer.throughput_histogram(@items),
+        TerminalVisualizer.throughput_histogram(@items, color: color),
         "\n=== Forecasted Cumulative Flow Diagram ===",
-        TerminalVisualizer.forecasted_cfd_plot(@items)
+        TerminalVisualizer.forecasted_cfd_plot(@items, color: color)
       ].join("\n")
     end
 

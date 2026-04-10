@@ -3,9 +3,9 @@
 require 'spec_helper'
 
 RSpec.describe PredictabilityEngine::Calculators::Throughput do
-  let(:date1) { Date.new(2026, 3, 1) }
-  let(:date2) { Date.new(2026, 3, 2) }
-  let(:date3) { Date.new(2026, 3, 3) }
+  let(:date1) { Date.new(2026, 4, 1) }
+  let(:date2) { Date.new(2026, 4, 2) }
+  let(:date3) { Date.new(2026, 4, 3) }
 
   let(:item1) { instance_double(PredictabilityEngine::Models::WorkItem, completed?: true, end_date: date1) }
   let(:item2) { instance_double(PredictabilityEngine::Models::WorkItem, completed?: true, end_date: date2) }
