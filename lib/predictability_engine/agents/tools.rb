@@ -18,13 +18,18 @@ module PredictabilityEngine
         PredictabilityEngine::Calculators::Throughput.average(@data_manager.work_items)
       end
 
-      desc 'Get visual charts (ASCII art) for Cycle Time, Throughput, and CFD'
+      desc 'Get visual charts (ASCII art) for Cycle Time, Throughput, and Forecasted CFD'
       define_method :get_visual_charts do
         {
           scatter_plot: PredictabilityEngine::Visualizer.cycle_time_scatter(@data_manager.work_items),
           throughput_histogram: PredictabilityEngine::Visualizer.throughput_histogram(@data_manager.work_items),
-          cfd_plot: PredictabilityEngine::Visualizer.cfd_plot(@data_manager.work_items)
+          cfd_plot: PredictabilityEngine::Visualizer.forecasted_cfd_plot(@data_manager.work_items)
         }
+      end
+
+      desc 'Get forecasted CFD summary (probabilistic projections for current WIP)'
+      define_method :get_cfd_forecast do
+        PredictabilityEngine::Calculators::Cfd.forecast_summary(@data_manager.work_items)
       end
 
       desc 'Get cycle time percentiles (p50, p85, p95)'

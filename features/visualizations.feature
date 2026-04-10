@@ -79,3 +79,33 @@ Feature: Visualization command
     And the HTML file "browser_test_dashboard.html" should be valid and visible in a browser
     And a file named "browser_test_dashboard.html" should contain "Flow Metrics Summary"
     And a file named "browser_test_dashboard.html" should contain "Cycle Time Scatter Plot"
+
+  Scenario: Running viz forecasted_cfd on sample data
+    Given a file named "wip_data.csv" with:
+      """
+      id,title,start_date,end_date
+      PROJ-1,Done 1,2026-03-01,2026-03-05
+      PROJ-2,Done 2,2026-03-02,2026-03-04
+      PROJ-3,WIP 1,2026-03-05,
+      PROJ-4,WIP 2,2026-03-06,
+      """
+    When I run `predictability-engine viz forecasted_cfd wip_data.csv`
+    Then the exit status should be 0
+    And the output should contain "Forecasted Cumulative Flow Diagram"
+    And the output should contain "p50"
+    And the output should contain "p85"
+    And the output should contain "p95"
+
+  Scenario: Running viz html_forecasted_cfd on sample data
+    Given a file named "wip_data.csv" with:
+      """
+      id,title,start_date,end_date
+      PROJ-1,Done 1,2026-03-01,2026-03-05
+      PROJ-2,Done 2,2026-03-02,2026-03-04
+      PROJ-3,WIP 1,2026-03-05,
+      PROJ-4,WIP 2,2026-03-06,
+      """
+    When I run `predictability-engine viz html_forecasted_cfd wip_data.csv`
+    Then the exit status should be 0
+    And a file named "wip_data_forecasted_cfd.html" should exist
+    And the HTML file "wip_data_forecasted_cfd.html" should be valid and visible in a browser

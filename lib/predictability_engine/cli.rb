@@ -3,6 +3,7 @@
 require 'thor'
 require 'tty-table'
 require_relative 'visualizer'
+require_relative 'summary_visualizer'
 
 module PredictabilityEngine
   class Viz < Thor
@@ -52,12 +53,26 @@ module PredictabilityEngine
       end
     end
 
+    desc 'forecasted_cfd FILE', 'Show Forecasted Cumulative Flow Diagram'
+    def forecasted_cfd(file)
+      manager = DataManager.new
+      manager.load_csv(file)
+      puts Visualizer.forecasted_cfd_plot(manager.work_items)
+    end
+
+    desc 'html_forecasted_cfd FILE [OUTPUT]', 'Generate Vega-Lite HTML Forecasted CFD'
+    def html_forecasted_cfd(file, output = nil)
+      generate_html_chart(file, output, 'forecasted_cfd') do |items|
+        Visualizer.vega_forecasted_cfd(items)
+      end
+    end
+
     desc 'all FILE', 'Show all terminal summary and visualizations'
     def all(file)
       manager = DataManager.new
       manager.load_csv(file)
       items = manager.work_items
-      puts Visualizer.summary_metrics_terminal(items)
+      puts SummaryVisualizer.metrics_terminal(items)
       puts '=== Cycle Time Scatter Plot ==='
       puts Visualizer.cycle_time_scatter(items)
       puts "\n=== Throughput Histogram ==="
@@ -104,7 +119,7 @@ module PredictabilityEngine
     def summary(file)
       manager = DataManager.new
       manager.load_csv(file)
-      puts Visualizer.summary_metrics_terminal(manager.work_items)
+      puts SummaryVisualizer.metrics_terminal(manager.work_items)
     end
 
     desc 'forecast FILE BACKLOG_COUNT', 'Run Monte Carlo simulation for BACKLOG_COUNT items'
