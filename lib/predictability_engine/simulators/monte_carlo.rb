@@ -6,40 +6,31 @@ module PredictabilityEngine
       DEFAULT_TRIALS = 10_000
 
       def self.when_will_it_be_done(backlog_count, historical_throughput, trials: DEFAULT_TRIALS)
-        results = []
-
-        # historical_throughput should be an array of daily counts
         return [] if historical_throughput.empty?
 
-        trials.times do
+        run_simulation(trials) do
           remaining = backlog_count
           days = 0
 
           while remaining.positive?
-            sample = historical_throughput.sample
-            remaining -= sample
+            remaining -= historical_throughput.sample
             days += 1
           end
 
-          results << days
+          days
         end
-
-        results.sort!
       end
 
       def self.how_many_will_be_done(days_to_forecast, historical_throughput, trials: DEFAULT_TRIALS)
-        results = []
         return [] if historical_throughput.empty?
 
-        trials.times do
+        run_simulation(trials) do
           total_done = 0
           days_to_forecast.times do
             total_done += historical_throughput.sample
           end
-          results << total_done
+          total_done
         end
-
-        results.sort!
       end
 
       def self.percentile(results, percentile_value)
@@ -48,6 +39,14 @@ module PredictabilityEngine
         index = (results.size * percentile_value / 100.0).ceil - 1
         results[index]
       end
+
+      def self.run_simulation(trials)
+        results = []
+        trials.times { results << yield }
+        results.sort!
+      end
+
+      private_class_method :run_simulation
     end
   end
 end
