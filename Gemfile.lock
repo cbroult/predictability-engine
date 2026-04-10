@@ -12,8 +12,12 @@ GEM
     ast (2.4.3)
     baran (0.1.12)
     base64 (0.3.0)
+    benchmark-ips (2.14.0)
     bigdecimal (3.3.1)
     builder (3.3.0)
+    bundler-audit (0.9.3)
+      bundler (>= 1.2.0)
+      thor (~> 1.0)
     contracts (0.17.3)
     csv (3.3.5)
     cucumber (10.2.0)
@@ -133,6 +137,7 @@ GEM
       enumerable-statistics (>= 2.0.1)
     unicode_utils (1.4.0)
     vega (0.5.0)
+    yard (0.9.39)
     zeitwerk (2.7.5)
 
 PLATFORMS
@@ -141,6 +146,8 @@ PLATFORMS
 
 DEPENDENCIES
   aruba
+  benchmark-ips
+  bundler-audit
   csv
   cucumber
   dotenv
@@ -155,6 +162,7 @@ DEPENDENCIES
   tty-table
   unicode_plot
   vega
+  yard
   zeitwerk
 
 CHECKSUMS
@@ -163,8 +171,10 @@ CHECKSUMS
   ast (2.4.3) sha256=954615157c1d6a382bc27d690d973195e79db7f55e9765ac7c481c60bdb4d383
   baran (0.1.12) sha256=32c1362c3bc7506fb75a2b3f6123dd9c4b3e2e721c066a9a7e6e63893082af94
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
+  benchmark-ips (2.14.0) sha256=b72bc8a65d525d5906f8cd94270dccf73452ee3257a32b89fbd6684d3e8a9b1d
   bigdecimal (3.3.1) sha256=eaa01e228be54c4f9f53bf3cc34fe3d5e845c31963e7fcc5bedb05a4e7d52218
   builder (3.3.0) sha256=497918d2f9dca528fdca4b88d84e4ef4387256d984b8154e9d5d3fe5a9c8835f
+  bundler-audit (0.9.3) sha256=81c8766c71e47d0d28a0f98c7eed028539f21a6ea3cd8f685eb6f42333c9b4e9
   contracts (0.17.3) sha256=e72e626413ea47099becb7b5683beb1c2ea902c69f5bad55c9258fe2b48314d7
   csv (3.3.5) sha256=6e5134ac3383ef728b7f02725d9872934f523cb40b961479f69cf3afa6c8e73f
   cucumber (10.2.0) sha256=fdedbd31ecf40858b60f04853f2aa15c44f5c30bbac29c6a227fa1e7005a8158
@@ -224,6 +234,7 @@ CHECKSUMS
   unicode_plot (0.0.5) sha256=91ce6237bca67a3b969655accef91024c78ec6aad470fcddeb29b81f7f78f73b
   unicode_utils (1.4.0) sha256=b922d0cf2313b6b7136ada6645ce7154ffc86418ca07d53b058efe9eb72f2a40
   vega (0.5.0) sha256=ab78bb83a522580a22b0ea5de1fb00a45a3e470f07cde52bedf46dba23755801
+  yard (0.9.39) sha256=0bbbcd87ffd132824c3f89bbd39deef1ffb3877259090849bd49e48daeaf7b56
   zeitwerk (2.7.5) sha256=d8da92128c09ea6ec62c949011b00ed4a20242b255293dd66bf41545398f73dd
 
 BUNDLED WITH

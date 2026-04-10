@@ -18,4 +18,7 @@ group :development, :test do
   gem 'rubocop'
   gem 'simplecov', require: false
   gem 'rake'
+  gem 'bundler-audit', require: false
+  gem 'yard'
+  gem 'benchmark-ips'
 end
