@@ -2,15 +2,15 @@ Command finished with exit code 0.
 Command output:
 WARNING: consider using an array rather than a space-delimited string with cucumber_opts to avoid undesired behavior.
 Running RuboCop...
-Inspecting 19 files
-...................
+Inspecting 20 files
+....................
 
-19 files inspected, no offenses detected
+20 files inspected, no offenses detected
 /home/cbroult/.rvm/rubies/ruby-4.0.2/bin/ruby -I/home/cbroult/.rvm/gems/ruby-4.0.2/gems/rspec-core-3.13.6/lib:/home/cbroult/.rvm/gems/ruby-4.0.2/gems/rspec-support-3.13.7/lib /home/cbroult/.rvm/gems/ruby-4.0.2/gems/rspec-core-3.13.6/exe/rspec --pattern spec/\*\*\{,/\*/\*\*\}/\*_spec.rb
 No examples found.
 
 
-Finished in 0.00036 seconds (files took 0.0954 seconds to load)
+Finished in 0.0004 seconds (files took 0.12913 seconds to load)
 0 examples, 0 failures
 
 Coverage report generated for RSpec to /home/cbroult/work/ruby/predictability-engine/coverage.
@@ -146,9 +146,9 @@ Feature: Visualization command
     When I run `predictability-engine viz forecasted_cfd wip_data.csv` # aruba-2.3.3/lib/aruba/cucumber/command.rb:5
     Then the exit status should be 0                                   # aruba-2.3.3/lib/aruba/cucumber/command.rb:347
     And the output should contain "Forecasted Cumulative Flow Diagram" # aruba-2.3.3/lib/aruba/cucumber/command.rb:136
-    And the output should contain "p50"                                # aruba-2.3.3/lib/aruba/cucumber/command.rb:136
-    And the output should contain "p85"                                # aruba-2.3.3/lib/aruba/cucumber/command.rb:136
-    And the output should contain "p95"                                # aruba-2.3.3/lib/aruba/cucumber/command.rb:136
+    And the output should contain "50% Confidence"                     # aruba-2.3.3/lib/aruba/cucumber/command.rb:136
+    And the output should contain "85% Confidence"                     # aruba-2.3.3/lib/aruba/cucumber/command.rb:136
+    And the output should contain "95% Confidence"                     # aruba-2.3.3/lib/aruba/cucumber/command.rb:136
 
   Scenario: Running viz html_forecasted_cfd on sample data                                    # features/visualizations.feature:99
     Given a file named "wip_data.csv" with:                                                   # aruba-2.3.3/lib/aruba/cucumber/file.rb:28
@@ -166,7 +166,7 @@ Feature: Visualization command
 
 9 scenarios (9 passed)
 55 steps (55 passed)
-0m2.887s
+0m2.858s
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │ Share your Cucumber Report with your team at https://reports.cucumber.io     │
 │                                                                              │
@@ -184,20 +184,20 @@ npx jscpd .
 ┌──────────┬────────────────┬─────────────┬──────────────┬──────────────┬──────────────────┬───────────────────┐
 │ Format   │ Files analyzed │ Total lines │ Total tokens │ Clones found │ Duplicated lines │ Duplicated tokens │
 ├──────────┼────────────────┼─────────────┼──────────────┼──────────────┼──────────────────┼───────────────────┤
-│ ruby     │ 17             │ 997         │ 8094         │ 0            │ 0 (0%)           │ 0 (0%)            │
+│ ruby     │ 18             │ 1062        │ 8799         │ 0            │ 0 (0%)           │ 0 (0%)            │
 ├──────────┼────────────────┼─────────────┼──────────────┼──────────────┼──────────────────┼───────────────────┤
 │ gherkin  │ 2              │ 144         │ 861          │ 0            │ 0 (0%)           │ 0 (0%)            │
 ├──────────┼────────────────┼─────────────┼──────────────┼──────────────┼──────────────────┼───────────────────┤
-│ markup   │ 4              │ 128         │ 1147         │ 0            │ 0 (0%)           │ 0 (0%)            │
+│ markup   │ 4              │ 128         │ 1169         │ 0            │ 0 (0%)           │ 0 (0%)            │
 ├──────────┼────────────────┼─────────────┼──────────────┼──────────────┼──────────────────┼───────────────────┤
-│ markdown │ 3              │ 368         │ 3133         │ 0            │ 0 (0%)           │ 0 (0%)            │
+│ markdown │ 2              │ 148         │ 1771         │ 0            │ 0 (0%)           │ 0 (0%)            │
 ├──────────┼────────────────┼─────────────┼──────────────┼──────────────┼──────────────────┼───────────────────┤
 │ yaml     │ 1              │ 14          │ 56           │ 0            │ 0 (0%)           │ 0 (0%)            │
 ├──────────┼────────────────┼─────────────┼──────────────┼──────────────┼──────────────────┼───────────────────┤
 │ json     │ 1              │ 15          │ 71           │ 0            │ 0 (0%)           │ 0 (0%)            │
 ├──────────┼────────────────┼─────────────┼──────────────┼──────────────┼──────────────────┼───────────────────┤
-│ Total:   │ 28             │ 1666        │ 13362        │ 0            │ 0 (0%)           │ 0 (0%)            │
+│ Total:   │ 28             │ 1511        │ 12727        │ 0            │ 0 (0%)           │ 0 (0%)            │
 └──────────┴────────────────┴─────────────┴──────────────┴──────────────┴──────────────────┴───────────────────┘
 Found 0 clones.
 HTML report saved to report/html/
-Detection time:: 291.039ms
+Detection time:: 277.003ms

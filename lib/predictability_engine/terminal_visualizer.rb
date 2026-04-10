@@ -8,13 +8,32 @@ module PredictabilityEngine
       completed = work_items.select(&:completed?).sort_by(&:end_date)
       return 'No completed items to plot.' if completed.empty?
 
-      x = completed.map { |item| (item.end_date - completed.first.end_date).to_i }
-      y = completed.map(&:cycle_time)
+      start_date = completed.first.end_date
+      x_coords = completed.map { |item| (item.end_date - start_date).to_i }
+      y_coords = completed.map(&:cycle_time)
 
-      plot = UnicodePlot.scatterplot(x, y, title: title,
-                                           xlabel: "Days since #{completed.first.end_date}",
-                                           ylabel: 'Cycle Time (days)')
+      render_full_scatter(work_items, x_coords, y_coords, title, start_date)
+    end
+
+    def self.render_full_scatter(work_items, x_coords, y_coords, title, start_date)
+      plot = render_scatter_plot(x_coords, y_coords, title, start_date)
+      add_scatter_percentiles(plot, work_items, x_coords.min, x_coords.max)
       plot.render
+    end
+
+    def self.render_scatter_plot(x_coords, y_coords, title, start_date)
+      UnicodePlot.scatterplot(x_coords, y_coords, title: title,
+                                                  xlabel: "Days since #{start_date}",
+                                                  ylabel: 'Cycle Time (days)')
+    end
+
+    def self.add_scatter_percentiles(plot, work_items, x_min, x_max)
+      { 50 => '50% Percentile', 85 => '85% Percentile', 95 => '95% Percentile' }.each do |p, label|
+        val = Calculators::CycleTime.percentile(work_items, p)
+        next unless val
+
+        UnicodePlot.lineplot!(plot, [x_min, x_max], [val, val], name: label)
+      end
     end
 
     def self.throughput_histogram(work_items, title: 'Throughput Histogram')
@@ -49,7 +68,7 @@ module PredictabilityEngine
       plot = UnicodePlot.lineplot(dates, arrived, title: title, name: 'Arrivals',
                                                   ylabel: 'Total Items',
                                                   xlabel: "Days since #{start_date}")
-      UnicodePlot.lineplot!(plot, dates.take(cfd_data.size), departed.compact, name: 'Historical')
+      UnicodePlot.lineplot!(plot, dates.take(cfd_data.size), departed.compact, name: 'Departures')
 
       add_forecast_lines(plot, start_date, forecast)
       plot.render
@@ -75,13 +94,13 @@ module PredictabilityEngine
     end
 
     def self.add_forecast_lines(plot, start_date, forecast)
-      %i[p50 p85 p95].each do |p|
+      { p50: '50% Confidence', p85: '85% Confidence', p95: '95% Confidence' }.each do |p, label|
         points = forecast[p]
         next unless points
 
         x = points.map { |pt| (pt[:date] - start_date).to_i }
         y = points.map { |pt| pt[:count] }
-        UnicodePlot.lineplot!(plot, x, y, name: p.to_s)
+        UnicodePlot.lineplot!(plot, x, y, name: label)
       end
     end
 

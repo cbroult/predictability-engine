@@ -92,9 +92,9 @@ Feature: Visualization command
     When I run `predictability-engine viz forecasted_cfd wip_data.csv`
     Then the exit status should be 0
     And the output should contain "Forecasted Cumulative Flow Diagram"
-    And the output should contain "p50"
-    And the output should contain "p85"
-    And the output should contain "p95"
+    And the output should contain "50% Confidence"
+    And the output should contain "85% Confidence"
+    And the output should contain "95% Confidence"
 
   Scenario: Running viz html_forecasted_cfd on sample data
     Given a file named "wip_data.csv" with:
