@@ -81,10 +81,14 @@ Generate visual representations of your metrics:
 
 We use a suite of tools to ensure high-quality code and accurate metrics:
 
-- **BDD/TDD**: `bundle exec cucumber` and `bundle exec rspec`.
-- **Linting**: `bundle exec rubocop`.
-- **Duplicate Detection**: `npx jscpd .`.
-- **Full Quality Check**: Run everything with a single command:
+- **BDD/Acceptance**: `bundle exec cucumber` (Aruba CLI testing).
+- **Unit Testing**: `bundle exec rspec` (Logic validation).
+- **Linting**: `bundle exec rubocop` (Style enforcement).
+- **Duplicate Detection**: `npx jscpd .` (Copy-paste detection).
+- **Security Analysis**: `bundle exec rake audit` (Vulnerability scanning).
+- **API Documentation**: `bundle exec rake docs` (YARD documentation).
+- **Performance Benchmarking**: `bundle exec rake bench` (Monte Carlo simulation performance).
+- **Full Quality Check**: Run the entire validation pipeline with a single command:
   ```bash
   bundle exec rake
   ```
