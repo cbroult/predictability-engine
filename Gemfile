@@ -21,4 +21,5 @@ group :development, :test do
   gem 'bundler-audit', require: false
   gem 'yard'
   gem 'benchmark-ips'
+  gem 'redcarpet'
 end
