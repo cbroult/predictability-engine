@@ -1,0 +1,35 @@
+Feature: Summary command
+  In order to understand my team's flow metrics
+  As a manager
+  I want to see a summary of throughput and cycle time
+
+  Scenario: Running summary on sample data
+    Given a file named "sample_data.csv" with:
+      """
+      id,title,start_date,end_date
+      PROJ-1,Implement core,2026-03-01,2026-03-05
+      PROJ-2,Fix bug A,2026-03-02,2026-03-04
+      PROJ-3,Add feature X,2026-03-05,2026-03-10
+      PROJ-4,Update docs,2026-03-06,2026-03-07
+      PROJ-5,Tests,2026-03-08,2026-03-12
+      PROJ-6,Refactor,2026-03-10,2026-03-15
+      PROJ-7,Security,2026-03-12,2026-03-18
+      PROJ-8,UI change,2026-03-14,2026-03-20
+      PROJ-9,CI setup,2026-03-16,2026-03-22
+      PROJ-10,Deployment,2026-03-18,2026-03-25
+      PROJ-11,Marketing,2026-03-20,2026-03-28
+      PROJ-12,Analytics,2026-03-22,2026-04-01
+      PROJ-13,Feedback,2026-03-24,2026-04-03
+      PROJ-14,Cleanup,2026-03-26,2026-04-05
+      PROJ-15,v1.0 release,2026-03-28,2026-04-08
+      PROJ-16,Next gen,2026-04-01,
+      PROJ-17,Research,2026-04-03,
+      PROJ-18,Spike,2026-04-05,
+      """
+    When I run `predictability-engine summary sample_data.csv`
+    Then the exit status should be 0
+    And the output should contain "Flow Metrics Summary"
+    And the output should contain "Average Throughput: 0.42 items/day"
+    And the output should contain "50th Percentile: 7 days"
+    And the output should contain "85th Percentile: 11 days"
+    And the output should contain "95th Percentile: 12 days"

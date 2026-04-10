@@ -1,0 +1,7 @@
+.junie/
+.playwright-mcp/
+coverage/
+report/
+tmp/
+*.html
+.idea/

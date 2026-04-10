@@ -1,0 +1,16 @@
+{
+  "threshold": 0.1,
+  "minLines": 4,
+  "minTokens": 25,
+  "reporters": [
+    "console",
+    "html"
+  ],
+  "ignore": [
+    "coverage/**",
+    "node_modules/**",
+    "tmp/**",
+    "report/**"
+  ],
+  "absolute": true
+}
