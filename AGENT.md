@@ -33,6 +33,10 @@ Testing is not a phase — it is woven into every stage of the development lifec
 - **Continuous Deployment (CD)**: Automating the deployment of the engine to a staging or production-like environment.
 - **Release on Demand (RoD)**: The ability to release new features to the end-user whenever the business requires.
 
+#### GIT & VERSION CONTROL
+- **Conventional Commits**: Use a standardized commit message format (e.g., `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `test:`, `chore:`) to ensure a readable and automated history.
+- **Git Authoring**: Always include Junie as a co-author when applicable (`--trailer "Co-authored-by: Junie <junie@jetbrains.com>"`).
+
 #### TOOLS & AUTOMATION
 - **BDD/Acceptance**: Cucumber & Aruba (CLI testing).
 - **Unit Testing**: RSpec.

@@ -71,14 +71,8 @@ module PredictabilityEngine
     def all(file)
       manager = DataManager.new
       manager.load_csv(file)
-      items = manager.work_items
-      puts SummaryVisualizer.metrics_terminal(items)
-      puts '=== Cycle Time Scatter Plot ==='
-      puts Visualizer.cycle_time_scatter(items)
-      puts "\n=== Throughput Histogram ==="
-      puts Visualizer.throughput_histogram(items)
-      puts "\n=== Cumulative Flow Diagram ==="
-      puts Visualizer.cfd_plot(items)
+      report = Report.generate_all(manager.work_items)
+      puts report.render(:terminal)
     end
 
     desc 'html_all FILE [OUTPUT]', 'Generate a combined HTML dashboard'
@@ -86,8 +80,8 @@ module PredictabilityEngine
       manager = DataManager.new
       manager.load_csv(file)
       output ||= "#{File.basename(file, '.*')}_dashboard.html"
-      chart = Visualizer.vega_dashboard(manager.work_items)
-      File.write(output, Visualizer.to_full_html(chart, manager.work_items))
+      report = Report.generate_all(manager.work_items)
+      File.write(output, report.render(:html))
       puts "Dashboard generated at #{output}"
     end
 
@@ -120,6 +114,22 @@ module PredictabilityEngine
       manager = DataManager.new
       manager.load_csv(file)
       puts SummaryVisualizer.metrics_terminal(manager.work_items)
+    end
+
+    desc 'report FILE FORMAT [OUTPUT]', 'Generate a full report in various formats (terminal, html, pdf)'
+    def report(file, format = 'terminal', output = nil)
+      manager = DataManager.new
+      manager.load_csv(file)
+      report = Report.generate_all(manager.work_items)
+      content = report.render(format)
+
+      if output || format != 'terminal'
+        output ||= "#{File.basename(file, '.*')}_report.#{format}"
+        File.write(output, content)
+        puts "Report generated at #{output}"
+      else
+        puts content
+      end
     end
 
     desc 'forecast FILE BACKLOG_COUNT', 'Run Monte Carlo simulation for BACKLOG_COUNT items'

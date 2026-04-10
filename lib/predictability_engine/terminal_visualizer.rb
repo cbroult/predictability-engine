@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'unicode_plot'
+require 'stringio'
 
 module PredictabilityEngine
   module TerminalVisualizer
@@ -18,7 +19,9 @@ module PredictabilityEngine
     def self.render_full_scatter(work_items, x_coords, y_coords, title, start_date)
       plot = render_scatter_plot(x_coords, y_coords, title, start_date)
       add_scatter_percentiles(plot, work_items, x_coords.min, x_coords.max)
-      plot.render
+      out = StringIO.new
+      plot.render(out)
+      out.string
     end
 
     def self.render_scatter_plot(x_coords, y_coords, title, start_date)
@@ -41,7 +44,9 @@ module PredictabilityEngine
       return 'No throughput data to plot.' if daily_tp.empty?
 
       plot = UnicodePlot.histogram(daily_tp, title: title, xlabel: 'Items per day', ylabel: 'Frequency')
-      plot.render
+      out = StringIO.new
+      plot.render(out)
+      out.string
     end
 
     def self.cfd_plot(work_items, title: 'Cumulative Flow Diagram')
@@ -71,7 +76,9 @@ module PredictabilityEngine
       UnicodePlot.lineplot!(plot, dates.take(cfd_data.size), departed.compact, name: 'Departures')
 
       add_forecast_lines(plot, start_date, forecast)
-      plot.render
+      out = StringIO.new
+      plot.render(out)
+      out.string
     end
 
     def self.prepare_data(cfd_data, forecast, start_date)
@@ -110,7 +117,9 @@ module PredictabilityEngine
                                   title: title, name: 'Arrivals', ylabel: 'Total Items',
                                   xlabel: "Days since #{cfd_data.first[:date]}")
       UnicodePlot.lineplot!(plot, dates, cfd_data.map { |d| d[:departed] }, name: 'Departures')
-      plot.render
+      out = StringIO.new
+      plot.render(out)
+      out.string
     end
   end
 end

@@ -11,5 +11,16 @@ Layout/LineLength:
 Metrics/MethodLength:
   Max: 20
 
+Metrics/BlockLength:
+  AllowedMethods:
+    - describe
+    - context
+    - feature
+    - scenario
+    - Given
+    - When
+    - Then
+    - And
+
 Style/Documentation:
   Enabled: false
