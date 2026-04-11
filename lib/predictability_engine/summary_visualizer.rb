@@ -2,20 +2,11 @@
 
 module PredictabilityEngine
   module SummaryVisualizer
-    def self.metrics_html(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
-      render(work_items, :html, percentiles: percentiles)
-    end
-
-    def self.metrics_terminal(work_items, color: false, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
-      render(work_items, :terminal, color: color, percentiles: percentiles)
-    end
-
-    def self.metrics_markdown(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
-      render(work_items, :markdown, percentiles: percentiles)
-    end
-
-    def self.metrics_confluence(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
-      render(work_items, :confluence, percentiles: percentiles)
+    # Dynamically define metrics methods for all supported formats
+    %i[html terminal markdown confluence].each do |fmt|
+      define_singleton_method("metrics_#{fmt}") do |work_items, **opts|
+        render(work_items, fmt, **opts)
+      end
     end
 
     def self.render(work_items, format, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, **options)
@@ -39,6 +30,6 @@ module PredictabilityEngine
       metrics
     end
 
-    private_class_method :calculate_metrics, :render
+    private_class_method :calculate_metrics
   end
 end

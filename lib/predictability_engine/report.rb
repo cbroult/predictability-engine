@@ -4,6 +4,33 @@ module PredictabilityEngine
   class Report
     attr_reader :items, :title
 
+    CHART_CONFIG = {
+      cycle_time_scatter: { title: 'Cycle Time Scatter Plot' },
+      throughput_histogram: { title: 'Throughput Histogram' },
+      forecasted_cfd_plot: { title: 'Forecasted Cumulative Flow Diagram', vega: :forecasted_cfd }
+    }.freeze
+
+    FORMAT_CONFIG = {
+      terminal: {
+        h1: ->(t) { "=== #{t} ===" },
+        h2: ->(t) { "\n=== #{t} ===" },
+        code: ->(_t, c) { c },
+        aliases: %i[console ascii]
+      },
+      markdown: {
+        h1: ->(t) { "# #{t}\n" },
+        h2: ->(t) { "\n## #{t}" },
+        code: ->(_t, c) { "```\n#{c}\n```" },
+        aliases: [:md]
+      },
+      confluence: {
+        h1: ->(t) { "h1. #{t}\n" },
+        h2: ->(t) { "\nh2. #{t}" },
+        code: ->(t, c) { "{code:title=#{t}}\n#{c}\n{code}" },
+        aliases: [:conf]
+      }
+    }.freeze
+
     def initialize(items, title: 'Predictability Report')
       @items = items
       @title = title
@@ -14,128 +41,73 @@ module PredictabilityEngine
     end
 
     def render(format, color: false)
-      case format.to_sym
-      when :terminal, :console, :ascii
-        render_terminal(color: color)
-      when :html
-        render_html
-      when :markdown, :md
-        render_markdown
-      when :confluence, :conf
-        render_confluence
-      when :pdf
-        render_pdf
-      else
-        raise ArgumentError, "Unsupported format: #{format}"
-      end
+      fmt = format.to_sym
+      target = FORMAT_CONFIG.find { |k, v| k == fmt || v[:aliases]&.include?(fmt) }&.first || fmt
+      method_name = "render_#{target}"
+
+      raise ArgumentError, "Unsupported format: #{format}" unless respond_to?(method_name, true)
+
+      send(method_name, color: color)
     end
 
     private
 
-    def render_terminal(color: false)
+    def render_text_format(fmt, color: false)
+      config = FORMAT_CONFIG[fmt]
       [
-        "=== #{@title} ===",
-        SummaryVisualizer.metrics_terminal(@items, color: color),
-        "\n=== Cycle Time Scatter Plot ===",
-        TerminalVisualizer.cycle_time_scatter(@items, color: color),
-        "\n=== Throughput Histogram ===",
-        TerminalVisualizer.throughput_histogram(@items, color: color),
-        "\n=== Forecasted Cumulative Flow Diagram ===",
-        TerminalVisualizer.forecasted_cfd_plot(@items, color: color)
+        config[:h1].call(@title),
+        SummaryVisualizer.render(@items, fmt, color: color),
+        *CHART_CONFIG.map do |id, cfg|
+          content = TerminalVisualizer.send(id, @items, color: color)
+          [config[:h2].call(cfg[:title]), config[:code].call(cfg[:title], content)].join("\n")
+        end
       ].join("\n")
     end
 
-    def render_html
-      charts = [
-        "<div class='section'><h2>Cycle Time Scatter Plot</h2>" \
-        "#{VegaVisualizer.cycle_time_scatter(@items).to_html}</div>",
-        "<div class='section'><h2>Throughput Histogram</h2>" \
-        "#{VegaVisualizer.throughput_histogram(@items).to_html}</div>",
-        "<div class='section'><h2>Forecasted Cumulative Flow Diagram</h2>" \
-        "#{VegaVisualizer.forecasted_cfd(@items).to_html}</div>"
-      ].join("\n")
+    def render_terminal(color: false) = render_text_format(:terminal, color: color)
+    def render_markdown(color: false) = render_text_format(:markdown, color: color)
+    def render_confluence(color: false) = render_text_format(:confluence, color: color)
+
+    def render_html(**_opts)
+      charts = CHART_CONFIG.map do |id, cfg|
+        vega_method = cfg[:vega] || id
+        "<div class='section'><h2>#{cfg[:title]}</h2>" \
+          "#{VegaVisualizer.send(vega_method, @items).to_html}</div>"
+      end.join("\n")
 
       Visualizer.to_full_html(charts, @items, title: @title)
     end
 
-    def render_markdown
-      [
-        "# #{@title}",
-        '',
-        SummaryVisualizer.metrics_markdown(@items),
-        '',
-        '## Cycle Time Scatter Plot',
-        '```',
-        TerminalVisualizer.cycle_time_scatter(@items, color: false),
-        '```',
-        '',
-        '## Throughput Histogram',
-        '```',
-        TerminalVisualizer.throughput_histogram(@items, color: false),
-        '```',
-        '',
-        '## Forecasted Cumulative Flow Diagram',
-        '```',
-        TerminalVisualizer.forecasted_cfd_plot(@items, color: false),
-        '```'
-      ].join("\n")
-    end
-
-    def render_confluence
-      [
-        "h1. #{@title}",
-        '',
-        SummaryVisualizer.metrics_confluence(@items),
-        '',
-        'h2. Cycle Time Scatter Plot',
-        '{code:title=Cycle Time Scatter Plot}',
-        TerminalVisualizer.cycle_time_scatter(@items, color: false),
-        '{code}',
-        '',
-        'h2. Throughput Histogram',
-        '{code:title=Throughput Histogram}',
-        TerminalVisualizer.throughput_histogram(@items, color: false),
-        '{code}',
-        '',
-        'h2. Forecasted Cumulative Flow Diagram',
-        '{code:title=Forecasted Cumulative Flow Diagram}',
-        TerminalVisualizer.forecasted_cfd_plot(@items, color: false),
-        '{code}'
-      ].join("\n")
-    end
-
-    def render_pdf
+    def render_pdf(**_opts)
       require 'prawn'
       items = @items
       title = @title
 
       Prawn::Document.new do |pdf|
-        setup_pdf_font(pdf)
+        Report.send(:setup_pdf_font_on_doc, pdf)
         pdf.text title, size: 24, style: :bold
         pdf.move_down 20
 
         pdf.text SummaryVisualizer.metrics_terminal(items, color: false)
 
-        %i[cycle_time_scatter throughput_histogram forecasted_cfd_plot].each do |chart|
+        CHART_CONFIG.each_key do |id|
           pdf.start_new_page
-          pdf.text chart.to_s.split('_').map(&:capitalize).join(' '), size: 18, style: :bold
+          pdf.text CHART_CONFIG[id][:title], size: 18, style: :bold
           pdf.move_down 10
-          chart_text = TerminalVisualizer.send(chart, items, color: false)
-          pdf.text chart_text, size: 7
+          pdf.text TerminalVisualizer.send(id, items, color: false), size: 7
         end
       end.render
     end
 
-    def setup_pdf_font(pdf)
+    def self.setup_pdf_font_on_doc(pdf)
       mono_path = '/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf'
       bold_path = '/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf'
       return unless File.exist?(mono_path) && File.exist?(bold_path)
 
-      pdf.font_families.update('DejaVu' => {
-                                 normal: mono_path,
-                                 bold: bold_path
-                               })
+      pdf.font_families.update('DejaVu' => { normal: mono_path, bold: bold_path })
       pdf.font 'DejaVu'
     end
+
+    private_class_method :setup_pdf_font_on_doc
   end
 end
