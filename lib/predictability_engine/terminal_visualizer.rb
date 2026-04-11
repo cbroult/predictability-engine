@@ -46,8 +46,16 @@ module PredictabilityEngine
 
       start = cfd.first[:date]
       coords = Calculators::Cfd.to_coordinates(cfd, start)
-      plot = lineplot_base(coords[:dates], coords[:arrived], title, start)
-      UnicodePlot.lineplot!(plot, coords[:dates], coords[:departed], name: 'Departures')
+      max_y = coords[:arrived].max || 0
+      max_x = coords[:dates].max || 0
+
+      # Arrivals first for legend and top boundary
+      plot = UnicodePlot.stairs(coords[:dates], coords[:arrived],
+                                title: title, name: 'Arrivals',
+                                xlabel: "Days since #{start}", ylabel: 'Total Items',
+                                color: :blue, xlim: [0, max_x], ylim: [0, max_y])
+      # Departures next
+      UnicodePlot.stairs!(plot, coords[:dates], coords[:departed], name: 'Departures', color: :red)
       render_to_string(plot, color: color)
     end
 
@@ -56,25 +64,42 @@ module PredictabilityEngine
       data = Calculators::Cfd.forecast_series(work_items, percentiles: percentiles)
       return cfd_plot(work_items, title: title, color: color) unless data
 
-      start = data[:dates].first
-      x_coords = data[:dates].map { |d| (d - start).to_i }
-      hist_size = data[:departed].size
-      sorted_pcts = percentiles.sort
+      params = build_forecast_params(data)
+      plot = UnicodePlot.stairs(params[:x_coords], params[:arrivals],
+                                title: title, name: 'Arrivals', ylabel: 'Total Items',
+                                xlabel: "Days since #{params[:start]}", color: :blue,
+                                xlim: [0, params[:max_x]], ylim: [0, params[:total_items]])
 
-      plot = lineplot_base(x_coords, data[:arrivals], title, start)
-      sorted_pcts.each do |p|
-        UnicodePlot.lineplot!(plot, x_coords, data[:forecasts][p], name: "#{p}% Confidence")
-        deadline_x = x_coords[hist_size - 1 + data[:summary][:"p#{p}"]]
-        UnicodePlot.lineplot!(plot, [deadline_x, deadline_x], [0, data[:summary][:total_items]])
-      end
-      UnicodePlot.lineplot!(plot, x_coords.take(hist_size), data[:departed], name: 'Departures')
-
+      add_forecast_layers!(plot, data, params, percentiles)
       render_to_string(plot, color: color)
     end
 
-    def self.lineplot_base(x_coords, y_coords, title, start)
-      UnicodePlot.lineplot(x_coords, y_coords, title: title, name: 'Arrivals', ylabel: 'Total Items',
-                                               xlabel: "Days since #{start}")
+    def self.build_forecast_params(data)
+      start = data[:dates].first
+      {
+        start: start,
+        x_coords: data[:dates].map { |d| (d - start).to_i },
+        hist_size: data[:departed].size,
+        total_items: data[:summary][:total_items],
+        max_x: data[:dates].map { |d| (d - start).to_i }.max || 0,
+        arrivals: data[:arrivals]
+      }
+    end
+
+    def self.add_forecast_layers!(plot, data, params, percentiles)
+      # Departures next
+      UnicodePlot.stairs!(plot, params[:x_coords].take(params[:hist_size]), data[:departed],
+                          name: 'Departures', color: :red)
+
+      # Forecast confidence paths
+      f_colors = %i[green yellow magenta cyan]
+      percentiles.sort.each_with_index do |p, i|
+        UnicodePlot.lineplot!(plot, params[:x_coords], data[:forecasts][p],
+                              name: "#{p}% Confidence", color: f_colors[i % f_colors.size])
+        deadline_x = params[:x_coords][params[:hist_size] - 1 + data[:summary][:"p#{p}"]]
+        # Use normal color for vertical lines (neutral); omitted from legend
+        UnicodePlot.lineplot!(plot, [deadline_x, deadline_x], [0, params[:total_items]], color: :normal)
+      end
     end
 
     def self.render_to_string(plot, color: false)
@@ -83,6 +108,6 @@ module PredictabilityEngine
       sio.string
     end
 
-    private_class_method :lineplot_base, :render_to_string
+    private_class_method :render_to_string, :build_forecast_params, :add_forecast_layers!
   end
 end
