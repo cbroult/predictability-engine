@@ -15,19 +15,20 @@ module PredictabilityEngine
     end
 
     def self.cycle_time_scatter(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES,
-                                title: 'Cycle Time Scatter Plot')
+                                title: 'Cycle Time Scatter Plot', **_opts)
       BasicCharts.cycle_time_scatter(work_items, percentiles, title: title)
     end
 
-    def self.throughput_histogram(work_items, title: 'Throughput Histogram')
+    def self.throughput_histogram(work_items, title: 'Throughput Histogram', **_opts)
       BasicCharts.throughput_histogram(work_items, title: title)
     end
 
-    def self.aging_wip(work_items, title: 'Aging Work In Progress')
+    def self.aging_wip(work_items, title: 'Aging Work In Progress',
+                       percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, **_opts)
       data = Calculators::Aging.item_age_data(work_items)
       return Vega.lite.data([]).title(title || 'Aging Work In Progress') if data.empty?
 
-      pcts = PredictabilityEngine.mapped_percentiles(work_items)
+      pcts = PredictabilityEngine.mapped_percentiles(work_items, percentiles)
       apply_standard_dims(
         Vega.lite.data(data)
             .layer([aging_bar_layer, *aging_rule_layers(pcts)]),
@@ -52,23 +53,25 @@ module PredictabilityEngine
       end
     end
 
-    def self.cfd(work_items, title: 'Cumulative Flow Diagram')
+    def self.cfd(work_items, title: 'Cumulative Flow Diagram', **_opts)
       CfdCharts.cfd(work_items, title: title)
     end
 
     def self.forecasted_cfd(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES,
-                            title: 'Forecasted Cumulative Flow Diagram')
+                            title: 'Forecasted Cumulative Flow Diagram', **_opts)
       CfdCharts.forecasted_cfd(work_items, percentiles, title)
     end
 
-    def self.extend_cfd_arrivals(hist, f)
-      hist << { date: (f[:summary][:today] + f[:max_days]).to_s, count: f[:summary][:total_items], type: 'Arrivals' }
-    end
-
-    def self.build_cfd_forecast_data(f, percentiles)
-      percentiles.flat_map do |p|
-        f[:"p#{p}"].map { |pt| { date: pt[:date].to_s, count: pt[:count], type: "#{p}% Confidence" } }
+    def self.build_cfd_unified_data(data, percentiles)
+      res = []
+      data[:dates].each_with_index do |date, i|
+        res << { date: date.to_s, count: data[:arrivals][i], type: 'Arrivals' }
+        percentiles.each do |p|
+          res << { date: date.to_s, count: data[:forecasts][p][i], type: "#{p}% Confidence" }
+        end
+        res << { date: date.to_s, count: data[:departed][i], type: 'Departures' } if i < data[:departed].size
       end
+      res
     end
 
     def self.cfd_area_layer(pcts, legend: true)

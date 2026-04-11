@@ -5,11 +5,11 @@ require 'stringio'
 
 module PredictabilityEngine
   module TerminalVisualizer
-    def self.aging_wip(work_items, color: false)
+    def self.aging_wip(work_items, color: false, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, **_opts)
       data = Calculators::Aging.item_age_data(work_items)
       return 'No items currently in progress.' if data.empty?
 
-      pcts = PredictabilityEngine.mapped_percentiles(work_items)
+      pcts = PredictabilityEngine.mapped_percentiles(work_items, percentiles)
       plot = UnicodePlot.barplot(data.map { |d| d[:id].to_s }, data.map { |d| d[:age] },
                                  title: 'Aging Work In Progress (Days)', color: color ? :blue : nil)
       [plot.render, '', '--- SLE Benchmarks (Historical) ---',
@@ -17,7 +17,7 @@ module PredictabilityEngine
     end
 
     def self.cycle_time_scatter(work_items, title: 'Cycle Time Scatter Plot', color: false,
-                                percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
+                                percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, **_opts)
       completed = Calculators::CycleTime.completed_sorted(work_items)
       return 'No completed items to plot.' if completed.empty?
 
@@ -32,7 +32,7 @@ module PredictabilityEngine
       render_to_string(plot, color: color)
     end
 
-    def self.throughput_histogram(work_items, title: 'Throughput Histogram', color: false)
+    def self.throughput_histogram(work_items, title: 'Throughput Histogram', color: false, **_opts)
       daily = Calculators::Throughput.daily(work_items).values
       return 'No throughput data to plot.' if daily.empty?
 
@@ -40,7 +40,7 @@ module PredictabilityEngine
       render_to_string(plot, color: color)
     end
 
-    def self.cfd_plot(work_items, title: 'Cumulative Flow Diagram', color: false)
+    def self.cfd_plot(work_items, title: 'Cumulative Flow Diagram', color: false, **_opts)
       cfd = Calculators::Cfd.calculate(work_items)
       return 'No CFD data to plot.' if cfd.empty?
 
@@ -52,21 +52,23 @@ module PredictabilityEngine
     end
 
     def self.forecasted_cfd_plot(work_items, title: 'Forecasted Cumulative Flow Diagram', color: false,
-                                 percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
-      Calculators::Cfd.with_forecast(work_items, percentiles: percentiles) do |f|
-        return cfd_plot(work_items, title: title, color: color) unless f
+                                 percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, **_opts)
+      data = Calculators::Cfd.forecast_series(work_items, percentiles: percentiles)
+      return cfd_plot(work_items, title: title, color: color) unless data
 
-        cfd = Calculators::Cfd.calculate(work_items)
-        start = cfd.first[:date]
-        coords = Calculators::Cfd.to_coordinates(cfd, start)
-        (1..f[:max_days]).each { |i| coords[:dates] << (Date.today + i - start).to_i }
+      start = data[:dates].first
+      x_coords = data[:dates].map { |d| (d - start).to_i }
+      hist_size = data[:departed].size
 
-        y_arr = coords[:arrived] + ([f[:summary][:total_items]] * f[:max_days])
-        plot = lineplot_base(coords[:dates], y_arr, title, start)
-        UnicodePlot.lineplot!(plot, coords[:dates].take(cfd.size), coords[:departed], name: 'Departures')
-        add_terminal_forecast_lines(plot, start, f, percentiles)
-        render_to_string(plot, color: color)
+      plot = lineplot_base(x_coords, data[:arrivals], title, start)
+      percentiles.each do |p|
+        UnicodePlot.lineplot!(plot, x_coords, data[:forecasts][p], name: "#{p}% Confidence")
+        deadline_x = x_coords[hist_size - 1 + data[:summary][:"p#{p}"]]
+        UnicodePlot.lineplot!(plot, [deadline_x, deadline_x], [0, data[:summary][:total_items]])
       end
+      UnicodePlot.lineplot!(plot, x_coords.take(hist_size), data[:departed], name: 'Departures')
+
+      render_to_string(plot, color: color)
     end
 
     def self.lineplot_base(x_coords, y_coords, title, start)
@@ -74,23 +76,12 @@ module PredictabilityEngine
                                                xlabel: "Days since #{start}")
     end
 
-    def self.add_terminal_forecast_lines(plot, start, f, pcts)
-      pcts.each do |p|
-        pts = f[:"p#{p}"]
-        next unless pts
-
-        x = pts.map { |pt| (pt[:date] - start).to_i }
-        UnicodePlot.lineplot!(plot, x, pts.map { |pt| pt[:count] }, name: "#{p}% Confidence")
-        UnicodePlot.lineplot!(plot, [x.last, x.last], [0, f[:summary][:total_items]])
-      end
-    end
-
     def self.render_to_string(plot, color: false)
-      out = StringIO.new
-      plot.render(out, color: color)
-      out.string
+      sio = StringIO.new
+      plot.render(sio, color: color)
+      sio.string
     end
 
-    private_class_method :add_terminal_forecast_lines, :render_to_string, :lineplot_base
+    private_class_method :lineplot_base, :render_to_string
   end
 end
