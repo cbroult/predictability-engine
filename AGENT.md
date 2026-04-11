@@ -35,6 +35,17 @@ Testing is not a phase — it is woven into every stage of the development lifec
 - **Continuous Deployment (CD)**: Automating the deployment of the engine to a staging or production-like environment.
 - **Release on Demand (RoD)**: The ability to release new features to the end-user whenever the business requires.
 
+#### DATA SOURCES & CONFIGURATION
+- **Data Abstraction**: Ingestion is abstracted via a `DataSource` strategy pattern (CSV, Excel, Jira).
+- **Convention over Configuration**:
+  - Jira credentials and site are loaded from `.predictability_engine.yml` or environment variables (`JIRA_SITE`, `JIRA_EMAIL`, `JIRA_API_TOKEN`).
+  - Default output formats and filenames follow established project naming conventions.
+
+#### ARCHITECTURE & DOCUMENTATION
+- **Architectural Integrity**: Document the system architecture using the **C4 model** (Context, Container, Component, Code) and other context-appropriate diagrams (e.g., Sequence, State, Class) to ensure a shared mental model of the system for both humans and AI agents.
+- **Living Documentation**: Technical documentation and diagrams must be kept up-to-date with code changes.
+- **API Documentation**: Use **YARD** to maintain documentation for the engine's internal library.
+
 #### GIT & VERSION CONTROL
 - **Conventional Commits**: Use a standardized commit message format (e.g., `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `test:`, `chore:`) to ensure a readable and automated history.
 - **Regular Commits**: Commit changes frequently to maintain a granular and reversible history. This ensures that every meaningful change is documented and can be easily rolled back or reviewed.
@@ -46,11 +57,12 @@ Testing is not a phase — it is woven into every stage of the development lifec
 - **Code Quality**: RuboCop.
 - **Visualizations**: **unicode_plot** (CLI), **vega** (HTML/JSON). Wrapped in full HTML templates for browser viewing.
 - **Naming Convention**: HTML outputs follow `[input_basename]_[chart_type].html` if not specified.
-- **Duplicate Detection**: **jscpd** (Configured for 4 lines / 25 tokens).
+- **Duplicate Detection**: **jscpd** (Configured for 2 lines / 16 tokens). Threshold is set to 0.8% to balance extreme DRYness with code readability (clones are primarily in method signatures and structural test patterns).
 - **Browser Validation**: **Playwright** (Used for verifying HTML chart rendering in the pipeline).
 - **Security Analysis**: **bundler-audit** (Continuous scanning of dependencies).
+- **Architecture Diagrams**: **Mermaid** (C4/Sequence diagrams embedded in Markdown).
 - **API Documentation**: **YARD** (Documentation of internal library).
 - **Benchmarking**: **benchmark-ips** (Performance monitoring for simulations).
 - **Coverage**: SimpleCov.
 - **AI Evaluation**: Custom evaluation scripts for LLM outputs.
-- **CI/CD**: GitHub Actions (ready for implementation).
+- **CI/CD**: Woodpecker CI.
