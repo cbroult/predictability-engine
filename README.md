@@ -77,6 +77,11 @@ Generate visual representations of your metrics:
 ./bin/predictability-engine viz html_all sample_data.csv
 ```
 
+## Documentation
+- [Engineering Guidelines (AGENT.md)](AGENT.md)
+- [Architecture Documentation (ARCHITECTURE.md)](ARCHITECTURE.md)
+- [API Documentation (YARD)](doc/index.html)
+
 ## Quality & Testing
 
 We use a suite of tools to ensure high-quality code and accurate metrics:
