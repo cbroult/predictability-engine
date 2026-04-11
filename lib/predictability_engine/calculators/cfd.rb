@@ -15,6 +15,14 @@ module PredictabilityEngine
         fill_daily_gaps(results, start_date, end_date)
       end
 
+      def self.forecast_summary(work_items, trials: 10_000, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
+        CfdForecaster.forecast_summary(work_items, trials: trials, percentiles: percentiles)
+      end
+
+      def self.forecast_series(work_items, trials: 10_000, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
+        CfdForecaster.forecast_series(work_items, trials: trials, percentiles: percentiles)
+      end
+
       def self.fill_daily_gaps(results, start_date, end_date)
         start_date ||= results.first[:date]
         end_date ||= results.last[:date]
@@ -43,60 +51,6 @@ module PredictabilityEngine
         results
       end
 
-      def self.forecast_summary(work_items, trials: 10_000, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
-        backlog = work_items.reject(&:completed?).size
-        historical = Throughput.daily(work_items).values
-        return nil if backlog.zero? || historical.empty?
-
-        results = Simulators::MonteCarlo.when_will_it_be_done(backlog, historical, trials: trials)
-        res = { wip: backlog, today: Date.today, total_items: work_items.size,
-                departed_so_far: work_items.count(&:completed?) }
-        percentiles.each { |p| res[:"p#{p}"] = Simulators::MonteCarlo.percentile(results, p) }
-        res
-      end
-
-      def self.forecast_series(work_items, trials: 10_000, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
-        cfd_data = calculate(work_items, end_date: Date.today)
-        return nil if cfd_data.empty?
-
-        summary = forecast_summary(work_items, trials: trials, percentiles: percentiles)
-        return nil unless summary
-
-        history = cfd_data.last(15)
-        max_days = percentiles.map { |p| summary[:"p#{p}"] }.max || 0
-        { dates: build_dates(history, max_days), arrivals: build_arrivals(history, max_days),
-          departed: history.map { |d| d[:departed] }, summary: summary, max_days: max_days,
-          forecasts: build_forecast_map(history, summary, max_days, percentiles) }
-      end
-
-      def self.build_dates(history, max_days)
-        dates = history.map { |d| d[:date] }
-        (1..max_days).each { |i| dates << (history.last[:date] + i) }
-        dates
-      end
-
-      def self.build_arrivals(history, max_days)
-        arrivals = history.map { |d| d[:arrived] }
-        (1..max_days).each { |_i| arrivals << history.last[:arrived] }
-        arrivals
-      end
-
-      def self.build_forecast_map(history, summary, max_days, percentiles)
-        percentiles.each_with_object({}) do |p, h|
-          days = summary[:"p#{p}"]
-          res = history.map { |d| d[:departed] }
-          (1..max_days).each do |i|
-            point = if i <= days
-                      (history.last[:departed] + (i * (summary[:wip].to_f / days))).round
-                    else
-                      summary[:total_items]
-                    end
-            res << point
-          end
-          h[p] = res
-        end
-      end
-
       def self.with_forecast(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
         forecast = forecast_summary(work_items, percentiles: percentiles)
         return yield(nil) unless forecast
@@ -110,7 +64,7 @@ module PredictabilityEngine
           departed: cfd.map { |d| d[:departed] } }
       end
 
-      private_class_method :process_events, :build_dates, :build_arrivals, :build_forecast_map, :fill_daily_gaps
+      private_class_method :process_events, :fill_daily_gaps
     end
   end
 end

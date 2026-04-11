@@ -19,15 +19,14 @@ module PredictabilityEngine
       series = [data[:arrivals]]
       labels = ['Arrivals']
       hist_size = data[:departed].size
+      series << (data[:departed] + Array.new(data[:dates].size - hist_size, nil))
+      labels << 'Departures'
       percentiles.each do |p|
         series << data[:forecasts][p]
         labels << "#{p}% Confidence"
         series << build_vertical_rule(data, p, hist_size)
         labels << "#{p}% Deadline"
       end
-      # Add Departures last as per user request
-      series << (data[:departed] + Array.new(data[:dates].size - hist_size, nil))
-      labels << 'Departures'
 
       format_mermaid_xy('Forecasted Cumulative Flow Diagram', data[:dates].map(&:to_s), 'Items',
                         series, labels: labels, thin: true)

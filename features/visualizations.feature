@@ -96,3 +96,14 @@ Feature: Visualization command
     When I run `predictability-engine viz html_all dynamic_test.csv`
     Then the exit status should be 0
     And a file named "reports/dynamic_test/dashboard.html" should contain "Total Items:</strong> 2"
+
+  Scenario: Verifying Forecasted CFD vertical lines in HTML report
+    Given a file named "align_test.csv" with:
+      """
+      id,title,start_date,end_date
+      PROJ-1,Done,2026-04-01,2026-04-02
+      PROJ-2,WIP,2026-04-05,
+      """
+    When I run `predictability-engine viz html_forecasted_cfd align_test.csv`
+    Then the exit status should be 0
+    And the HTML file "reports/align_test/forecasted_cfd.html" should have vertical rules for confidence levels

@@ -18,27 +18,27 @@ Feature: Report generation in multiple formats
     And a file named "reports/sample_data/<filename>" should contain "<title>"
 
     Examples:
-      | subcommand | filename    | title                            |
-      | markdown   | report.md   | # Full Predictability Dashboard  |
-      | md         | report.md   | # Full Predictability Dashboard  |
-      | confluence | report.conf | h1. Full Predictability Dashboard |
-      | conf       | report.conf | h1. Full Predictability Dashboard |
+      | subcommand | filename     | title                            |
+      | markdown   | dashboard.md | # Full Predictability Dashboard  |
+      | md         | dashboard.md | # Full Predictability Dashboard  |
+      | confluence | dashboard.conf | h1. Full Predictability Dashboard |
+      | conf       | dashboard.conf | h1. Full Predictability Dashboard |
 
   Scenario: Generating a landscape dashboard via viz
     When I run `predictability-engine viz landscape sample_data.csv`
     Then the exit status should be 0
-    And a file named "reports/sample_data/landscape.html" should exist
-    And the HTML file "reports/sample_data/landscape.html" should be valid and visible in a browser
+    And a file named "reports/sample_data/dashboard_landscape.html" should exist
+    And the HTML file "reports/sample_data/dashboard_landscape.html" should be valid and visible in a browser
 
   Scenario: Generating a PDF report via viz
     When I run `predictability-engine viz pdf sample_data.csv`
     Then the output should be visible on failure
     And the exit status should be 0
-    And a file named "reports/sample_data/report.pdf" should exist
-    And the file "reports/sample_data/report.pdf" should be a valid PDF
+    And a file named "reports/sample_data/dashboard.pdf" should exist
+    And the file "reports/sample_data/dashboard.pdf" should be a valid PDF
 
   Scenario: Generating an A3 landscape PDF dashboard via viz
     When I run `predictability-engine viz a3_landscape sample_data.csv`
     Then the exit status should be 0
-    And a file named "reports/sample_data/a3_landscape.pdf" should exist
-    And the file "reports/sample_data/a3_landscape.pdf" should be a valid PDF
+    And a file named "reports/sample_data/dashboard_a3_landscape.pdf" should exist
+    And the file "reports/sample_data/dashboard_a3_landscape.pdf" should be a valid PDF

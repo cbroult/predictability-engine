@@ -72,7 +72,7 @@ module PredictabilityEngine
         end
       end
       { mark: { type: 'area', line: true, tooltip: true },
-        encoding: { x: { field: 'date', type: 'temporal', title: 'Date' },
+        encoding: { x: { field: 'date', type: 'temporal', title: 'Date', timeUnit: 'yearmonthdate' },
                     y: { field: 'count', type: 'quantitative', title: 'Total Items', stack: nil },
                     color: cfg,
                     order: { field: 'order', type: 'quantitative' } } }
@@ -81,13 +81,15 @@ module PredictabilityEngine
     def self.cfd_line_layer(pcts)
       filter = pcts.map { |p| "datum.type == '#{p}% Confidence'" }.join(' || ')
       { transform: [{ filter: filter }], mark: { type: 'line', strokeDash: [4, 4], tooltip: true },
-        encoding: { x: { field: 'date', type: 'temporal' }, y: { field: 'count', type: 'quantitative' },
+        encoding: { x: { field: 'date', type: 'temporal', timeUnit: 'yearmonthdate' },
+                    y: { field: 'count', type: 'quantitative' },
                     color: { field: 'type', type: 'nominal' } } }
     end
 
     def self.cfd_vert_layer(f, pcts)
-      { data: { values: cfd_vert_data(f, pcts) }, mark: { type: 'rule', strokeDash: [2, 2], color: '#666' },
-        encoding: { x: { field: 'date', type: 'temporal' }, tooltip: { field: 'tooltip', type: 'nominal' } } }
+      { data: { values: cfd_vert_data(f, pcts) }, mark: { type: 'rule', strokeDash: [2, 2], color: 'black' },
+        encoding: { x: { field: 'date', type: 'temporal', timeUnit: 'yearmonthdate' },
+                    tooltip: { field: 'tooltip', type: 'nominal' } } }
     end
 
     def self.cfd_vert_data(f, pcts)

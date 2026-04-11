@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'redcarpet'
-markdown = File.read('reports/sample_data/report.md')
+markdown = File.read('reports/sample_data/dashboard.md')
 
 # Custom renderer for Mermaid
 class MermaidRenderer < Redcarpet::Render::HTML
