@@ -2,32 +2,36 @@
 
 require 'vega'
 require_relative 'vega_visualizer/basic_charts'
+require_relative 'vega_visualizer/cfd_charts'
 
 module PredictabilityEngine
   module VegaVisualizer
     CHART_WIDTH = 600
     CHART_HEIGHT = 400
 
-    def self.apply_standard_dims(chart)
+    def self.apply_standard_dims(chart, title: nil)
+      chart = chart.title(title) if title
       chart.width(CHART_WIDTH).height(CHART_HEIGHT)
     end
 
-    def self.cycle_time_scatter(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
-      BasicCharts.cycle_time_scatter(work_items, percentiles)
+    def self.cycle_time_scatter(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES,
+                                title: 'Cycle Time Scatter Plot')
+      BasicCharts.cycle_time_scatter(work_items, percentiles, title: title)
     end
 
-    def self.throughput_histogram(work_items)
-      BasicCharts.throughput_histogram(work_items)
+    def self.throughput_histogram(work_items, title: 'Throughput Histogram')
+      BasicCharts.throughput_histogram(work_items, title: title)
     end
 
-    def self.aging_wip(work_items)
+    def self.aging_wip(work_items, title: 'Aging Work In Progress')
       data = Calculators::Aging.item_age_data(work_items)
-      return Vega.lite.data([]).title('Aging Work In Progress') if data.empty?
+      return Vega.lite.data([]).title(title || 'Aging Work In Progress') if data.empty?
 
       pcts = PredictabilityEngine.mapped_percentiles(work_items)
       apply_standard_dims(
-        Vega.lite.data(data).title('Aging Work In Progress')
-            .layer([aging_bar_layer, *aging_rule_layers(pcts)])
+        Vega.lite.data(data)
+            .layer([aging_bar_layer, *aging_rule_layers(pcts)]),
+        title: title
       )
     end
 
@@ -47,25 +51,13 @@ module PredictabilityEngine
       end
     end
 
-    def self.cfd(work_items)
-      data = format_cfd_data(Calculators::Cfd.calculate(work_items))
-      chart = Vega.lite.data(data).title('Cumulative Flow Diagram').layer([cfd_area_layer([], legend: false)])
-      apply_standard_dims(chart)
+    def self.cfd(work_items, title: 'Cumulative Flow Diagram')
+      CfdCharts.cfd(work_items, title: title)
     end
 
-    def self.forecasted_cfd(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
-      Calculators::Cfd.with_forecast(work_items, percentiles: percentiles) do |f|
-        return cfd(work_items) unless f
-
-        hist = format_cfd_data(Calculators::Cfd.calculate(work_items))
-        extend_cfd_arrivals(hist, f)
-        f_data = build_cfd_forecast_data(f, percentiles)
-        apply_standard_dims(
-          Vega.lite.data(hist + f_data).title('Forecasted Cumulative Flow Diagram')
-              .layer([cfd_area_layer(percentiles), cfd_line_layer(percentiles),
-                      cfd_vert_layer(f, percentiles)])
-        )
-      end
+    def self.forecasted_cfd(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES,
+                            title: 'Forecasted Cumulative Flow Diagram')
+      CfdCharts.forecasted_cfd(work_items, percentiles, title)
     end
 
     def self.extend_cfd_arrivals(hist, f)

@@ -22,7 +22,8 @@ module PredictabilityEngine
     def self.calculate_metrics(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
       metrics = {
         completed: PredictabilityEngine.completed_items(work_items),
-        tp_avg: Calculators::Throughput.average(work_items)
+        tp_avg: Calculators::Throughput.average(work_items),
+        aging: Calculators::Aging.summary_metrics(work_items)
       }
       percentiles.each do |p|
         metrics[:"p#{p}"] = Calculators::CycleTime.percentile(work_items, p)

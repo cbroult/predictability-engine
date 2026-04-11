@@ -1,77 +1,91 @@
 # frozen_string_literal: true
 
+require_relative 'helpers'
+
 module PredictabilityEngine
   module SummaryVisualizer
     module Renderer
       def self.render_html_summary(work_items, metrics, percentiles)
-        <<~HTML
+        html = <<~HTML
           <h2>Flow Metrics Summary</h2>
           <ul>
-            #{metric_list(work_items, metrics)}
-          </ul>
-          <h3>Cycle Time Percentiles</h3>
-          <ul>
-            #{percentile_lines(metrics, percentiles, prefix: '<li><strong>', bold: '</strong>', suffix: '</li>')}
+            #{Helpers.metric_list(work_items, metrics)}
           </ul>
         HTML
+
+        if metrics[:aging]
+          html += <<~HTML
+            <h3>Aging WIP Summary</h3>
+            <ul>
+              <li><strong>Active WIP:</strong> #{metrics[:aging][:count]} items</li>
+              <li><strong>Average WIP Age:</strong> #{metrics[:aging][:avg_age]} days</li>
+              <li><strong>Oldest Item Age:</strong> #{metrics[:aging][:max_age]} days</li>
+            </ul>
+          HTML
+        end
+
+        html += <<~HTML
+          <h3>Cycle Time Percentiles</h3>
+          <ul>
+            #{Helpers.percentile_lines(metrics, percentiles, prefix: '<li><strong>', bold: '</strong>', suffix: '</li>')}
+          </ul>
+        HTML
+        html
       end
 
       def self.render_terminal_summary(work_items, metrics, color, percentiles)
-        bold, cyan, reset = terminal_colors(color)
-        [
+        bold, cyan, reset = Helpers.terminal_colors(color)
+        out = [
           "#{bold}Flow Metrics Summary#{reset}",
           '--------------------',
-          metric_lines(work_items, metrics), '',
+          Helpers.metric_lines(work_items, metrics), ''
+        ]
+
+        if metrics[:aging]
+          out += [
+            "#{cyan}Aging WIP Summary:#{reset}",
+            "  Active WIP: #{metrics[:aging][:count]} items",
+            "  Average Age: #{metrics[:aging][:avg_age]} days",
+            "  Max Age: #{metrics[:aging][:max_age]} days", ''
+          ]
+        end
+
+        out += [
           "#{cyan}Cycle Time Percentiles:#{reset}",
-          percentile_lines(metrics, percentiles, prefix: '  '), ''
-        ].join("\n")
+          Helpers.percentile_lines(metrics, percentiles, prefix: '  '), ''
+        ]
+        out.join("\n")
       end
 
       def self.render_markdown_summary(work_items, metrics, percentiles)
-        [
-          '## Flow Metrics Summary', '',
-          metric_lines(work_items, metrics, prefix: '* ', bold: '**'), '',
-          '### Cycle Time Percentiles', '',
-          percentile_lines(metrics, percentiles, prefix: '* ', bold: '**')
-        ].join("\n")
+        render_markup_summary(work_items, metrics, percentiles, bold: '**', h2: '##', h3: '###')
       end
 
       def self.render_confluence_summary(work_items, metrics, percentiles)
-        [
-          'h2. Flow Metrics Summary', '',
-          metric_lines(work_items, metrics, prefix: '* ', bold: '*'), '',
-          'h3. Cycle Time Percentiles', '',
-          percentile_lines(metrics, percentiles, prefix: '* ', bold: '*')
-        ].join("\n")
+        render_markup_summary(work_items, metrics, percentiles, bold: '*', h2: 'h2.', h3: 'h3.')
       end
 
-      def self.metric_lines(work_items, metrics, prefix: '', bold: '')
-        shared_metrics(work_items, metrics).map { |k, v| "#{prefix}#{bold}#{k}:#{bold} #{v}" }.join("\n")
-      end
+      def self.render_markup_summary(work_items, metrics, percentiles, bold:, h2:, h3:)
+        out = [
+          "#{h2} Flow Metrics Summary", '',
+          Helpers.metric_lines(work_items, metrics, prefix: '* ', bold: bold), ''
+        ]
 
-      def self.metric_list(work_items, metrics)
-        shared_metrics(work_items, metrics).map { |k, v| "<li><strong>#{k}:</strong> #{v}</li>" }.join("\n")
-      end
+        if metrics[:aging]
+          out += [
+            "#{h3} Aging WIP Summary", '',
+            "* #{bold}Active WIP:#{bold} #{metrics[:aging][:count]} items",
+            "* #{bold}Average WIP Age:#{bold} #{metrics[:aging][:avg_age]} days",
+            "* #{bold}Oldest Item Age:#{bold} #{metrics[:aging][:max_age]} days", ''
+          ]
+        end
 
-      def self.percentile_lines(metrics, percentiles, prefix: '', bold: '', suffix: '')
-        percentiles.map do |p|
-          "#{prefix}#{bold}#{p}th Percentile:#{bold} #{metrics[:"p#{p}"]} days#{suffix}"
-        end.join("\n")
+        out += [
+          "#{h3} Cycle Time Percentiles", '',
+          Helpers.percentile_lines(metrics, percentiles, prefix: '* ', bold: bold)
+        ]
+        out.join("\n")
       end
-
-      def self.shared_metrics(work_items, metrics)
-        {
-          'Total Items': work_items.size,
-          'Completed Items': metrics[:completed].size,
-          'Average Throughput': "#{metrics[:tp_avg].round(2)} items/day"
-        }
-      end
-
-      def self.terminal_colors(color)
-        color ? ["\e[1m", "\e[36m", "\e[0m"] : ['', '', '']
-      end
-
-      private_class_method :terminal_colors, :metric_lines, :metric_list, :percentile_lines, :shared_metrics
     end
   end
 end

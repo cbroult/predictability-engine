@@ -111,7 +111,7 @@ module PredictabilityEngine
       charts = CHART_CONFIG.map do |chart_id, cfg|
         vega_method = cfg[:vega] || chart_id
         if layout == :landscape
-          { title: cfg[:title], chart: VegaVisualizer.send(vega_method, @items) }
+          { title: cfg[:title], chart: VegaVisualizer.send(vega_method, @items, title: nil) }
         else
           "<div class='section'><h2>#{cfg[:title]}</h2>" \
             "#{VegaVisualizer.send(vega_method, @items).to_html}</div>"
@@ -151,7 +151,8 @@ module PredictabilityEngine
 
       Playwright.create(playwright_cli_executable_path: playwright_bin) do |playwright|
         playwright.chromium.launch do |browser|
-          page = browser.new_page(viewport: { width: 1280, height: 720 })
+          width, height = pdf_viewport_size(format, landscape)
+          page = browser.new_page(viewport: { width: width, height: height })
           page.goto("file://#{File.expand_path(temp_html)}")
           # Wait for Vega to render
           sleep 2
@@ -167,6 +168,12 @@ module PredictabilityEngine
       pdf_data
     ensure
       FileUtils.rm_f(temp_html)
+    end
+
+    def pdf_viewport_size(format, landscape)
+      sizes = { 'A4' => [794, 1123], 'A3' => [1123, 1587] }
+      w, h = sizes[format] || [794, 1123]
+      landscape ? [h, w] : [w, h]
     end
 
     def render_pdf_prawn(**_opts)

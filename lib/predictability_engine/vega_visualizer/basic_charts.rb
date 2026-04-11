@@ -3,14 +3,14 @@
 module PredictabilityEngine
   module VegaVisualizer
     module BasicCharts
-      def self.cycle_time_scatter(work_items, percentiles)
+      def self.cycle_time_scatter(work_items, percentiles, title: 'Cycle Time Scatter Plot')
         completed = PredictabilityEngine.completed_items(work_items)
         data = completed.map { |i| { date: i.end_date.to_s, cycle_time: i.cycle_time, id: i.id } }
         pct_data = PredictabilityEngine.mapped_percentiles(work_items, percentiles)
         VegaVisualizer.apply_standard_dims(
           Vega.lite.data(data + pct_data.map { |p| { type: p[:label], val: p[:val] } })
-              .title('Cycle Time Scatter Plot')
-              .layer([scatter_points_layer, scatter_rules_layer(pct_data.size)])
+              .layer([scatter_points_layer, scatter_rules_layer(pct_data.size)]),
+          title: title
         )
       end
 
@@ -30,12 +30,13 @@ module PredictabilityEngine
                                scale: { range: range.take(count) } } } }
       end
 
-      def self.throughput_histogram(work_items)
+      def self.throughput_histogram(work_items, title: 'Throughput Histogram')
         data = Calculators::Throughput.daily(work_items).values.map { |v| { throughput: v } }
         VegaVisualizer.apply_standard_dims(
-          Vega.lite.data(data).title('Throughput Histogram').mark(type: 'bar', tooltip: true)
+          Vega.lite.data(data).mark(type: 'bar', tooltip: true)
               .encoding(x: { field: 'throughput', type: 'quantitative', bin: true, title: 'Items per Day' },
-                        y: { aggregate: 'count', type: 'quantitative', title: 'Frequency' })
+                        y: { aggregate: 'count', type: 'quantitative', title: 'Frequency' }),
+          title: title
         )
       end
     end

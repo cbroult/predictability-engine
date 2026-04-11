@@ -7,6 +7,18 @@ module PredictabilityEngine
         work_items.select { |item| item.in_progress?(date) }
       end
 
+      def self.summary_metrics(work_items, date = Date.today)
+        wip = current_wip(work_items, date)
+        return nil if wip.empty?
+
+        ages = wip.map { |item| item.age(date) }
+        {
+          count: wip.size,
+          avg_age: (ages.sum.to_f / ages.size).round(1),
+          max_age: ages.max
+        }
+      end
+
       def self.item_age_data(work_items, date = Date.today)
         data = current_wip(work_items, date).map do |item|
           {
