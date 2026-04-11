@@ -27,38 +27,49 @@ module PredictabilityEngine
         }
       end
 
-      def self.forecast_summary(work_items, trials: 10_000)
+      def self.forecast_summary(work_items, trials: 10_000, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
         historical_tp = Throughput.daily(work_items).values
         wip_count = work_items.select { |wi| wi.start_date && !wi.end_date }.count
 
         return nil if wip_count.zero? || historical_tp.empty?
 
         results = Simulators::MonteCarlo.when_will_it_be_done(wip_count, historical_tp, trials: trials)
-        build_forecast_result(work_items, results, wip_count)
+        build_forecast_result(work_items, results, wip_count, percentiles)
       end
 
-      def self.build_forecast_result(work_items, results, wip_count)
-        {
+      def self.build_forecast_result(work_items, results, wip_count, percentiles)
+        res = {
           today: Date.today,
           wip: wip_count,
           total_items: work_items.select(&:start_date).count,
-          departed_so_far: work_items.select(&:completed?).count,
-          p50: Simulators::MonteCarlo.percentile(results, 50),
-          p85: Simulators::MonteCarlo.percentile(results, 85),
-          p95: Simulators::MonteCarlo.percentile(results, 95)
+          departed_so_far: work_items.select(&:completed?).count
         }
+        percentiles.each do |p|
+          res[:"p#{p}"] = Simulators::MonteCarlo.percentile(results, p)
+        end
+        res
       end
 
-      def self.forecast_points(work_items, trials: 10_000)
-        summary = forecast_summary(work_items, trials: trials)
+      def self.forecast_points(work_items, trials: 10_000, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
+        summary = forecast_summary(work_items, trials: trials, percentiles: percentiles)
         return nil unless summary
 
-        {
-          summary: summary,
-          p50: build_points(summary, :p50),
-          p85: build_points(summary, :p85),
-          p95: build_points(summary, :p95)
-        }
+        points = { summary: summary, max_days: max_forecast_days(summary, percentiles) }
+        percentiles.each do |p|
+          points[:"p#{p}"] = build_points(summary, :"p#{p}")
+        end
+        points
+      end
+
+      def self.max_forecast_days(summary, percentiles)
+        percentiles.map { |p| summary[:"p#{p}"] }.compact.max || 0
+      end
+
+      def self.with_forecast(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
+        forecast = forecast_points(work_items, percentiles: percentiles)
+        return yield(nil) unless forecast
+
+        yield(forecast)
       end
 
       def self.build_points(summary, p_key)

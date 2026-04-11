@@ -3,17 +3,13 @@
 require 'spec_helper'
 
 RSpec.describe PredictabilityEngine::Calculators::Cfd do
+  include_context 'with sample work items'
+
   let(:start_date) { Date.new(2026, 3, 1) }
   let(:end_date) { Date.new(2026, 3, 2) }
 
-  let(:completed_item) do
-    instance_double(PredictabilityEngine::Models::WorkItem,
-                    start_date: start_date, end_date: end_date, completed?: true)
-  end
-  let(:wip_item) do
-    instance_double(PredictabilityEngine::Models::WorkItem,
-                    start_date: start_date, end_date: nil, completed?: false)
-  end
+  let(:completed_item) { mock_item(start_date: start_date, end_date: end_date) }
+  let(:wip_item) { mock_item(completed: false, start_date: start_date) }
 
   describe '.calculate' do
     it 'returns cumulative counts for each day' do

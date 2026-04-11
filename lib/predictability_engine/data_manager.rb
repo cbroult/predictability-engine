@@ -8,16 +8,12 @@ module PredictabilityEngine
       @work_items = []
     end
 
-    def load_csv(file_path)
-      CSV.foreach(file_path, headers: true) do |row|
-        @work_items << Models::WorkItem.new(
-          item_id: row['id'] || row['Issue key'],
-          title: row['title'] || row['Summary'],
-          start_date: row['start_date'] || row['Created'], # Fallback, should ideally be transition date
-          end_date: row['end_date'] || row['Resolved']
-        )
-      end
+    def load(spec)
+      @work_items = DataSources::Factory.for(spec).load(spec)
     end
+
+    # Backward compatibility
+    alias load_csv load
 
     def completed_items
       @work_items.select(&:completed?)

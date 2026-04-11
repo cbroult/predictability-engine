@@ -3,9 +3,11 @@
 require 'spec_helper'
 
 RSpec.describe PredictabilityEngine::Calculators::CycleTime do
-  let(:short_cycle_item) { instance_double(PredictabilityEngine::Models::WorkItem, completed?: true, cycle_time: 5) }
-  let(:long_cycle_item) { instance_double(PredictabilityEngine::Models::WorkItem, completed?: true, cycle_time: 10) }
-  let(:incomplete_item) { instance_double(PredictabilityEngine::Models::WorkItem, completed?: false) }
+  include_context 'with sample work items'
+
+  let(:short_cycle_item) { mock_item(cycle_time: 5) }
+  let(:long_cycle_item) { mock_item(cycle_time: 10) }
+  let(:incomplete_item) { mock_item(completed: false) }
 
   describe '.distribution' do
     it 'returns sorted cycle times of completed items' do

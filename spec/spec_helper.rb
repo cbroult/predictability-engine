@@ -22,6 +22,7 @@ SimpleCov.start do
 end
 
 require 'predictability_engine'
+Dir[File.join(__dir__, 'support/**/*.rb')].each { |f| require f }
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate

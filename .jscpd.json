@@ -1,7 +1,7 @@
 {
-  "threshold": 0.1,
-  "minLines": 4,
-  "minTokens": 25,
+  "threshold": 0.8,
+  "minLines": 2,
+  "minTokens": 16,
   "reporters": [
     "console",
     "html"
@@ -13,7 +13,9 @@
     "report/**",
     "doc/**",
     "*.html",
-    ".woodpecker/**"
+    ".output.txt",
+    ".woodpecker/**",
+    ".idea/**"
   ],
   "absolute": true
 }

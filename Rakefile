@@ -25,7 +25,7 @@ end
 # Quality: copy-paste detection
 desc 'Run jscpd'
 task :jscpd do
-  sh 'npx jscpd . --threshold 0.1'
+  sh 'npx jscpd .'
 end
 
 # Quality: documentation

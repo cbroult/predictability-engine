@@ -25,10 +25,10 @@ PUBLISHED_VERSION=$(curl -sf --cacert "$CA_CERT_FILE" \
     puts gem ? gem[1].to_s : 'none'
   " 2>/dev/null || echo "unknown")
 
-if [ "$CURRENT_VERSION" = "$PUBLISHED_VERSION" ]; then
+print_bump_instructions() {
   echo ""
   echo "##############################################################"
-  echo "# ERROR: version ${CURRENT_VERSION} is already published."
+  echo "# ERROR: $1"
   echo "#"
   echo "# Bump the version before pushing:"
   echo "#"
@@ -37,6 +37,10 @@ if [ "$CURRENT_VERSION" = "$PUBLISHED_VERSION" ]; then
   echo "#   bundle exec rake version:bump[major]   # breaking change"
   echo "##############################################################"
   echo ""
+}
+
+if [ "$CURRENT_VERSION" = "$PUBLISHED_VERSION" ]; then
+  print_bump_instructions "version ${CURRENT_VERSION} is already published."
   exit 1
 fi
 
@@ -55,17 +59,7 @@ case "$HTTP_STATUS" in
     echo "Published ${GEM_FILE} to gems.cbp-org.internal"
     ;;
   409)
-    echo ""
-    echo "##############################################################"
-    echo "# ERROR: ${GEM_FILE} is already published (HTTP 409)."
-    echo "#"
-    echo "# Bump the version before pushing:"
-    echo "#"
-    echo "#   bundle exec rake version:bump[patch]   # bug fix"
-    echo "#   bundle exec rake version:bump[minor]   # new feature"
-    echo "#   bundle exec rake version:bump[major]   # breaking change"
-    echo "##############################################################"
-    echo ""
+    print_bump_instructions "${GEM_FILE} is already published (HTTP 409)."
     exit 1
     ;;
   *)
