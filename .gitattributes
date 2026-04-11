@@ -1,2 +1,15 @@
 # Force LF for all text files in repo and workspace
 * text=auto eol=lf
+
+# Explicitly mark binary files to avoid EOL conversion
+*.png binary
+*.gif binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+
+# Specific project binary files
+.yardoc/** binary
