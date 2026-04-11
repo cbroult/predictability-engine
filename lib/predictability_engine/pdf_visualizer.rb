@@ -4,18 +4,23 @@ require_relative 'pdf_visualizer/primitives'
 
 module PredictabilityEngine
   module PdfVisualizer
-    def self.draw_chart(pdf, chart_id, work_items)
+    def self.draw_chart(pdf, chart_id, work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
       case chart_id
-      when :cfd_plot, :forecasted_cfd_plot then draw_cfd(pdf, work_items)
+      when :cfd_plot then draw_cfd(pdf, work_items)
+      when :forecasted_cfd_plot then draw_forecasted_cfd(pdf, work_items, percentiles: percentiles)
       when :throughput_histogram then draw_throughput(pdf, work_items)
-      when :cycle_time_scatter then draw_scatter(pdf, work_items)
-      when :aging_wip then draw_aging(pdf, work_items)
+      when :cycle_time_scatter then draw_scatter(pdf, work_items, percentiles: percentiles)
+      when :aging_wip then draw_aging(pdf, work_items, percentiles: percentiles)
       end
     end
 
-    def self.draw_aging(pdf, work_items)
+    def self.draw_aging(pdf, work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
       data = Calculators::Aging.item_age_data(work_items)
+      pcts = PredictabilityEngine.mapped_percentiles(work_items, percentiles)
       Primitives.draw_bar_chart(pdf, data.map { |d| d[:id].to_s }, data.map { |d| d[:age] })
+
+      pdf.move_down 10
+      pdf.text "SLE Benchmarks: #{pcts.map { |p| "#{p[:label]}: #{p[:val]}" }.join(', ')}", size: 8
     end
 
     def self.draw_cfd(pdf, work_items)
@@ -32,11 +37,31 @@ module PredictabilityEngine
       Primitives.draw_bar_chart(pdf, counts.map { |k, _v| k.to_s }, counts.map { |_k, v| v })
     end
 
-    def self.draw_scatter(pdf, work_items)
+    def self.draw_scatter(pdf, work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
       data = Calculators::CycleTime.completed_sorted(work_items)
                                    .map { |i| [i.end_date.to_s, i.cycle_time] }
 
       Primitives.draw_scatter_plot(pdf, data.map(&:first), data.map { |d| d[1] })
+
+      pcts = PredictabilityEngine.mapped_percentiles(work_items, percentiles)
+      pdf.move_down 10
+      pdf.text "Percentiles: #{pcts.map { |p| "#{p[:label]}: #{p[:val]}" }.join(', ')}", size: 8
+    end
+
+    def self.draw_forecasted_cfd(pdf, work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
+      data = Calculators::Cfd.forecast_series(work_items, percentiles: percentiles)
+      return draw_cfd(pdf, work_items) unless data
+
+      series = [
+        { label: 'Arrivals', values: data[:arrivals], color: '0000FF' },
+        { label: 'Departures', values: data[:departed], color: '00FF00' }
+      ]
+
+      percentiles.each do |p|
+        series << { label: "#{p}% Conf.", values: data[:forecasts][p], color: 'FF0000' }
+      end
+
+      Primitives.draw_line_chart(pdf, data[:dates].map(&:to_s), series)
     end
   end
 end

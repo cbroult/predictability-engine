@@ -10,19 +10,17 @@ module PredictabilityEngine
       end
 
       def self.forecasted_cfd(work_items, percentiles, title)
-        Calculators::Cfd.with_forecast(work_items, percentiles: percentiles) do |f|
-          return cfd(work_items, title: title) unless f
+        data = Calculators::Cfd.forecast_series(work_items, percentiles: percentiles)
+        return cfd(work_items, title: title) unless data
 
-          hist = VegaVisualizer.format_cfd_data(Calculators::Cfd.calculate(work_items))
-          VegaVisualizer.extend_cfd_arrivals(hist, f)
-          f_data = VegaVisualizer.build_cfd_forecast_data(f, percentiles)
-          VegaVisualizer.apply_standard_dims(
-            Vega.lite.data(hist + f_data)
-                .layer([VegaVisualizer.cfd_area_layer(percentiles), VegaVisualizer.cfd_line_layer(percentiles),
-                        VegaVisualizer.cfd_vert_layer(f, percentiles)]),
-            title: title
-          )
-        end
+        unified = VegaVisualizer.build_cfd_unified_data(data, percentiles)
+        VegaVisualizer.apply_standard_dims(
+          Vega.lite.data(unified)
+              .layer([VegaVisualizer.cfd_area_layer(percentiles),
+                      VegaVisualizer.cfd_line_layer(percentiles),
+                      VegaVisualizer.cfd_vert_layer(data, percentiles)]),
+          title: title
+        )
       end
     end
   end

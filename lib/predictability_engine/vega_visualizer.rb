@@ -64,9 +64,10 @@ module PredictabilityEngine
 
     def self.build_cfd_unified_data(data, percentiles)
       res = []
+      sorted_pcts = percentiles.sort
       data[:dates].each_with_index do |date, i|
         res << { date: date.to_s, count: data[:arrivals][i], type: 'Arrivals' }
-        percentiles.each do |p|
+        sorted_pcts.each do |p|
           res << { date: date.to_s, count: data[:forecasts][p][i], type: "#{p}% Confidence" }
         end
         res << { date: date.to_s, count: data[:departed][i], type: 'Departures' } if i < data[:departed].size
@@ -75,10 +76,15 @@ module PredictabilityEngine
     end
 
     def self.cfd_area_layer(pcts, legend: true)
-      dom = %w[Arrivals Departures] + pcts.map { |p| "#{p}% Confidence" }
+      sorted_pcts = pcts.sort
+      dom = %w[Arrivals Departures] + sorted_pcts.map { |p| "#{p}% Confidence" }
       range = ['#4c78a8', '#f58518', '#72b7b2', '#e45756', '#b279a2', '#ff9da7', '#ad494a', '#8ca27a']
       cfg = { field: 'type', type: 'nominal', scale: { domain: dom, range: range } }
-      cfg[:legend] = { title: 'Flow & Forecast', orient: 'bottom', columns: 4 } if legend
+      if legend
+        # Use the original pcts order for the legend if it differs from sorted
+        cfg[:legend] = { title: 'Flow & Forecast', orient: 'bottom', columns: 4 }
+        cfg[:legend][:values] = %w[Arrivals Departures] + pcts.map { |p| "#{p}% Confidence" } if pcts != sorted_pcts
+      end
       { mark: { type: 'area', line: true, tooltip: true },
         encoding: { x: { field: 'date', type: 'temporal', title: 'Date' },
                     y: { field: 'count', type: 'quantitative', title: 'Total Items', stack: nil },

@@ -75,8 +75,8 @@ module PredictabilityEngine
                    :HTML_STYLE_LANDSCAPE
 
   class Visualizer
-    def self.cycle_time_scatter(items, color: false)
-      TerminalVisualizer.cycle_time_scatter(items, color: color)
+    def self.cycle_time_scatter(items, color: false, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
+      TerminalVisualizer.cycle_time_scatter(items, color: color, percentiles: percentiles)
     end
 
     def self.throughput_histogram(items, color: false)
@@ -87,12 +87,12 @@ module PredictabilityEngine
       TerminalVisualizer.cfd_plot(items, color: color)
     end
 
-    def self.forecasted_cfd_plot(items, color: false)
-      TerminalVisualizer.forecasted_cfd_plot(items, color: color)
+    def self.forecasted_cfd_plot(items, color: false, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
+      TerminalVisualizer.forecasted_cfd_plot(items, color: color, percentiles: percentiles)
     end
 
-    def self.aging_wip(items, color: false)
-      TerminalVisualizer.aging_wip(items, color: color)
+    def self.aging_wip(items, color: false, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
+      TerminalVisualizer.aging_wip(items, color: color, percentiles: percentiles)
     end
 
     %i[cycle_time_scatter throughput_histogram cfd forecasted_cfd aging_wip dashboard].each do |m|
@@ -100,10 +100,10 @@ module PredictabilityEngine
     end
 
     def self.to_full_html(content_or_chart, work_items = nil, title: 'Predictability Engine Dashboard',
-                          layout: :standard)
+                          layout: :standard, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
       style = layout == :landscape ? HTML_STYLE_LANDSCAPE : HTML_STYLE_STANDARD
       body = layout == :landscape ? HTML_LANDSCAPE_BODY : HTML_STANDARD_BODY
-      summary = work_items ? SummaryVisualizer.metrics_html(work_items) : ''
+      summary = work_items ? SummaryVisualizer.metrics_html(work_items, percentiles: percentiles) : ''
 
       html = HTML_BASE.gsub('{{STYLE}}', style).gsub('{{BODY}}', body)
       html.gsub!('{{TITLE}}', title)

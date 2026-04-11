@@ -204,7 +204,7 @@ module PredictabilityEngine
       puts "Number of trials: #{Simulators::MonteCarlo::DEFAULT_TRIALS}"
       puts ''
       puts 'Results:'
-      [50, 85, 95].each do |p|
+      PredictabilityEngine::DEFAULT_PERCENTILES.each do |p|
         val = Simulators::MonteCarlo.percentile(results, p)
         puts "  #{p}% confidence: Done in #{val} days"
       end

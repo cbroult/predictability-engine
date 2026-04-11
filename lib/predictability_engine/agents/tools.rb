@@ -38,13 +38,11 @@ module PredictabilityEngine
         PredictabilityEngine::Calculators::Cfd.forecast_summary(@data_manager.work_items)
       end
 
-      desc 'Get cycle time percentiles (p50, p85, p95)'
+      desc 'Get cycle time percentiles'
       define_method :get_cycle_time_percentiles do
-        {
-          p50: PredictabilityEngine::Calculators::CycleTime.percentile(@data_manager.work_items, 50),
-          p85: PredictabilityEngine::Calculators::CycleTime.percentile(@data_manager.work_items, 85),
-          p95: PredictabilityEngine::Calculators::CycleTime.percentile(@data_manager.work_items, 95)
-        }
+        PredictabilityEngine::DEFAULT_PERCENTILES.to_h do |p|
+          [:"p#{p}", PredictabilityEngine::Calculators::CycleTime.percentile(@data_manager.work_items, p)]
+        end
       end
 
       desc 'Forecast when items will be done based on backlog size'
@@ -52,11 +50,9 @@ module PredictabilityEngine
         historical = PredictabilityEngine::Calculators::Throughput.daily(@data_manager.work_items).values
         results = PredictabilityEngine::Simulators::MonteCarlo.when_will_it_be_done(backlog_count.to_i, historical)
 
-        {
-          p50_days: PredictabilityEngine::Simulators::MonteCarlo.percentile(results, 50),
-          p85_days: PredictabilityEngine::Simulators::MonteCarlo.percentile(results, 85),
-          p95_days: PredictabilityEngine::Simulators::MonteCarlo.percentile(results, 95)
-        }
+        PredictabilityEngine::DEFAULT_PERCENTILES.to_h do |p|
+          [:"p#{p}_days", PredictabilityEngine::Simulators::MonteCarlo.percentile(results, p)]
+        end
       end
 
       desc 'Generate a full report in a specified format (html, pdf, md, etc) and layout (standard, landscape)'

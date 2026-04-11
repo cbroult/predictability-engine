@@ -1,24 +1,24 @@
 {
   "threshold": 0.8,
-  "minLines": 2,
-  "minTokens": 16,
   "reporters": [
-    "console",
-    "html"
+    "html",
+    "console"
   ],
   "ignore": [
-    "coverage/**",
-    "node_modules/**",
-    "tmp/**",
+    "vendor/**",
     "report/**",
-    "doc/**",
     "reports/**",
-    ".playwright-mcp/**",
-    ".background_output_*.txt",
-    "*.html",
-    ".output.txt",
+    "tmp/**",
+    "node_modules/**",
+    "coverage/**",
+    "doc/**",
+    "bin/**",
+    "package-lock.json",
+    "package.json",
+    "Gemfile.lock",
     ".woodpecker/**",
-    ".idea/**"
+    ".playwright-mcp/**",
+    ".background_output_*.txt"
   ],
   "absolute": true
 }

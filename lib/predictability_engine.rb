@@ -43,6 +43,12 @@ module PredictabilityEngine
   def self.run_report(file, format, output: nil, color: true, layout: nil)
     items = load_items(file)
     report = Report.generate_all(items)
+
+    if %i[markdown md confluence conf].include?(format.to_sym)
+      base = File.basename(file, '.*')
+      report.generate_chart_images("reports/#{base}")
+    end
+
     content = report.render(format.to_sym, layout: layout, color: color)
 
     if output || format.to_sym != :terminal

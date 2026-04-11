@@ -59,9 +59,10 @@ module PredictabilityEngine
       start = data[:dates].first
       x_coords = data[:dates].map { |d| (d - start).to_i }
       hist_size = data[:departed].size
+      sorted_pcts = percentiles.sort
 
       plot = lineplot_base(x_coords, data[:arrivals], title, start)
-      percentiles.each do |p|
+      sorted_pcts.each do |p|
         UnicodePlot.lineplot!(plot, x_coords, data[:forecasts][p], name: "#{p}% Confidence")
         deadline_x = x_coords[hist_size - 1 + data[:summary][:"p#{p}"]]
         UnicodePlot.lineplot!(plot, [deadline_x, deadline_x], [0, data[:summary][:total_items]])
