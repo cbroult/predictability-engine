@@ -3,6 +3,7 @@
 require 'vega'
 require_relative 'vega_visualizer/basic_charts'
 require_relative 'vega_visualizer/cfd_charts'
+require_relative 'vega_visualizer/aging_wip_visualizer'
 
 module PredictabilityEngine
   module VegaVisualizer
@@ -24,33 +25,8 @@ module PredictabilityEngine
     end
 
     def self.aging_wip(work_items, title: 'Aging Work In Progress',
-                       percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, **_opts)
-      data = Calculators::Aging.item_age_data(work_items)
-      return Vega.lite.data([]).title(title || 'Aging Work In Progress') if data.empty?
-
-      pcts = PredictabilityEngine.mapped_percentiles(work_items, percentiles)
-      apply_standard_dims(
-        Vega.lite.data(data)
-            .layer([aging_bar_layer, *aging_rule_layers(pcts)]),
-        title: title
-      )
-    end
-
-    def self.aging_bar_layer
-      { mark: { type: 'bar', tooltip: true },
-        encoding: { x: { field: 'id', type: 'nominal', title: 'Work Item ID', sort: '-y' },
-                    y: { field: 'age', type: 'quantitative', title: 'Age (days)' },
-                    color: { field: 'age', type: 'quantitative', scale: { scheme: 'yelloworangered' },
-                             legend: { orient: 'bottom', title: 'Age' } } } }
-    end
-
-    def self.aging_rule_layers(pcts)
-      pcts.map do |p|
-        { data: { values: [{ val: p[:val] }] },
-          mark: { type: 'rule', strokeDash: [4, 4] },
-          encoding: { y: { field: 'val', type: 'quantitative' },
-                      color: { value: '#e45756' } } }
-      end
+                       percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, **)
+      AgingWipVisualizer.aging_wip(work_items, title: title, percentiles: percentiles, **)
     end
 
     def self.cfd(work_items, title: 'Cumulative Flow Diagram', **_opts)
@@ -77,13 +53,18 @@ module PredictabilityEngine
 
     def self.cfd_area_layer(pcts, legend: true)
       sorted_pcts = pcts.sort
-      dom = %w[Arrivals Departures] + sorted_pcts.map { |p| "#{p}% Confidence" }
-      range = ['#4c78a8', '#f58518', '#72b7b2', '#e45756', '#b279a2', '#ff9da7', '#ad494a', '#8ca27a']
+      dom = ['Arrivals'] + sorted_pcts.map { |p| "#{p}% Confidence" } + ['Departures']
+      palette = ['#72b7b2', '#e45756', '#b279a2', '#ff9da7', '#ad494a', '#8ca27a']
+      range = ['#4c78a8'] + palette.take(sorted_pcts.size) + ['#f58518']
       cfg = { field: 'type', type: 'nominal', scale: { domain: dom, range: range } }
       if legend
         # Use the original pcts order for the legend if it differs from sorted
         cfg[:legend] = { title: 'Flow & Forecast', orient: 'bottom', columns: 4 }
-        cfg[:legend][:values] = %w[Arrivals Departures] + pcts.map { |p| "#{p}% Confidence" } if pcts != sorted_pcts
+        if pcts != sorted_pcts
+          cfg[:legend][:values] = ['Arrivals'] + pcts.map do |p|
+            "#{p}% Confidence"
+          end + ['Departures']
+        end
       end
       { mark: { type: 'area', line: true, tooltip: true },
         encoding: { x: { field: 'date', type: 'temporal', title: 'Date' },
