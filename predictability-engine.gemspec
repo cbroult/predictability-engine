@@ -18,9 +18,12 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= #{File.read(File.join(__dir__, '.ruby-version')).strip}"
 
   spec.add_dependency 'dotenv'
+  spec.add_dependency 'jira-ruby'
   spec.add_dependency 'langchainrb'
   spec.add_dependency 'matrix'
   spec.add_dependency 'numo-narray'
+  spec.add_dependency 'prawn'
+  spec.add_dependency 'roo'
   spec.add_dependency 'thor'
   spec.add_dependency 'tty-table'
   spec.add_dependency 'unicode_plot'

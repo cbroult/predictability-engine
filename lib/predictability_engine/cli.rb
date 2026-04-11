@@ -15,23 +15,20 @@ module PredictabilityEngine
 
     desc 'scatter FILE', 'Show Cycle Time scatter plot'
     def scatter(file)
-      manager = DataManager.new
-      manager.load_csv(file)
-      puts Visualizer.cycle_time_scatter(manager.work_items, color: options[:color])
+      items = PredictabilityEngine.load_items(file)
+      puts Visualizer.cycle_time_scatter(items, color: options[:color])
     end
 
     desc 'throughput FILE', 'Show Throughput histogram'
     def throughput(file)
-      manager = DataManager.new
-      manager.load_csv(file)
-      puts Visualizer.throughput_histogram(manager.work_items, color: options[:color])
+      items = PredictabilityEngine.load_items(file)
+      puts Visualizer.throughput_histogram(items, color: options[:color])
     end
 
     desc 'cfd FILE', 'Show Cumulative Flow Diagram'
     def cfd(file)
-      manager = DataManager.new
-      manager.load_csv(file)
-      puts Visualizer.cfd_plot(manager.work_items, color: options[:color])
+      items = PredictabilityEngine.load_items(file)
+      puts Visualizer.cfd_plot(items, color: options[:color])
     end
 
     desc 'html_scatter FILE [OUTPUT]', 'Generate Vega-Lite HTML scatter plot'
@@ -57,9 +54,8 @@ module PredictabilityEngine
 
     desc 'forecasted_cfd FILE', 'Show Forecasted Cumulative Flow Diagram'
     def forecasted_cfd(file)
-      manager = DataManager.new
-      manager.load_csv(file)
-      puts Visualizer.forecasted_cfd_plot(manager.work_items, color: options[:color])
+      items = PredictabilityEngine.load_items(file)
+      puts Visualizer.forecasted_cfd_plot(items, color: options[:color])
     end
 
     desc 'html_forecasted_cfd FILE [OUTPUT]', 'Generate Vega-Lite HTML Forecasted CFD'
@@ -71,20 +67,12 @@ module PredictabilityEngine
 
     desc 'all FILE', 'Show all terminal summary and visualizations'
     def all(file)
-      manager = DataManager.new
-      manager.load_csv(file)
-      report = Report.generate_all(manager.work_items)
-      puts report.render(:terminal, color: options[:color])
+      puts PredictabilityEngine.run_report(file, :terminal, color: options[:color])
     end
 
     desc 'html_all FILE [OUTPUT]', 'Generate a combined HTML dashboard'
     def html_all(file, output = nil)
-      manager = DataManager.new
-      manager.load_csv(file)
-      output ||= "#{File.basename(file, '.*')}_all.html"
-      report = Report.generate_all(manager.work_items)
-      File.write(output, report.render(:html))
-      puts "Dashboard generated at #{output}"
+      puts PredictabilityEngine.run_report(file, :html, output: output)
     end
 
     desc 'all_html FILE [OUTPUT]', 'Alias for html_all'
@@ -95,12 +83,15 @@ module PredictabilityEngine
     private
 
     def generate_html_chart(file, output, type)
-      manager = DataManager.new
-      manager.load_csv(file)
-      output ||= "#{File.basename(file, '.*')}_#{type}.html"
-      chart = yield(manager.work_items)
-      File.write(output, Visualizer.to_full_html(chart, manager.work_items))
+      items = PredictabilityEngine.load_items(file)
+      output = generate_output_path(file, output, "#{type}.html")
+      chart = yield(items)
+      File.write(output, Visualizer.to_full_html(chart, items))
       puts "Chart generated at #{output}"
+    end
+
+    def generate_output_path(file, output, suffix)
+      output || "#{File.basename(file, '.*')}_#{suffix}"
     end
   end
 
@@ -114,34 +105,21 @@ module PredictabilityEngine
     desc 'summary FILE', 'Load data from FILE and show flow metrics summary'
     method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
     def summary(file)
-      manager = DataManager.new
-      manager.load_csv(file)
-      puts SummaryVisualizer.metrics_terminal(manager.work_items, color: options[:color])
+      items = PredictabilityEngine.load_items(file)
+      puts SummaryVisualizer.metrics_terminal(items, color: options[:color])
     end
 
-    desc 'report FILE FORMAT [OUTPUT]', 'Generate a full report in various formats (terminal, html, pdf)'
+    desc 'report FILE FORMAT [OUTPUT]', 'Generate a full report in various formats (terminal, html, pdf, md, conf)'
     method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
     def report(file, format = 'terminal', output = nil)
-      manager = DataManager.new
-      manager.load_csv(file)
-      report = Report.generate_all(manager.work_items)
-      content = report.render(format, color: options[:color])
-
-      if output || format != 'terminal'
-        output ||= "#{File.basename(file, '.*')}_report.#{format}"
-        File.write(output, content)
-        puts "Report generated at #{output}"
-      else
-        puts content
-      end
+      puts PredictabilityEngine.run_report(file, format, output: output, color: options[:color])
     end
 
     desc 'forecast FILE BACKLOG_COUNT', 'Run Monte Carlo simulation for BACKLOG_COUNT items'
     def forecast(file, backlog_count)
-      manager = DataManager.new
-      manager.load_csv(file)
+      items = PredictabilityEngine.load_items(file)
 
-      historical = Calculators::Throughput.daily(manager.work_items).values
+      historical = Calculators::Throughput.daily(items).values
       results = Simulators::MonteCarlo.when_will_it_be_done(backlog_count.to_i, historical)
 
       print_forecast_results(backlog_count, results)
@@ -166,8 +144,9 @@ module PredictabilityEngine
 
     desc 'ask FILE QUESTION', 'Ask the AI assistant about the data in FILE'
     def ask(file, question)
+      # Assistant needs the manager or at least items.
       manager = DataManager.new
-      manager.load_csv(file)
+      manager.load(file)
 
       assistant = Agents::Assistant.new(manager)
       puts 'AI Thinking...'

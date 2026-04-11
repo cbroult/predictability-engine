@@ -2,57 +2,43 @@
 
 module PredictabilityEngine
   module SummaryVisualizer
-    def self.metrics_html(work_items)
-      m = calculate_metrics(work_items)
-
-      <<~HTML
-        <h2>Flow Metrics Summary</h2>
-        <ul>
-          <li><strong>Total Items:</strong> #{work_items.size}</li>
-          <li><strong>Completed Items:</strong> #{m[:completed].size}</li>
-          <li><strong>Average Throughput:</strong> #{m[:tp_avg].round(2)} items/day</li>
-        </ul>
-        <h3>Cycle Time Percentiles</h3>
-        <ul>
-          <li><strong>50th Percentile:</strong> #{m[:p50]} days</li>
-          <li><strong>85th Percentile:</strong> #{m[:p85]} days</li>
-          <li><strong>95th Percentile:</strong> #{m[:p95]} days</li>
-        </ul>
-      HTML
+    def self.metrics_html(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
+      render(work_items, :html, percentiles: percentiles)
     end
 
-    def self.metrics_terminal(work_items, color: false)
-      m = calculate_metrics(work_items)
-
-      bold = color ? "\e[1m" : ''
-      cyan = color ? "\e[36m" : ''
-      reset = color ? "\e[0m" : ''
-
-      [
-        "#{bold}Flow Metrics Summary#{reset}",
-        '--------------------',
-        "Total Items: #{work_items.size}",
-        "Completed Items: #{m[:completed].size}",
-        "Average Throughput: #{m[:tp_avg].round(2)} items/day",
-        '',
-        "#{cyan}Cycle Time Percentiles:#{reset}",
-        "  50th Percentile: #{m[:p50]} days",
-        "  85th Percentile: #{m[:p85]} days",
-        "  95th Percentile: #{m[:p95]} days",
-        ''
-      ].join("\n")
+    def self.metrics_terminal(work_items, color: false, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
+      render(work_items, :terminal, color: color, percentiles: percentiles)
     end
 
-    def self.calculate_metrics(work_items)
-      {
-        completed: work_items.select(&:completed?),
-        tp_avg: Calculators::Throughput.average(work_items),
-        p50: Calculators::CycleTime.percentile(work_items, 50),
-        p85: Calculators::CycleTime.percentile(work_items, 85),
-        p95: Calculators::CycleTime.percentile(work_items, 95)
+    def self.metrics_markdown(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
+      render(work_items, :markdown, percentiles: percentiles)
+    end
+
+    def self.metrics_confluence(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
+      render(work_items, :confluence, percentiles: percentiles)
+    end
+
+    def self.render(work_items, format, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, **options)
+      stats = calculate_metrics(work_items, percentiles: percentiles)
+      case format.to_sym
+      when :html then Renderer.render_html_summary(work_items, stats, percentiles)
+      when :terminal then Renderer.render_terminal_summary(work_items, stats, options[:color], percentiles)
+      when :markdown then Renderer.render_markdown_summary(work_items, stats, percentiles)
+      when :confluence then Renderer.render_confluence_summary(work_items, stats, percentiles)
+      end
+    end
+
+    def self.calculate_metrics(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
+      metrics = {
+        completed: PredictabilityEngine.completed_items(work_items),
+        tp_avg: Calculators::Throughput.average(work_items)
       }
+      percentiles.each do |p|
+        metrics[:"p#{p}"] = Calculators::CycleTime.percentile(work_items, p)
+      end
+      metrics
     end
 
-    private_class_method :calculate_metrics
+    private_class_method :calculate_metrics, :render
   end
 end
