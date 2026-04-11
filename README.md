@@ -4,6 +4,7 @@ A turn-key solution for implementing Daniel Vacanti's Actionable Agile Metrics a
 
 ## Features
 
+- **Leading Indicators (10th Anniversary Edition)**: Emphasis on **Aging WIP** as the primary leading indicator for predictability.
 - **Flow Metrics Calculation**: Automated calculation of Cycle Time (distribution & percentiles), Throughput (daily & average), and WIP.
 - **Visualizations**: Graphical representations of Cycle Time Scatter Plots, Throughput Histograms, and Cumulative Flow Diagrams (CFD) both in the terminal (ASCII) and as high-quality HTML/SVG.
 - **Monte Carlo Simulations**: Statistical forecasting for "When will it be done?" and "How many items will be finished?".
@@ -58,23 +59,26 @@ Ask questions about your data in natural language:
 ./bin/predictability-engine ask sample_data.csv "When will the next 15 items be done? Also, are there any anomalies in our flow?"
 ```
 
-#### Visualizations
-Generate visual representations of your metrics:
+#### Visualizations & Reporting
+Generate visual representations and comprehensive reports:
 ```bash
 # Terminal-based scatter plot
 ./bin/predictability-engine viz scatter sample_data.csv
 
-# Terminal-based CFD
-./bin/predictability-engine viz cfd sample_data.csv
-
-# High-quality HTML scatter plot
-./bin/predictability-engine viz html_scatter sample_data.csv
-
-# Show all terminal visualizations at once
-./bin/predictability-engine viz all sample_data.csv
-
-# Generate a combined HTML dashboard
+# Combined HTML dashboard (Standard layout)
 ./bin/predictability-engine viz html_all sample_data.csv
+
+# Landscape-oriented dashboard (Single screen, optimized for display)
+./bin/predictability-engine viz landscape sample_data.csv
+
+# High-fidelity PDF report (using Playwright)
+./bin/predictability-engine viz pdf sample_data.csv
+
+# Markdown report with Mermaid diagrams
+./bin/predictability-engine viz md sample_data.csv
+
+# Full report in any format with custom layout
+./bin/predictability-engine report sample_data.csv html --layout=landscape
 ```
 
 ## Documentation

@@ -13,6 +13,7 @@ module PredictabilityEngine
     end
 
     class_option :color, type: :boolean, default: true, desc: 'Enable/disable color output for terminal charts'
+    class_option :layout, type: :string, desc: 'Layout to use for reports (standard, landscape)'
 
     desc 'scatter FILE', 'Show Cycle Time scatter plot'
     def scatter(file)
@@ -30,6 +31,12 @@ module PredictabilityEngine
     def cfd(file)
       items = PredictabilityEngine.load_items(file)
       puts Visualizer.cfd_plot(items, color: options[:color])
+    end
+
+    desc 'aging_wip FILE', 'Show Aging Work In Progress'
+    def aging_wip(file)
+      items = PredictabilityEngine.load_items(file)
+      puts Visualizer.aging_wip(items, color: options[:color])
     end
 
     desc 'html_scatter FILE [OUTPUT]', 'Generate Vega-Lite HTML scatter plot'
@@ -66,19 +73,26 @@ module PredictabilityEngine
       end
     end
 
+    desc 'html_aging_wip FILE [OUTPUT]', 'Generate Vega-Lite HTML Aging WIP'
+    def html_aging_wip(file, output = nil)
+      generate_html_chart(file, output, 'aging_wip') do |items|
+        Visualizer.vega_aging_wip(items)
+      end
+    end
+
     desc 'all FILE', 'Show all terminal summary and visualizations'
     def all(file)
-      puts PredictabilityEngine.run_report(file, :terminal, color: options[:color])
+      run_and_print_report(file, :terminal)
     end
 
     desc 'html_all FILE [OUTPUT]', 'Generate a combined HTML dashboard'
     def html_all(file, output = nil)
-      puts PredictabilityEngine.run_report(file, :html, output: output)
+      run_and_print_report(file, :html, output: output)
     end
 
     desc 'landscape FILE [OUTPUT]', 'Generate a landscape-oriented HTML dashboard'
     def landscape(file, output = nil)
-      puts PredictabilityEngine.run_report(file, :landscape, output: output)
+      run_and_print_report(file, :landscape, output: output)
     end
 
     desc 'dashboard FILE [OUTPUT]', 'Alias for landscape'
@@ -93,12 +107,17 @@ module PredictabilityEngine
 
     desc 'pdf FILE [OUTPUT]', 'Generate a PDF report'
     def pdf(file, output = nil)
-      puts PredictabilityEngine.run_report(file, :pdf, output: output)
+      run_and_print_report(file, :pdf, output: output)
+    end
+
+    desc 'a3_landscape FILE [OUTPUT]', 'Generate an A3 landscape PDF dashboard'
+    def a3_landscape(file, output = nil)
+      run_and_print_report(file, :a3_landscape, output: output)
     end
 
     desc 'markdown FILE [OUTPUT]', 'Generate a Markdown report'
     def markdown(file, output = nil)
-      puts PredictabilityEngine.run_report(file, :markdown, output: output)
+      run_and_print_report(file, :markdown, output: output)
     end
 
     desc 'md FILE [OUTPUT]', 'Alias for markdown'
@@ -108,7 +127,7 @@ module PredictabilityEngine
 
     desc 'confluence FILE [OUTPUT]', 'Generate a Confluence markup report'
     def confluence(file, output = nil)
-      puts PredictabilityEngine.run_report(file, :confluence, output: output)
+      run_and_print_report(file, :confluence, output: output)
     end
 
     desc 'conf FILE [OUTPUT]', 'Alias for confluence'
@@ -116,16 +135,25 @@ module PredictabilityEngine
       confluence(file, output)
     end
 
+    desc 'all_formats FILE', 'Generate all report formats at once'
+    def all_formats(file)
+      %i[terminal html pdf md conf landscape a3_landscape].each do |fmt|
+        run_and_print_report(file, fmt)
+      end
+    end
+
     private
+
+    def run_and_print_report(file, format, output: nil)
+      PredictabilityEngine.run_and_print_report(file, format, options, output: output)
+    end
 
     def generate_html_chart(file, output, type)
       items = PredictabilityEngine.load_items(file)
-      output = generate_output_path(file, output, "#{type}.html")
-      base_dir = File.dirname(output)
-      FileUtils.mkdir_p(base_dir)
-      chart = yield(items)
-      File.write(output, Visualizer.to_full_html(chart, items))
-      puts "Chart generated at #{output}"
+      path = generate_output_path(file, output, "#{type}.html")
+      FileUtils.mkdir_p(File.dirname(path))
+      File.write(path, Visualizer.to_full_html(yield(items), items))
+      puts "Chart generated at #{path}"
     end
 
     def generate_output_path(file, output, filename)
@@ -152,8 +180,9 @@ module PredictabilityEngine
 
     desc 'report FILE FORMAT [OUTPUT]', 'Generate a full report in various formats (terminal, html, pdf, md, conf)'
     method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
-    def report(file, format = 'terminal', output = nil)
-      puts PredictabilityEngine.run_report(file, format, output: output, color: options[:color])
+    method_option :layout, type: :string, desc: 'Layout to use (standard, landscape)'
+    def report(input_file, format = 'terminal', output = nil)
+      PredictabilityEngine.run_and_print_report(input_file, format, options, output: output)
     end
 
     desc 'forecast FILE BACKLOG_COUNT', 'Run Monte Carlo simulation for BACKLOG_COUNT items'

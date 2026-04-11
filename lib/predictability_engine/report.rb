@@ -5,9 +5,10 @@ module PredictabilityEngine
     attr_reader :items, :title
 
     CHART_CONFIG = {
+      aging_wip: { title: 'Aging Work In Progress' },
+      forecasted_cfd_plot: { title: 'Forecasted Cumulative Flow Diagram', vega: :forecasted_cfd },
       cycle_time_scatter: { title: 'Cycle Time Scatter Plot' },
-      throughput_histogram: { title: 'Throughput Histogram' },
-      forecasted_cfd_plot: { title: 'Forecasted Cumulative Flow Diagram', vega: :forecasted_cfd }
+      throughput_histogram: { title: 'Throughput Histogram' }
     }.freeze
 
     FORMAT_CONFIG = {
@@ -30,7 +31,13 @@ module PredictabilityEngine
         aliases: [:conf]
       },
       landscape: {
-        aliases: [:dashboard]
+        aliases: [:dashboard],
+        layout: :landscape
+      },
+      a3_landscape: {
+        format: 'A3',
+        landscape: true,
+        layout: :landscape
       }
     }.freeze
 
@@ -43,17 +50,29 @@ module PredictabilityEngine
       new(items, title: 'Full Predictability Dashboard')
     end
 
-    def render(format, color: false)
-      fmt = format.to_sym
-      target = FORMAT_CONFIG.find { |k, v| k == fmt || v[:aliases]&.include?(fmt) }&.first || fmt
-      method_name = "render_#{target}"
+    def render(format, layout: nil, color: false)
+      config = find_format_config(format)&.last
+      method_name = "render_#{find_format_config(format)&.first || format.to_sym}"
 
       raise ArgumentError, "Unsupported format: #{format}" unless respond_to?(method_name, true)
 
-      send(method_name, color: color)
+      opts = { layout: effective_layout(layout, config), color: color }
+      opts[:format] = config[:format] if config&.key?(:format)
+      opts[:landscape] = config[:landscape] if config&.key?(:landscape)
+
+      send(method_name, **opts)
     end
 
     private
+
+    def find_format_config(format)
+      fmt = format.to_sym
+      FORMAT_CONFIG.find { |k, v| k == fmt || v[:aliases]&.include?(fmt) }
+    end
+
+    def effective_layout(layout, config)
+      layout || config&.dig(:layout) || :standard
+    end
 
     def render_text_format(fmt, color: false)
       config = FORMAT_CONFIG[fmt]
@@ -84,39 +103,37 @@ module PredictabilityEngine
       end
     end
 
-    def render_terminal(color: false) = render_text_format(:terminal, color: color)
-    def render_markdown(color: false) = render_text_format(:markdown, color: color)
-    def render_confluence(color: false) = render_text_format(:confluence, color: color)
+    def render_terminal(color: false, **_opts) = render_text_format(:terminal, color: color)
+    def render_markdown(color: false, **_opts) = render_text_format(:markdown, color: color)
+    def render_confluence(color: false, **_opts) = render_text_format(:confluence, color: color)
 
-    def render_html(**_opts)
+    def render_html(layout: :standard, **_opts)
       charts = CHART_CONFIG.map do |chart_id, cfg|
         vega_method = cfg[:vega] || chart_id
-        "<div class='section'><h2>#{cfg[:title]}</h2>" \
-          "#{VegaVisualizer.send(vega_method, @items).to_html}</div>"
-      end.join("\n")
-
-      Visualizer.to_full_html(charts, @items, title: @title)
-    end
-
-    def render_landscape(**_opts)
-      charts = CHART_CONFIG.map do |chart_id, cfg|
-        vega_method = cfg[:vega] || chart_id
-        { title: cfg[:title], chart: VegaVisualizer.send(vega_method, @items) }
+        if layout == :landscape
+          { title: cfg[:title], chart: VegaVisualizer.send(vega_method, @items) }
+        else
+          "<div class='section'><h2>#{cfg[:title]}</h2>" \
+            "#{VegaVisualizer.send(vega_method, @items).to_html}</div>"
+        end
       end
 
-      Visualizer.to_full_html(charts, @items, title: @title, layout: :landscape)
+      Visualizer.to_full_html(charts, @items, title: @title, layout: layout)
     end
 
-    def render_pdf(high_fidelity: true, **_opts)
-      high_fidelity ? render_pdf_playwright : render_pdf_prawn
+    def render_landscape(layout: :landscape, **) = render_html(layout: layout, **)
+    def render_a3_landscape(**) = render_pdf(**)
+
+    def render_pdf(layout: :landscape, high_fidelity: true, format: 'A4', landscape: true, **_opts)
+      high_fidelity ? render_pdf_playwright(layout: layout, format: format, landscape: landscape) : render_pdf_prawn
     rescue LoadError, StandardError => e
       warn "High-fidelity PDF generation failed: #{e.message}. Falling back to Prawn."
       render_pdf_prawn
     end
 
-    def render_pdf_playwright
+    def render_pdf_playwright(layout: :landscape, format: 'A4', landscape: true)
       require 'playwright'
-      html = render_landscape
+      html = render_html(layout: layout)
       temp_html = "tmp/report_#{object_id}.html"
       FileUtils.mkdir_p('tmp')
       File.write(temp_html, html)
@@ -139,8 +156,8 @@ module PredictabilityEngine
           # Wait for Vega to render
           sleep 2
           pdf_data = page.pdf(
-            format: 'A4',
-            landscape: true,
+            format: format,
+            landscape: landscape,
             printBackground: true,
             margin: { top: '0', right: '0', bottom: '0', left: '0' }
           )
@@ -152,7 +169,7 @@ module PredictabilityEngine
       FileUtils.rm_f(temp_html)
     end
 
-    def render_pdf_prawn
+    def render_pdf_prawn(**_opts)
       require 'prawn'
       items = @items
       title = @title
@@ -178,14 +195,25 @@ module PredictabilityEngine
     end
 
     def self.setup_pdf_font_on_doc(pdf)
-      mono_path = '/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf'
-      bold_path = '/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf'
-      return unless File.exist?(mono_path) && File.exist?(bold_path)
+      mono = find_font(['/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf',
+                        '/System/Library/Fonts/Supplemental/Courier New.ttf',
+                        '/Library/Fonts/Courier New.ttf',
+                        'C:/Windows/Fonts/cour.ttf'])
+      bold = find_font(['/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf',
+                        '/System/Library/Fonts/Supplemental/Courier New Bold.ttf',
+                        '/Library/Fonts/Courier New Bold.ttf',
+                        'C:/Windows/Fonts/courbd.ttf'])
 
-      pdf.font_families.update('DejaVu' => { normal: mono_path, bold: bold_path })
-      pdf.font 'DejaVu'
+      return unless mono && bold
+
+      pdf.font_families.update('CustomMono' => { normal: mono, bold: bold })
+      pdf.font 'CustomMono'
     end
 
-    private_class_method :setup_pdf_font_on_doc
+    def self.find_font(paths)
+      paths.find { |p| File.exist?(p) }
+    end
+
+    private_class_method :setup_pdf_font_on_doc, :find_font
   end
 end

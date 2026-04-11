@@ -27,36 +27,53 @@ module PredictabilityEngine
     Calculators::CycleTime.percentile(items, percentile)
   end
 
+  def self.mapped_percentiles(work_items, percentiles = DEFAULT_PERCENTILES)
+    percentiles.map do |p|
+      val = cycle_time_percentile(work_items, p)
+      { val: val, label: "#{p}% Percentile", p: p } if val
+    end.compact
+  end
+
   def self.load_items(spec)
     manager = DataManager.new
     manager.load(spec)
     manager.work_items
   end
 
-  def self.run_report(file, format, output: nil, color: true)
+  def self.run_report(file, format, output: nil, color: true, layout: nil)
     items = load_items(file)
     report = Report.generate_all(items)
-    content = report.render(format.to_sym, color: color)
+    content = report.render(format.to_sym, layout: layout, color: color)
 
     if output || format.to_sym != :terminal
-      ext = format_to_ext(format.to_sym)
-      base = File.basename(file, '.*')
-      dir = "reports/#{base}"
-      require 'fileutils'
-      FileUtils.mkdir_p(dir) unless output || File.exist?(dir)
-
-      filename = case format.to_sym
-                 when :html then 'dashboard.html'
-                 when :landscape, :dashboard then 'landscape.html'
-                 else "report.#{ext}"
-                 end
-      output ||= File.join(dir, filename)
-
-      File.binwrite(output, content)
-      "Report generated at #{output}"
+      write_report(file, format, content, output)
     else
       content
     end
+  end
+
+  def self.write_report(file, format, content, output)
+    ext = format_to_ext(format.to_sym)
+    base = File.basename(file, '.*')
+    dir = "reports/#{base}"
+    require 'fileutils'
+    FileUtils.mkdir_p(dir) unless output || File.exist?(dir)
+
+    filename = case format.to_sym
+               when :html then 'dashboard.html'
+               when :landscape, :dashboard then 'landscape.html'
+               when :a3_landscape then 'a3_landscape.pdf'
+               else "report.#{ext}"
+               end
+    output ||= File.join(dir, filename)
+
+    File.binwrite(output, content)
+    "Report generated at #{output}"
+  end
+
+  def self.run_and_print_report(file, format, options, output: nil)
+    puts run_report(file, format, output: output, color: options[:color],
+                                  layout: options[:layout])
   end
 
   def self.format_to_ext(format)
@@ -64,6 +81,7 @@ module PredictabilityEngine
     when :markdown, :md then 'md'
     when :confluence, :conf then 'conf'
     when :landscape, :dashboard then 'html'
+    when :a3_landscape then 'pdf'
     else format.to_s
     end
   end

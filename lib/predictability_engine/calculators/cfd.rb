@@ -19,12 +19,13 @@ module PredictabilityEngine
         departed = work_items.select { |item| item.end_date && item.end_date <= day }.count
         wip = [arrived - departed, 0].max
 
-        {
-          date: day,
-          arrived: arrived,
-          departed: departed,
-          wip: wip
-        }
+        { date: day, arrived: arrived, departed: departed, wip: wip }
+      end
+
+      def self.to_coordinates(cfd_data, start_date)
+        { dates: cfd_data.map { |d| (d[:date] - start_date).to_i },
+          arrived: cfd_data.map { |d| d[:arrived] },
+          departed: cfd_data.map { |d| d[:departed] } }
       end
 
       def self.forecast_summary(work_items, trials: 10_000, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)

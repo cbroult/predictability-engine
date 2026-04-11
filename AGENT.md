@@ -55,7 +55,8 @@ Testing is not a phase — it is woven into every stage of the development lifec
 - **BDD/Acceptance**: Cucumber & Aruba. Default configuration (via `cucumber.yml`) suppresses publish reminders and uses progress formatting.
 - **Unit Testing**: RSpec.
 - **Code Quality**: RuboCop.
-- **Visualizations**: **unicode_plot** (CLI), **vega** (HTML/JSON), **mermaid** (Markdown/Confluence). Wrapped in full HTML templates for browser viewing. Includes a single-screen landscape dashboard optimized for quick, scroll-free insights.
+- **Visualizations**: **unicode_plot** (CLI), **vega** (HTML/JSON), **mermaid** (Markdown/Confluence). Wrapped in full HTML templates for browser viewing. Includes a single-screen landscape dashboard optimized for quick, scroll-free insights. Focuses on **Aging WIP** as the leading indicator for predictability, as emphasized in the 10th Anniversary Edition of Daniel Vacanti's *Actionable Agile Metrics*.
+- **Reporting Engine**: Supports multiple layouts (`standard` vertical or `landscape` grid). Defaults to `landscape` for high-fidelity PDF exports and `standard` for HTML, but configurable via `--layout`.
 - **High-Fidelity Reports**: PDF exports leverage headless browser rendering (via **Playwright**) to ensure that interactive Vega-Lite charts are captured with maximum fidelity, matching the web experience.
 - **Naming Convention**: Generated reports are stored in `reports/[input_basename]/` with standardized names (e.g., `dashboard.html`, `landscape.html`, `report.pdf`, `report.md`).
 - **Duplicate Detection**: **jscpd** (Configured for 2 lines / 16 tokens). Threshold is set to 0.8% to balance extreme DRYness with code readability (clones are primarily in method signatures and structural test patterns).

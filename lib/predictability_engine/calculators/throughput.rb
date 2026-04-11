@@ -33,6 +33,10 @@ module PredictabilityEngine
 
         counts.sum.to_f / counts.size
       end
+
+      def self.histogram_data(work_items)
+        daily(work_items).values.tally.sort
+      end
     end
   end
 end

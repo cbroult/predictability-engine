@@ -18,13 +18,19 @@ module PredictabilityEngine
         PredictabilityEngine::Calculators::Throughput.average(@data_manager.work_items)
       end
 
-      desc 'Get visual charts (ASCII art) for Cycle Time, Throughput, and Forecasted CFD'
+      desc 'Get visual charts (ASCII art) for Aging WIP, Cycle Time, Throughput, and Forecasted CFD'
       define_method :get_visual_charts do
         {
+          aging_wip: PredictabilityEngine::Visualizer.aging_wip(@data_manager.work_items),
           scatter_plot: PredictabilityEngine::Visualizer.cycle_time_scatter(@data_manager.work_items),
           throughput_histogram: PredictabilityEngine::Visualizer.throughput_histogram(@data_manager.work_items),
           cfd_plot: PredictabilityEngine::Visualizer.forecasted_cfd_plot(@data_manager.work_items)
         }
+      end
+
+      desc 'Get current WIP aging data (age of items not yet completed)'
+      define_method :get_aging_data do
+        PredictabilityEngine::Calculators::Aging.item_age_data(@data_manager.work_items)
       end
 
       desc 'Get forecasted CFD summary (probabilistic projections for current WIP)'
@@ -53,10 +59,10 @@ module PredictabilityEngine
         }
       end
 
-      desc 'Generate a full report in a specified format (terminal, html, pdf, md, conf, landscape, dashboard)'
-      define_method :generate_report do |format: 'terminal'|
+      desc 'Generate a full report in a specified format (html, pdf, md, etc) and layout (standard, landscape)'
+      define_method :generate_report do |format: 'terminal', layout: nil|
         source = @data_manager.source || 'ai_report.csv'
-        PredictabilityEngine.run_report(source, format)
+        PredictabilityEngine.run_report(source, format, layout: layout)
       end
 
       desc 'Analyze Cumulative Flow Diagram for anomalies like growing WIP'

@@ -36,3 +36,9 @@ Feature: Report generation in multiple formats
     And the exit status should be 0
     And a file named "reports/sample_data/report.pdf" should exist
     And the file "reports/sample_data/report.pdf" should be a valid PDF
+
+  Scenario: Generating an A3 landscape PDF dashboard via viz
+    When I run `predictability-engine viz a3_landscape sample_data.csv`
+    Then the exit status should be 0
+    And a file named "reports/sample_data/a3_landscape.pdf" should exist
+    And the file "reports/sample_data/a3_landscape.pdf" should be a valid PDF

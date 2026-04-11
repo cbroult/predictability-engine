@@ -11,81 +11,66 @@ module PredictabilityEngine
       <script src="https://cdn.jsdelivr.net/npm/vega@6"></script>
       <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
       <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
-HTML
+  HTML
 
-  HTML_TEMPLATE = <<~HTML
+  HTML_BASE_STYLE = 'font-family: sans-serif; background: #f8f9fa;'
+
+  HTML_STYLE_STANDARD = <<~CSS.freeze
+    <style>
+      body { #{HTML_BASE_STYLE} margin: 20px; background: white; }
+      .section { margin-bottom: 50px; }
+      .chart-container { width: 100%; height: 400px; margin-top: 10px; }
+    </style>
+  CSS
+
+  HTML_STYLE_LANDSCAPE = <<~CSS.freeze
+    <style>
+      body { #{HTML_BASE_STYLE} margin: 0; padding: 10px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+      header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 5px; border-bottom: 1px solid #dee2e6; margin-bottom: 10px; }
+      h1 { margin: 0; font-size: 1.2rem; color: #343a40; }
+      .dashboard-container { display: grid; grid-template-columns: 280px 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; flex-grow: 1; min-height: 0; }
+      .summary-panel { grid-row: span 2; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-y: auto; }
+      .summary-panel h2 { font-size: 1.1rem; margin-top: 0; }
+      .summary-panel h3 { font-size: 1rem; }
+      .chart-panel { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+      .chart-panel h2 { margin: 0 0 5px 0; font-size: 0.9rem; color: #495057; border-bottom: 1px solid #eee; }
+      .chart-container { flex-grow: 1; min-height: 0; width: 100%; }
+      ul { padding-left: 15px; margin: 5px 0; }
+      li { margin-bottom: 3px; font-size: 0.85rem; }
+    </style>
+  CSS
+
+  HTML_BASE = <<~HTML.freeze
     <!DOCTYPE html>
     <html>
     #{HTML_HEADER}
-      <style>
-        body { font-family: sans-serif; margin: 20px; }
-        .section { margin-bottom: 50px; }
-        .chart-container { width: 100%; height: 400px; margin-top: 10px; }
-      </style>
+    {{STYLE}}
     </head>
     <body>
+      {{BODY}}
+    </body>
+    </html>
+  HTML
+
+  HTML_STANDARD_BODY = <<~HTML
+    <h1>{{TITLE}}</h1>
+    <div class="summary-container">{{SUMMARY_CONTENT}}</div>
+    <div class="charts-container">{{CHART_CONTENT}}</div>
+  HTML
+
+  HTML_LANDSCAPE_BODY = <<~HTML
+    <header>
       <h1>{{TITLE}}</h1>
-      <div class="summary-container">
-        {{SUMMARY_CONTENT}}
-      </div>
-      <div class="charts-container">
-        {{CHART_CONTENT}}
-      </div>
-    </body>
-    </html>
+      <div style="font-size: 0.8rem; color: #6c757d;">Generated: {{DATE}}</div>
+    </header>
+    <div class="dashboard-container">
+      <div class="summary-panel">{{SUMMARY_CONTENT}}</div>
+      {{CHART_PANELS}}
+    </div>
   HTML
 
-  LANDSCAPE_TEMPLATE = <<~HTML.freeze
-    <!DOCTYPE html>
-    <html>
-    #{HTML_HEADER}
-      <style>
-        body {#{' '}
-          font-family: sans-serif; margin: 0; padding: 10px;#{' '}
-          height: 100vh; display: flex; flex-direction: column; overflow: hidden;
-          background: #f8f9fa;
-        }
-        header {#{' '}
-          display: flex; justify-content: space-between; align-items: center;#{' '}
-          padding-bottom: 5px; border-bottom: 1px solid #dee2e6; margin-bottom: 10px;
-        }
-        h1 { margin: 0; font-size: 1.2rem; color: #343a40; }
-        .dashboard-container {#{' '}
-          display: grid; grid-template-columns: 280px 1fr 1fr;#{' '}
-          grid-template-rows: 1fr 1fr; gap: 10px; flex-grow: 1; min-height: 0;
-        }
-        .summary-panel {#{' '}
-          grid-row: span 2; background: white; padding: 10px;#{' '}
-          border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-y: auto;
-        }
-        .summary-panel h2 { font-size: 1.1rem; margin-top: 0; }
-        .summary-panel h3 { font-size: 1rem; }
-        .chart-panel {#{' '}
-          background: white; padding: 10px; border-radius: 8px;#{' '}
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column;
-        }
-        .chart-panel h2 { margin: 0 0 5px 0; font-size: 0.9rem; color: #495057; border-bottom: 1px solid #eee; }
-        .chart-container { flex-grow: 1; min-height: 0; width: 100%; }
-        ul { padding-left: 15px; margin: 5px 0; }
-        li { margin-bottom: 3px; font-size: 0.85rem; }
-      </style>
-    </head>
-    <body>
-      <header>
-        <h1>{{TITLE}}</h1>
-        <div style="font-size: 0.8rem; color: #6c757d;">Generated: {{DATE}}</div>
-      </header>
-      <div class="dashboard-container">
-        <div class="summary-panel">
-          {{SUMMARY_CONTENT}}
-        </div>
-        {{CHART_PANELS}}
-      </div>
-    </body>
-    </html>
-  HTML
-
-  private_constant :HTML_HEADER, :HTML_TEMPLATE, :LANDSCAPE_TEMPLATE
+  private_constant :HTML_HEADER, :HTML_BASE, :HTML_STANDARD_BODY, :HTML_LANDSCAPE_BODY, :HTML_STYLE_STANDARD,
+                   :HTML_STYLE_LANDSCAPE
 
   class Visualizer
     def self.cycle_time_scatter(items, color: false)
@@ -104,34 +89,27 @@ HTML
       TerminalVisualizer.forecasted_cfd_plot(items, color: color)
     end
 
-    def self.vega_cycle_time_scatter(items)
-      VegaVisualizer.cycle_time_scatter(items)
+    def self.aging_wip(items, color: false)
+      TerminalVisualizer.aging_wip(items, color: color)
     end
 
-    def self.vega_throughput_histogram(items)
-      VegaVisualizer.throughput_histogram(items)
-    end
-
-    def self.vega_cfd(items)
-      VegaVisualizer.cfd(items)
-    end
-
-    def self.vega_forecasted_cfd(items)
-      VegaVisualizer.forecasted_cfd(items)
-    end
-
-    def self.vega_dashboard(items)
-      VegaVisualizer.dashboard(items)
+    %i[cycle_time_scatter throughput_histogram cfd forecasted_cfd aging_wip dashboard].each do |m|
+      define_singleton_method("vega_#{m}") { |items| VegaVisualizer.send(m, items) }
     end
 
     def self.to_full_html(content_or_chart, work_items = nil, title: 'Predictability Engine Dashboard',
                           layout: :standard)
-      template = layout == :landscape ? LANDSCAPE_TEMPLATE : HTML_TEMPLATE
-      html = template.gsub('{{TITLE}}', title).gsub('{{DATE}}', Time.now.strftime('%Y-%m-%d %H:%M'))
+      style = layout == :landscape ? HTML_STYLE_LANDSCAPE : HTML_STYLE_STANDARD
+      body = layout == :landscape ? HTML_LANDSCAPE_BODY : HTML_STANDARD_BODY
       summary = work_items ? SummaryVisualizer.metrics_html(work_items) : ''
 
+      html = HTML_BASE.gsub('{{STYLE}}', style).gsub('{{BODY}}', body)
+      html.gsub!('{{TITLE}}', title)
+      html.gsub!('{{DATE}}', Time.now.strftime('%Y-%m-%d %H:%M'))
+      html.gsub!('{{SUMMARY_CONTENT}}', summary)
+
       content = prepare_html_content(content_or_chart, layout, html)
-      html.gsub('{{SUMMARY_CONTENT}}', summary).gsub('{{CHART_CONTENT}}', content || '')
+      html.gsub('{{CHART_CONTENT}}', content || '')
     end
 
     def self.prepare_html_content(content_or_chart, layout, html)

@@ -17,6 +17,10 @@ module PredictabilityEngine
         index = (dist.size * percentile_value / 100.0).ceil - 1
         dist[index]
       end
+
+      def self.completed_sorted(work_items)
+        PredictabilityEngine.completed_items(work_items).sort_by(&:end_date)
+      end
     end
   end
 end
