@@ -52,11 +52,12 @@ Testing is not a phase — it is woven into every stage of the development lifec
 - **Git Authoring**: Always include Junie as a co-author when applicable (`--trailer "Co-authored-by: Junie <junie@jetbrains.com>"`).
 
 #### TOOLS & AUTOMATION
-- **BDD/Acceptance**: Cucumber & Aruba (CLI testing).
+- **BDD/Acceptance**: Cucumber & Aruba. Default configuration (via `cucumber.yml`) suppresses publish reminders and uses progress formatting.
 - **Unit Testing**: RSpec.
 - **Code Quality**: RuboCop.
-- **Visualizations**: **unicode_plot** (CLI), **vega** (HTML/JSON). Wrapped in full HTML templates for browser viewing.
-- **Naming Convention**: HTML outputs follow `[input_basename]_[chart_type].html` if not specified.
+- **Visualizations**: **unicode_plot** (CLI), **vega** (HTML/JSON), **mermaid** (Markdown/Confluence). Wrapped in full HTML templates for browser viewing. Includes a single-screen landscape dashboard optimized for quick, scroll-free insights.
+- **High-Fidelity Reports**: PDF exports leverage headless browser rendering (via **Playwright**) to ensure that interactive Vega-Lite charts are captured with maximum fidelity, matching the web experience.
+- **Naming Convention**: Generated reports are stored in `reports/[input_basename]/` with standardized names (e.g., `dashboard.html`, `landscape.html`, `report.pdf`, `report.md`).
 - **Duplicate Detection**: **jscpd** (Configured for 2 lines / 16 tokens). Threshold is set to 0.8% to balance extreme DRYness with code readability (clones are primarily in method signatures and structural test patterns).
 - **Browser Validation**: **Playwright** (Used for verifying HTML chart rendering in the pipeline).
 - **Security Analysis**: **bundler-audit** (Continuous scanning of dependencies).

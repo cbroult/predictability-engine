@@ -53,6 +53,12 @@ module PredictabilityEngine
         }
       end
 
+      desc 'Generate a full report in a specified format (terminal, html, pdf, md, conf, landscape, dashboard)'
+      define_method :generate_report do |format: 'terminal'|
+        source = @data_manager.source || 'ai_report.csv'
+        PredictabilityEngine.run_report(source, format)
+      end
+
       desc 'Analyze Cumulative Flow Diagram for anomalies like growing WIP'
       define_method :analyze_cfd do
         cfd_data = PredictabilityEngine::Calculators::Cfd.calculate(@data_manager.work_items)

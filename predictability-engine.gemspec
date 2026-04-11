@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'langchainrb'
   spec.add_dependency 'matrix'
   spec.add_dependency 'numo-narray'
+  spec.add_dependency 'playwright-ruby-client'
   spec.add_dependency 'prawn'
   spec.add_dependency 'roo'
   spec.add_dependency 'thor'

@@ -33,10 +33,10 @@ Feature: Visualization command
   Scenario: Validating HTML output in a browser and naming convention
     When I run `predictability-engine viz html_all sample_data.csv`
     Then the exit status should be 0
-    And the output should contain "Dashboard generated at sample_data_all.html"
-    And a file named "sample_data_all.html" should exist
-    And the HTML file "sample_data_all.html" should be valid and visible in a browser
-    And a file named "sample_data_all.html" should contain "Flow Metrics Summary"
+    And the output should contain "Report generated at reports/sample_data/dashboard.html"
+    And a file named "reports/sample_data/dashboard.html" should exist
+    And the HTML file "reports/sample_data/dashboard.html" should be valid and visible in a browser
+    And a file named "reports/sample_data/dashboard.html" should contain "Flow Metrics Summary"
 
   Scenario: Running viz forecasted_cfd on sample data
     Given a file named "wip_data.csv" with:
@@ -61,8 +61,8 @@ Feature: Visualization command
       """
     When I run `predictability-engine viz html_forecasted_cfd wip_data.csv`
     Then the exit status should be 0
-    And a file named "wip_data_forecasted_cfd.html" should exist
-    And the HTML file "wip_data_forecasted_cfd.html" should be valid and visible in a browser
+    And a file named "reports/wip_data/forecasted_cfd.html" should exist
+    And the HTML file "reports/wip_data/forecasted_cfd.html" should be valid and visible in a browser
 
   Scenario Outline: Color support in various commands
     When I run `predictability-engine <command> <flag>`
@@ -86,7 +86,7 @@ Feature: Visualization command
       """
     When I run `predictability-engine viz html_all dynamic_test.csv`
     Then the exit status should be 0
-    And a file named "dynamic_test_all.html" should contain "Total Items:</strong> 1"
+    And a file named "reports/dynamic_test/dashboard.html" should contain "Total Items:</strong> 1"
     Given a file named "dynamic_test.csv" with:
       """
       id,title,start_date,end_date
@@ -95,4 +95,4 @@ Feature: Visualization command
       """
     When I run `predictability-engine viz html_all dynamic_test.csv`
     Then the exit status should be 0
-    And a file named "dynamic_test_all.html" should contain "Total Items:</strong> 2"
+    And a file named "reports/dynamic_test/dashboard.html" should contain "Total Items:</strong> 2"

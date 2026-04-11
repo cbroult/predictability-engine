@@ -2,6 +2,7 @@
 
 require 'thor'
 require 'tty-table'
+require 'fileutils'
 require_relative 'visualizer'
 require_relative 'summary_visualizer'
 
@@ -75,9 +76,44 @@ module PredictabilityEngine
       puts PredictabilityEngine.run_report(file, :html, output: output)
     end
 
+    desc 'landscape FILE [OUTPUT]', 'Generate a landscape-oriented HTML dashboard'
+    def landscape(file, output = nil)
+      puts PredictabilityEngine.run_report(file, :landscape, output: output)
+    end
+
+    desc 'dashboard FILE [OUTPUT]', 'Alias for landscape'
+    def dashboard(file, output = nil)
+      landscape(file, output)
+    end
+
     desc 'all_html FILE [OUTPUT]', 'Alias for html_all'
     def all_html(file, output = nil)
       html_all(file, output)
+    end
+
+    desc 'pdf FILE [OUTPUT]', 'Generate a PDF report'
+    def pdf(file, output = nil)
+      puts PredictabilityEngine.run_report(file, :pdf, output: output)
+    end
+
+    desc 'markdown FILE [OUTPUT]', 'Generate a Markdown report'
+    def markdown(file, output = nil)
+      puts PredictabilityEngine.run_report(file, :markdown, output: output)
+    end
+
+    desc 'md FILE [OUTPUT]', 'Alias for markdown'
+    def md(file, output = nil)
+      markdown(file, output)
+    end
+
+    desc 'confluence FILE [OUTPUT]', 'Generate a Confluence markup report'
+    def confluence(file, output = nil)
+      puts PredictabilityEngine.run_report(file, :confluence, output: output)
+    end
+
+    desc 'conf FILE [OUTPUT]', 'Alias for confluence'
+    def conf(file, output = nil)
+      confluence(file, output)
     end
 
     private
@@ -85,13 +121,18 @@ module PredictabilityEngine
     def generate_html_chart(file, output, type)
       items = PredictabilityEngine.load_items(file)
       output = generate_output_path(file, output, "#{type}.html")
+      base_dir = File.dirname(output)
+      FileUtils.mkdir_p(base_dir)
       chart = yield(items)
       File.write(output, Visualizer.to_full_html(chart, items))
       puts "Chart generated at #{output}"
     end
 
-    def generate_output_path(file, output, suffix)
-      output || "#{File.basename(file, '.*')}_#{suffix}"
+    def generate_output_path(file, output, filename)
+      return output if output
+
+      base = File.basename(file, '.*')
+      File.join('reports', base, filename)
     end
   end
 

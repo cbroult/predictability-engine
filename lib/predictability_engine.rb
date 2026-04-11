@@ -40,10 +40,20 @@ module PredictabilityEngine
 
     if output || format.to_sym != :terminal
       ext = format_to_ext(format.to_sym)
-      suffix = format.to_sym == :html ? "_all.#{ext}" : "_report.#{ext}"
-      output ||= "#{File.basename(file, '.*')}#{suffix}"
+      base = File.basename(file, '.*')
+      dir = "reports/#{base}"
+      require 'fileutils'
+      FileUtils.mkdir_p(dir) unless output || File.exist?(dir)
+
+      filename = case format.to_sym
+                 when :html then 'dashboard.html'
+                 when :landscape, :dashboard then 'landscape.html'
+                 else "report.#{ext}"
+                 end
+      output ||= File.join(dir, filename)
+
       File.binwrite(output, content)
-      "Dashboard generated at #{output}"
+      "Report generated at #{output}"
     else
       content
     end
@@ -53,6 +63,7 @@ module PredictabilityEngine
     case format
     when :markdown, :md then 'md'
     when :confluence, :conf then 'conf'
+    when :landscape, :dashboard then 'html'
     else format.to_s
     end
   end
