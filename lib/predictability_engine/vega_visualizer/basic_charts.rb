@@ -27,7 +27,8 @@ module PredictabilityEngine
           mark: { type: 'rule', strokeDash: [4, 4] },
           encoding: { y: { field: 'val', type: 'quantitative' },
                       color: { field: 'type', type: 'nominal', title: 'Percentiles',
-                               scale: { range: range.take(count) } } } }
+                               scale: { range: range.take(count) },
+                               legend: { orient: 'bottom', columns: 3 } } } }
       end
 
       def self.throughput_histogram(work_items, title: 'Throughput Histogram')

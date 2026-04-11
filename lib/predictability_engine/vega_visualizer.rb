@@ -6,12 +6,12 @@ require_relative 'vega_visualizer/cfd_charts'
 
 module PredictabilityEngine
   module VegaVisualizer
-    CHART_WIDTH = 600
-    CHART_HEIGHT = 400
+    CHART_WIDTH = 500
+    CHART_HEIGHT = 300
 
     def self.apply_standard_dims(chart, title: nil)
       chart = chart.title(title) if title
-      chart.width(CHART_WIDTH).height(CHART_HEIGHT)
+      chart.width(CHART_WIDTH).height(CHART_HEIGHT).config(autosize: { type: 'fit', contains: 'padding' })
     end
 
     def self.cycle_time_scatter(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES,
@@ -39,7 +39,8 @@ module PredictabilityEngine
       { mark: { type: 'bar', tooltip: true },
         encoding: { x: { field: 'id', type: 'nominal', title: 'Work Item ID', sort: '-y' },
                     y: { field: 'age', type: 'quantitative', title: 'Age (days)' },
-                    color: { field: 'age', type: 'quantitative', scale: { scheme: 'yelloworangered' } } } }
+                    color: { field: 'age', type: 'quantitative', scale: { scheme: 'yelloworangered' },
+                             legend: { orient: 'bottom', title: 'Age' } } } }
     end
 
     def self.aging_rule_layers(pcts)
@@ -74,7 +75,7 @@ module PredictabilityEngine
       dom = %w[Arrivals Departures] + pcts.map { |p| "#{p}% Confidence" }
       range = ['#4c78a8', '#f58518', '#72b7b2', '#e45756', '#b279a2', '#ff9da7', '#ad494a', '#8ca27a']
       cfg = { field: 'type', type: 'nominal', scale: { domain: dom, range: range } }
-      cfg[:legend] = { title: 'Flow & Forecast' } if legend
+      cfg[:legend] = { title: 'Flow & Forecast', orient: 'bottom', columns: 4 } if legend
       { mark: { type: 'area', line: true, tooltip: true },
         encoding: { x: { field: 'date', type: 'temporal', title: 'Date' },
                     y: { field: 'count', type: 'quantitative', title: 'Total Items', stack: nil },

@@ -58,22 +58,25 @@ module PredictabilityEngine
       end
 
       def self.render_markdown_summary(work_items, metrics, percentiles)
-        render_markup_summary(work_items, metrics, percentiles, bold: '**', h2: '##', h3: '###')
+        render_markup_summary(work_items, metrics, percentiles, { bold: '**', head2: '##', head3: '###' })
       end
 
       def self.render_confluence_summary(work_items, metrics, percentiles)
-        render_markup_summary(work_items, metrics, percentiles, bold: '*', h2: 'h2.', h3: 'h3.')
+        render_markup_summary(work_items, metrics, percentiles, { bold: '*', head2: 'h2.', head3: 'h3.' })
       end
 
-      def self.render_markup_summary(work_items, metrics, percentiles, bold:, h2:, h3:)
+      def self.render_markup_summary(work_items, metrics, percentiles, styling)
+        head2 = styling[:head2]
+        head3 = styling[:head3]
+        bold = styling[:bold]
         out = [
-          "#{h2} Flow Metrics Summary", '',
+          "#{head2} Flow Metrics Summary", '',
           Helpers.metric_lines(work_items, metrics, prefix: '* ', bold: bold), ''
         ]
 
         if metrics[:aging]
           out += [
-            "#{h3} Aging WIP Summary", '',
+            "#{head3} Aging WIP Summary", '',
             "* #{bold}Active WIP:#{bold} #{metrics[:aging][:count]} items",
             "* #{bold}Average WIP Age:#{bold} #{metrics[:aging][:avg_age]} days",
             "* #{bold}Oldest Item Age:#{bold} #{metrics[:aging][:max_age]} days", ''
@@ -81,7 +84,7 @@ module PredictabilityEngine
         end
 
         out += [
-          "#{h3} Cycle Time Percentiles", '',
+          "#{head3} Cycle Time Percentiles", '',
           Helpers.percentile_lines(metrics, percentiles, prefix: '* ', bold: bold)
         ]
         out.join("\n")
