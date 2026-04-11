@@ -55,7 +55,7 @@ module PredictabilityEngine
                                 xlabel: "Days since #{start}", ylabel: 'Total Items',
                                 color: :blue, xlim: [0, max_x], ylim: [0, max_y])
       # Departures next
-      UnicodePlot.stairs!(plot, coords[:dates], coords[:departed], name: 'Departures', color: :red)
+      UnicodePlot.stairs!(plot, coords[:dates], coords[:departed], name: 'Departures', color: :green)
       render_to_string(plot, color: color)
     end
 
@@ -89,10 +89,10 @@ module PredictabilityEngine
     def self.add_forecast_layers!(plot, data, params, percentiles)
       # Departures next
       UnicodePlot.stairs!(plot, params[:x_coords].take(params[:hist_size]), data[:departed],
-                          name: 'Departures', color: :red)
+                          name: 'Departures', color: :green)
 
       # Forecast confidence paths
-      f_colors = %i[green yellow magenta cyan]
+      f_colors = %i[yellow magenta cyan white]
       percentiles.sort.each_with_index do |p, i|
         UnicodePlot.lineplot!(plot, params[:x_coords], data[:forecasts][p],
                               name: "#{p}% Confidence", color: f_colors[i % f_colors.size])

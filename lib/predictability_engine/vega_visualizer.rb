@@ -42,34 +42,40 @@ module PredictabilityEngine
       res = []
       sorted_pcts = percentiles.sort
       data[:dates].each_with_index do |date, i|
-        res << { date: date.to_s, count: data[:arrivals][i], type: 'Arrivals' }
-        sorted_pcts.each do |p|
-          res << { date: date.to_s, count: data[:forecasts][p][i], type: "#{p}% Confidence" }
+        # Arrivals (drawn first, bottom)
+        res << { date: date.to_s, count: data[:arrivals][i], type: 'Arrivals', order: 0 }
+        # Forecasts (drawn middle)
+        sorted_pcts.each_with_index do |p, pi|
+          res << { date: date.to_s, count: data[:forecasts][p][i], type: "#{p}% Confidence", order: pi + 1 }
         end
-        res << { date: date.to_s, count: data[:departed][i], type: 'Departures' } if i < data[:departed].size
+        # Departures (drawn last, top-most)
+        if i < data[:departed].size
+          res << { date: date.to_s, count: data[:departed][i], type: 'Departures', order: sorted_pcts.size + 1 }
+        end
       end
       res
     end
 
     def self.cfd_area_layer(pcts, legend: true)
       sorted_pcts = pcts.sort
-      dom = ['Arrivals'] + sorted_pcts.map { |p| "#{p}% Confidence" } + ['Departures']
+      dom = %w[Arrivals Departures] + sorted_pcts.map { |p| "#{p}% Confidence" }
       palette = ['#72b7b2', '#e45756', '#b279a2', '#ff9da7', '#ad494a', '#8ca27a']
-      range = ['#4c78a8'] + palette.take(sorted_pcts.size) + ['#f58518']
+      range = ['#4c78a8', '#59a14f'] + palette.take(sorted_pcts.size)
       cfg = { field: 'type', type: 'nominal', scale: { domain: dom, range: range } }
       if legend
         # Use the original pcts order for the legend if it differs from sorted
         cfg[:legend] = { title: 'Flow & Forecast', orient: 'bottom', columns: 4 }
         if pcts != sorted_pcts
-          cfg[:legend][:values] = ['Arrivals'] + pcts.map do |p|
+          cfg[:legend][:values] = %w[Arrivals Departures] + pcts.map do |p|
             "#{p}% Confidence"
-          end + ['Departures']
+          end
         end
       end
       { mark: { type: 'area', line: true, tooltip: true },
         encoding: { x: { field: 'date', type: 'temporal', title: 'Date' },
                     y: { field: 'count', type: 'quantitative', title: 'Total Items', stack: nil },
-                    color: cfg } }
+                    color: cfg,
+                    order: { field: 'order', type: 'quantitative' } } }
     end
 
     def self.cfd_line_layer(pcts)
@@ -93,8 +99,8 @@ module PredictabilityEngine
 
     def self.format_cfd_data(cfd)
       cfd.flat_map do |d|
-        [{ date: d[:date].to_s, count: d[:arrived], type: 'Arrivals' },
-         { date: d[:date].to_s, count: d[:departed], type: 'Departures' }]
+        [{ date: d[:date].to_s, count: d[:arrived], type: 'Arrivals', order: 0 },
+         { date: d[:date].to_s, count: d[:departed], type: 'Departures', order: 1 }]
       end
     end
 

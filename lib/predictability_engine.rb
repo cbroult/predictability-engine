@@ -67,9 +67,9 @@ module PredictabilityEngine
 
     filename = case format.to_sym
                when :html then 'dashboard.html'
-               when :landscape, :dashboard then 'landscape.html'
-               when :a3_landscape then 'a3_landscape.pdf'
-               else "report.#{ext}"
+               when :landscape, :dashboard then 'dashboard_landscape.html'
+               when :a3_landscape then 'dashboard_a3_landscape.pdf'
+               else "dashboard.#{ext}"
                end
     output ||= File.join(dir, filename)
 
