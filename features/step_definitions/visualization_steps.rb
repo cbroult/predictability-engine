@@ -23,12 +23,21 @@ Then(/^the file "([^"]*)" should be a valid PDF$/) do |filename|
   expect(content[0..3]).to eq('%PDF')
 end
 
+Then(/^the PDF file "([^"]*)" should have (\d+) page(?:s?)$/) do |filename, count|
+  content = File.binread(check_file_path(filename))
+  # A simple way to count pages in many PDFs is searching for /Type /Page
+  # Not perfectly robust but works for Prawn and Playwright outputs
+  pages = content.scan(/\/Type\s*\/Page\b/).size
+  expect(pages).to eq(count.to_i)
+end
+
 Then(/^the HTML file "([^"]*)" should have vertical rules for confidence levels$/) do |filename|
   content = File.read(check_file_path(filename))
   # Vega spec for Forecasted CFD contains rules with tooltips like "50% Confidence (2026-04-18)"
   expect(content).to include('"mark":{"type":"rule"')
   expect(content).to match(/"tooltip":"\d+% Confidence \(\d{4}-\d{2}-\d{2}\)"/)
 end
+
 
 def check_file_path(filename)
   file_path = File.join(aruba.config.working_directory, filename)

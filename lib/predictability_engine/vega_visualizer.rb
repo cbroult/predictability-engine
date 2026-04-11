@@ -12,7 +12,10 @@ module PredictabilityEngine
 
     def self.apply_standard_dims(chart, title: nil)
       chart = chart.title(title) if title
-      chart.width(CHART_WIDTH).height(CHART_HEIGHT).config(autosize: { type: 'fit', contains: 'padding' })
+      chart.width('container').height('container').config(
+        autosize: { type: 'fit', contains: 'padding' },
+        axis: { grid: false }
+      )
     end
 
     def self.cycle_time_scatter(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES,
@@ -56,46 +59,47 @@ module PredictabilityEngine
       res
     end
 
-    def self.cfd_area_layer(pcts, legend: true)
+    def self.cfd_color_scale(pcts)
       sorted_pcts = pcts.sort
       dom = %w[Arrivals Departures] + sorted_pcts.map { |p| "#{p}% Confidence" }
       palette = ['#72b7b2', '#e45756', '#b279a2', '#ff9da7', '#ad494a', '#8ca27a']
       range = ['#4c78a8', '#59a14f'] + palette.take(sorted_pcts.size)
-      cfg = { field: 'type', type: 'nominal', scale: { domain: dom, range: range } }
-      if legend
-        # Use the original pcts order for the legend if it differs from sorted
+      [dom, range]
+    end
+
+    def self.cfd_area_layer(pcts, legend: true)
+      cfg = { field: 'type', type: 'nominal' }
+      if legend && !pcts.empty?
         cfg[:legend] = { title: 'Flow & Forecast', orient: 'bottom', columns: 4 }
-        if pcts != sorted_pcts
-          cfg[:legend][:values] = %w[Arrivals Departures] + pcts.map do |p|
-            "#{p}% Confidence"
-          end
-        end
       end
-      { mark: { type: 'area', line: true, tooltip: true },
-        encoding: { x: { field: 'date', type: 'temporal', title: 'Date', timeUnit: 'yearmonthdate' },
-                    y: { field: 'count', type: 'quantitative', title: 'Total Items', stack: nil },
+      { mark: { type: 'area', tooltip: true },
+        encoding: { y: { field: 'count', type: 'quantitative', title: 'Total Items', stack: nil },
                     color: cfg,
                     order: { field: 'order', type: 'quantitative' } } }
     end
 
-    def self.cfd_line_layer(pcts)
-      filter = pcts.map { |p| "datum.type == '#{p}% Confidence'" }.join(' || ')
-      { transform: [{ filter: filter }], mark: { type: 'line', strokeDash: [4, 4], tooltip: true },
-        encoding: { x: { field: 'date', type: 'temporal', timeUnit: 'yearmonthdate' },
-                    y: { field: 'count', type: 'quantitative' },
-                    color: { field: 'type', type: 'nominal' } } }
+    def self.cfd_line_layer(_pcts)
+      # Lines for all types, but with dash for forecasts
+      { mark: { type: 'line', tooltip: true },
+        encoding: { y: { field: 'count', type: 'quantitative' },
+                    strokeDash: {
+                      condition: { test: "datum.type == 'Arrivals' || datum.type == 'Departures'", value: [] },
+                      value: [4, 4]
+                    } } }
     end
 
     def self.cfd_vert_layer(f, pcts)
-      { data: { values: cfd_vert_data(f, pcts) }, mark: { type: 'rule', strokeDash: [2, 2], color: 'black' },
-        encoding: { x: { field: 'date', type: 'temporal', timeUnit: 'yearmonthdate' },
+      { data: { values: cfd_vert_data(f, pcts) },
+        mark: { type: 'rule', strokeDash: [2, 2], color: 'black' },
+        encoding: { y: { value: 0 },
+                    y2: { field: 'total_items', type: 'quantitative' },
                     tooltip: { field: 'tooltip', type: 'nominal' } } }
     end
 
     def self.cfd_vert_data(f, pcts)
       pcts.map do |p|
         d = f[:summary][:today] + f[:summary][:"p#{p}"]
-        { date: d.to_s, label: "#{p}%", tooltip: "#{p}% Confidence (#{d})" }
+        { date: d.to_s, label: "#{p}%", tooltip: "#{p}% Confidence (#{d})", total_items: f[:summary][:total_items] }
       end
     end
 

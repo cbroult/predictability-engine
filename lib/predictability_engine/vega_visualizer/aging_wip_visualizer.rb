@@ -17,8 +17,9 @@ module PredictabilityEngine
       end
 
       def self.aging_bar_layer
-        { mark: { type: 'bar', tooltip: true },
-          encoding: { x: { field: 'id', type: 'nominal', title: 'Work Item ID', sort: '-y' },
+        { mark: { type: 'bar', tooltip: true, stroke: 'white', strokeWidth: 0.2 },
+          encoding: { x: { field: 'id', type: 'nominal', title: 'Work Item ID', sort: '-y',
+                           axis: { labelAngle: -45, labelOverlap: 'parity' } },
                       y: { field: 'age', type: 'quantitative', title: 'Age (days)' },
                       color: { field: 'age', type: 'quantitative', scale: { scheme: 'yelloworangered' },
                                legend: { orient: 'bottom', title: 'Age' } } } }

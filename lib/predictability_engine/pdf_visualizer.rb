@@ -57,8 +57,11 @@ module PredictabilityEngine
         { label: 'Departures', values: data[:departed], color: '00FF00' }
       ]
 
-      percentiles.each do |p|
-        series << { label: "#{p}% Conf.", values: data[:forecasts][p], color: 'FF0000' }
+      f_colors = %w[E6B800 CC0000 800080 008080 333333] # Darker versions of yellow, red, magenta, cyan, gray
+      percentiles.sort.each_with_index do |p, i|
+        # Slice for PDF as well if possible, though draw_line_chart might expect full series
+        # For now, let's at least fix colors.
+        series << { label: "#{p}% Conf.", values: data[:forecasts][p], color: f_colors[i % f_colors.size] }
       end
 
       Primitives.draw_line_chart(pdf, data[:dates].map(&:to_s), series)

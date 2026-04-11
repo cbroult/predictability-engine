@@ -15,8 +15,8 @@ module PredictabilityEngine
       end
 
       def self.scatter_points_layer
-        { mark: { type: 'point', tooltip: true },
-          encoding: { x: { field: 'date', type: 'temporal', title: 'Completion Date' },
+        { mark: { type: 'point', tooltip: true, opacity: 0.6, size: 20 },
+          encoding: { x: { field: 'date', type: 'temporal', title: 'Completion Date', timeUnit: 'utc-yearmonthdate' },
                       y: { field: 'cycle_time', type: 'quantitative', title: 'Cycle Time (days)' },
                       color: { value: '#4c78a8' } } }
       end

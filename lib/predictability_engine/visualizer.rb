@@ -15,13 +15,6 @@ module PredictabilityEngine
 
   HTML_BASE_STYLE = 'font-family: sans-serif; background: #f8f9fa;'
 
-  HTML_STYLE_STANDARD = <<~CSS.freeze
-    <style>
-      body { #{HTML_BASE_STYLE} margin: 20px; background: white; }
-      .section { margin-bottom: 50px; }
-      .chart-container { width: 100%; height: 400px; margin-top: 10px; }
-    </style>
-  CSS
 
   HTML_STYLE_LANDSCAPE = <<~CSS.freeze
     <style>
@@ -54,11 +47,6 @@ module PredictabilityEngine
     </html>
   HTML
 
-  HTML_STANDARD_BODY = <<~HTML
-    <h1>{{TITLE}}</h1>
-    <div class="summary-container">{{SUMMARY_CONTENT}}</div>
-    <div class="charts-container">{{CHART_CONTENT}}</div>
-  HTML
 
   HTML_LANDSCAPE_BODY = <<~HTML
     <header>
@@ -71,7 +59,7 @@ module PredictabilityEngine
     </div>
   HTML
 
-  private_constant :HTML_HEADER, :HTML_BASE, :HTML_STANDARD_BODY, :HTML_LANDSCAPE_BODY, :HTML_STYLE_STANDARD,
+  private_constant :HTML_HEADER, :HTML_BASE, :HTML_LANDSCAPE_BODY,
                    :HTML_STYLE_LANDSCAPE
 
   class Visualizer
@@ -100,9 +88,9 @@ module PredictabilityEngine
     end
 
     def self.to_full_html(content_or_chart, work_items = nil, title: 'Predictability Engine Dashboard',
-                          layout: :standard, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
-      style = layout == :landscape ? HTML_STYLE_LANDSCAPE : HTML_STYLE_STANDARD
-      body = layout == :landscape ? HTML_LANDSCAPE_BODY : HTML_STANDARD_BODY
+                          layout: :landscape, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
+      style = HTML_STYLE_LANDSCAPE
+      body = HTML_LANDSCAPE_BODY
       summary = work_items ? SummaryVisualizer.metrics_html(work_items, percentiles: percentiles) : ''
 
       html = HTML_BASE.gsub('{{STYLE}}', style).gsub('{{BODY}}', body)
@@ -110,8 +98,14 @@ module PredictabilityEngine
       html.gsub!('{{DATE}}', Time.now.strftime('%Y-%m-%d %H:%M'))
       html.gsub!('{{SUMMARY_CONTENT}}', summary)
 
-      content = prepare_html_content(content_or_chart, layout, html)
-      html.gsub('{{CHART_CONTENT}}', content || '')
+      content = prepare_html_content(content_or_chart, :landscape, html)
+      # If it was a single chart, it might still have {{CHART_PANELS}} placeholder
+      if html.include?('{{CHART_PANELS}}')
+        panel = "<div class='chart-panel' style='grid-column: span 2; grid-row: span 2;'>" \
+                "<div class='chart-container'>#{content}</div></div>"
+        html.gsub!('{{CHART_PANELS}}', panel)
+      end
+      html
     end
 
     def self.prepare_html_content(content_or_chart, layout, html)

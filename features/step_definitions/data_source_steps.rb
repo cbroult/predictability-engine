@@ -13,3 +13,25 @@ Given(/^Jira is mocked for filter "([^"]*)" with items:$/) do |_filter_id, table
   set_environment_variable('MOCK_JIRA', 'true')
   set_environment_variable('JIRA_MOCK_DATA', table.hashes.to_json)
 end
+
+Given(/^an extra large CSV file named "([^"]*)" with (\d+) completed and (\d+) in progress items$/) do |filename, completed_count, wip_count|
+  require 'csv'
+  require 'date'
+  current_date = Date.parse('2026-04-11')
+  
+  content = CSV.generate do |csv|
+    csv << %w[id title start_date end_date]
+    # Completed items
+    (1..completed_count.to_i).each do |i|
+      start_date = current_date - rand(200..400)
+      end_date = start_date + rand(5..30)
+      csv << ["PROJ-#{i}", "Task #{i}", start_date.iso8601, end_date.iso8601]
+    end
+    # WIP items
+    (completed_count.to_i + 1..completed_count.to_i + wip_count.to_i).each do |i|
+      start_date = current_date - rand(1..100)
+      csv << ["PROJ-#{i}", "In Progress Task #{i}", start_date.iso8601, nil]
+    end
+  end
+  write_file(filename, content)
+end

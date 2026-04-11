@@ -66,9 +66,8 @@ module PredictabilityEngine
     FileUtils.mkdir_p(dir) unless output || File.exist?(dir)
 
     filename = case format.to_sym
-               when :html then 'dashboard.html'
-               when :landscape, :dashboard then 'dashboard_landscape.html'
-               when :a3_landscape then 'dashboard_a3_landscape.pdf'
+               when :html, :landscape, :dashboard then 'dashboard.html'
+               when :a3_landscape then 'dashboard_a3.pdf'
                else "dashboard.#{ext}"
                end
     output ||= File.join(dir, filename)
@@ -88,6 +87,7 @@ module PredictabilityEngine
     when :confluence, :conf then 'conf'
     when :landscape, :dashboard then 'html'
     when :a3_landscape then 'pdf'
+    when :ppt then 'pptx'
     else format.to_s
     end
   end

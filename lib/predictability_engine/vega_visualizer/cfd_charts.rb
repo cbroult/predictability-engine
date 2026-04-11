@@ -5,7 +5,13 @@ module PredictabilityEngine
     module CfdCharts
       def self.cfd(work_items, title: 'Cumulative Flow Diagram')
         data = VegaVisualizer.format_cfd_data(Calculators::Cfd.calculate(work_items))
-        chart = Vega.lite.data(data).layer([VegaVisualizer.cfd_area_layer([], legend: false)])
+        dom, range = VegaVisualizer.cfd_color_scale([])
+        chart = Vega.lite.data(data)
+                    .encoding(
+                      x: { field: 'date', type: 'temporal', title: 'Date', timeUnit: 'utc-yearmonthdate' },
+                      color: { field: 'type', type: 'nominal', scale: { domain: dom, range: range } }
+                    )
+                    .layer([VegaVisualizer.cfd_area_layer([], legend: false)])
         VegaVisualizer.apply_standard_dims(chart, title: title)
       end
 
@@ -14,8 +20,15 @@ module PredictabilityEngine
         return cfd(work_items, title: title) unless data
 
         unified = VegaVisualizer.build_cfd_unified_data(data, percentiles)
+        dom, range = VegaVisualizer.cfd_color_scale(percentiles)
+
         VegaVisualizer.apply_standard_dims(
           Vega.lite.data(unified)
+              .encoding(
+                x: { field: 'date', type: 'temporal', title: 'Date', timeUnit: 'utc-yearmonthdate' },
+                y: { field: 'count', type: 'quantitative', title: 'Total Items', scale: { zero: false } },
+                color: { field: 'type', type: 'nominal', scale: { domain: dom, range: range } }
+              )
               .layer([VegaVisualizer.cfd_area_layer(percentiles),
                       VegaVisualizer.cfd_line_layer(percentiles),
                       VegaVisualizer.cfd_vert_layer(data, percentiles)]),

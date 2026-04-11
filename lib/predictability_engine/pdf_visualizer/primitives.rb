@@ -3,8 +3,8 @@
 module PredictabilityEngine
   module PdfVisualizer
     module Primitives
-      CHART_WIDTH = 400
-      CHART_HEIGHT = 150
+      def self.chart_width = 250
+      def self.chart_height = 100
 
       def self.draw_line_chart(pdf, _labels, series)
         max_y = series.map { |s| s[:values].max }.max || 1
@@ -18,8 +18,8 @@ module PredictabilityEngine
       def self.draw_series(pdf, series_data, labels_count, max_y)
         pdf.stroke_color series_data[:color]
         points = series_data[:values].each_with_index.map do |v, i|
-          x = (i.to_f / (labels_count - 1)) * CHART_WIDTH
-          y = (v.to_f / max_y) * CHART_HEIGHT
+          x = (i.to_f / (labels_count - 1)) * chart_width
+          y = (v.to_f / max_y) * chart_height
           [x, y]
         end
 
@@ -30,24 +30,25 @@ module PredictabilityEngine
       end
 
       def self.draw_legend(pdf, series)
+        # Use smaller legend for dashboard
         series.each do |s|
           pdf.fill_color s[:color]
-          pdf.fill_rectangle [50, pdf.cursor], 10, 10
+          pdf.fill_rectangle [0, pdf.cursor], 8, 8
           pdf.fill_color '000000'
-          pdf.draw_text s[:label], at: [65, pdf.cursor - 8], size: 8
-          pdf.move_down 12
+          pdf.draw_text s[:label], at: [12, pdf.cursor - 6], size: 6
+          pdf.move_down 10
         end
       end
 
       def self.draw_bar_chart(pdf, labels, values)
         max_y = values.max || 1
-        bar_width = labels.empty? ? CHART_WIDTH : CHART_WIDTH / labels.size.to_f
+        bar_width = labels.empty? ? chart_width : chart_width / labels.size.to_f
 
         draw_canvas(pdf) do
           values.each_with_index do |v, i|
-            h = (v.to_f / max_y) * CHART_HEIGHT
+            h = (v.to_f / max_y) * chart_height
             pdf.fill_color '3366CC'
-            pdf.fill_rectangle [i * bar_width, h], bar_width - 2, h
+            pdf.fill_rectangle [i * bar_width, h], [bar_width - 2, 1].max, h
           end
         end
       end
@@ -57,21 +58,21 @@ module PredictabilityEngine
 
         draw_canvas(pdf) do
           values.each_with_index do |v, i|
-            x = labels.size <= 1 ? 0 : (i.to_f / (labels.size - 1)) * CHART_WIDTH
-            y = (v.to_f / max_y) * CHART_HEIGHT
-            pdf.fill_circle [x, y], 2
+            x = labels.size <= 1 ? 0 : (i.to_f / (labels.size - 1)) * chart_width
+            y = (v.to_f / max_y) * chart_height
+            pdf.fill_circle [x, y], 1.5
           end
         end
       end
 
       def self.draw_canvas(pdf)
-        pdf.bounding_box([50, pdf.cursor], width: CHART_WIDTH, height: CHART_HEIGHT) do
+        pdf.bounding_box([0, pdf.cursor], width: chart_width, height: chart_height) do
           pdf.stroke_bounds
           yield
           pdf.stroke_color '000000'
           pdf.fill_color '000000'
         end
-        pdf.move_down 10
+        pdf.move_down 5
       end
     end
   end

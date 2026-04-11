@@ -27,8 +27,8 @@ Feature: Report generation in multiple formats
   Scenario: Generating a landscape dashboard via viz
     When I run `predictability-engine viz landscape sample_data.csv`
     Then the exit status should be 0
-    And a file named "reports/sample_data/dashboard_landscape.html" should exist
-    And the HTML file "reports/sample_data/dashboard_landscape.html" should be valid and visible in a browser
+    And a file named "reports/sample_data/dashboard.html" should exist
+    And the HTML file "reports/sample_data/dashboard.html" should be valid and visible in a browser
 
   Scenario: Generating a PDF report via viz
     When I run `predictability-engine viz pdf sample_data.csv`
@@ -36,9 +36,11 @@ Feature: Report generation in multiple formats
     And the exit status should be 0
     And a file named "reports/sample_data/dashboard.pdf" should exist
     And the file "reports/sample_data/dashboard.pdf" should be a valid PDF
+    And the PDF file "reports/sample_data/dashboard.pdf" should have 1 page
 
   Scenario: Generating an A3 landscape PDF dashboard via viz
     When I run `predictability-engine viz a3_landscape sample_data.csv`
     Then the exit status should be 0
-    And a file named "reports/sample_data/dashboard_a3_landscape.pdf" should exist
-    And the file "reports/sample_data/dashboard_a3_landscape.pdf" should be a valid PDF
+    And a file named "reports/sample_data/dashboard_a3.pdf" should exist
+    And the file "reports/sample_data/dashboard_a3.pdf" should be a valid PDF
+    And the PDF file "reports/sample_data/dashboard_a3.pdf" should have 1 page

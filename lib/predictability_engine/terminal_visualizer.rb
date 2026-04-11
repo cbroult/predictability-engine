@@ -12,7 +12,8 @@ module PredictabilityEngine
       pcts = PredictabilityEngine.mapped_percentiles(work_items, percentiles)
       plot = UnicodePlot.barplot(data.map { |d| d[:id].to_s }, data.map { |d| d[:age] },
                                  title: 'Aging Work In Progress (Days)', color: color ? :blue : nil)
-      [plot.render, '', '--- SLE Benchmarks (Historical) ---',
+      rendered = render_to_string(plot, color: color)
+      [rendered, '', '--- SLE Benchmarks (Historical) ---',
        pcts.map { |p| "  #{p[:label]}: #{p[:val]} days" }.join("\n")].join("\n")
     end
 
@@ -92,10 +93,15 @@ module PredictabilityEngine
                           name: 'Departures', color: :green)
 
       # Forecast confidence paths
-      f_colors = %i[yellow magenta cyan white]
-      percentiles.sort.each_with_index do |p, i|
-        UnicodePlot.lineplot!(plot, params[:x_coords], data[:forecasts][p],
-                              name: "#{p}% Confidence", color: f_colors[i % f_colors.size])
+      # Use distinct colors for forecast paths
+      f_colors = { 50 => :yellow, 75 => :red, 85 => :magenta, 95 => :cyan, 98 => :white }
+      percentiles.sort.reverse.each do |p|
+        # Slice to only show forecast from the last historical point onwards
+        f_x = params[:x_coords].drop(params[:hist_size] - 1)
+        f_y = data[:forecasts][p].drop(params[:hist_size] - 1)
+
+        UnicodePlot.lineplot!(plot, f_x, f_y,
+                              name: "#{p}% Confidence", color: f_colors[p] || :white)
         deadline_x = params[:x_coords][params[:hist_size] - 1 + data[:summary][:"p#{p}"]]
         # Use normal color for vertical lines (neutral); omitted from legend
         UnicodePlot.lineplot!(plot, [deadline_x, deadline_x], [0, params[:total_items]], color: :normal)

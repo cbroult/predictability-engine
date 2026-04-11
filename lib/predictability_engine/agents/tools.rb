@@ -55,10 +55,10 @@ module PredictabilityEngine
         end
       end
 
-      desc 'Generate a full report in a specified format (html, pdf, md, etc) and layout (standard, landscape)'
-      define_method :generate_report do |format: 'terminal', layout: nil|
+      desc 'Generate a full report in a specified format (html, pdf, md, etc)'
+      define_method :generate_report do |format: 'terminal'|
         source = @data_manager.source || 'ai_report.csv'
-        PredictabilityEngine.run_report(source, format, layout: layout)
+        PredictabilityEngine.run_report(source, format)
       end
 
       desc 'Analyze Cumulative Flow Diagram for anomalies like growing WIP'

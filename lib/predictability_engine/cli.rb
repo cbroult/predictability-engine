@@ -13,7 +13,6 @@ module PredictabilityEngine
     end
 
     class_option :color, type: :boolean, default: true, desc: 'Enable/disable color output for terminal charts'
-    class_option :layout, type: :string, desc: 'Layout to use for reports (standard, landscape)'
 
     desc 'scatter FILE', 'Show Cycle Time scatter plot'
     def scatter(file)
@@ -85,12 +84,12 @@ module PredictabilityEngine
       run_and_print_report(file, :terminal)
     end
 
-    desc 'html_all FILE [OUTPUT]', 'Generate a combined HTML dashboard'
+    desc 'html_all FILE [OUTPUT]', 'Generate a combined HTML dashboard (landscape)'
     def html_all(file, output = nil)
       run_and_print_report(file, :html, output: output)
     end
 
-    desc 'landscape FILE [OUTPUT]', 'Generate a landscape-oriented HTML dashboard'
+    desc 'landscape FILE [OUTPUT]', 'Alias for html_all'
     def landscape(file, output = nil)
       run_and_print_report(file, :landscape, output: output)
     end
@@ -137,8 +136,23 @@ module PredictabilityEngine
 
     desc 'all_formats FILE', 'Generate all report formats at once'
     def all_formats(file)
-      %i[terminal html pdf md conf landscape a3_landscape].each do |fmt|
-        run_and_print_report(file, fmt)
+      items = PredictabilityEngine.load_items(file)
+      report = Report.generate_all(items)
+      # Generate images once for markdown/confluence
+      base = File.basename(file, '.*')
+      report.generate_chart_images("reports/#{base}")
+
+      %i[terminal html pdf md conf a3_landscape ppt].each do |fmt|
+        begin
+          content = report.render(fmt, color: options[:color])
+          if fmt == :terminal
+            puts content
+          else
+            puts PredictabilityEngine.write_report(file, fmt, content, nil)
+          end
+        rescue StandardError => e
+          warn "Failed to generate #{fmt} report: #{e.message}"
+        end
       end
     end
 
@@ -180,7 +194,6 @@ module PredictabilityEngine
 
     desc 'report FILE FORMAT [OUTPUT]', 'Generate a full report in various formats (terminal, html, pdf, md, conf)'
     method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
-    method_option :layout, type: :string, desc: 'Layout to use (standard, landscape)'
     def report(input_file, format = 'terminal', output = nil)
       PredictabilityEngine.run_and_print_report(input_file, format, options, output: output)
     end
