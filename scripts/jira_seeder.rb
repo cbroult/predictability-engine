@@ -2,6 +2,7 @@
 
 require 'jira-ruby'
 require 'optparse'
+require_relative '../lib/predictability_engine/config'
 
 # This script seeds a Jira project with test data to verify the predictability engine's
 # integration with real Jira instances.
@@ -15,7 +16,8 @@ require 'optparse'
 
 class JiraSeeder
   def initialize(options)
-    @project_key = options[:project]
+    @config = PredictabilityEngine::Config.jira(ENV['JIRA_PROFILE'])
+    @project_key = options[:project] || @config[:project]
     @count = options[:count] || 5
     @client = build_client
   end
@@ -68,9 +70,9 @@ class JiraSeeder
 
   def build_client
     options = {
-      username: ENV['JIRA_EMAIL'],
-      password: ENV['JIRA_API_TOKEN'],
-      site: ENV['JIRA_SITE'],
+      username: @config[:email],
+      password: @config[:token],
+      site: @config[:site],
       context_path: '',
       auth_type: :basic
     }

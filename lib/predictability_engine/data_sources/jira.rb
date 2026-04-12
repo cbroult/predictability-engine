@@ -19,21 +19,21 @@ module PredictabilityEngine
       private
 
       def resolve_source(spec)
+        profile_name = ENV['JIRA_PROFILE']
         if spec.end_with?('.yml') || spec.end_with?('.yaml')
           yaml = JiraYaml.new(spec)
           [yaml.profile, yaml.query]
         elsif spec == 'jira'
-          [ENV['JIRA_PROFILE'], ENV['JIRA_PROJECT_QUERY'] || default_project_query]
+          config = Config.jira(profile_name)
+          project = config[:project]
+          query = ENV['JIRA_PROJECT_QUERY'] || (project ? "project = \"#{project}\"" : nil)
+          raise Error, "No JIRA project specified (use JIRA_PROJECT env var or provide a query)" unless query
+          [profile_name, query]
         elsif spec.match?(/^[A-Z][A-Z0-9]+$/)
-          [ENV['JIRA_PROFILE'], "project = \"#{spec}\""]
+          [profile_name, "project = \"#{spec}\""]
         else
           [nil, spec]
         end
-      end
-
-      def default_project_query
-        return "project = \"#{ENV['JIRA_PROJECT']}\"" if ENV['JIRA_PROJECT']
-        raise Error, "No JIRA project specified (use JIRA_PROJECT env var or provide a query)"
       end
 
       def build_client(profile = nil)

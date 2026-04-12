@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'roo'
+require_relative '../../lib/predictability_engine'
 
 Given(/^an excel file named "([^"]*)" with items:$/) do |filename, table|
   # We create a dummy file to satisfy the existence check if needed,
@@ -14,10 +15,17 @@ Given(/^Jira is mocked for filter "([^"]*)" with items:$/) do |_filter_id, table
   set_environment_variable('JIRA_MOCK_DATA', table.hashes.to_json)
 end
 
-Given(/^the Jira project "([^"]*)" is seeded with (\d+) test issues( with cleanup)?$/) do |project_key, count, cleanup|
+Given(/^a Jira project is seeded with (\d+) test issues( with cleanup)?$/) do |count, cleanup|
+  config = PredictabilityEngine::Config.jira(ENV['JIRA_PROFILE'])
+  project_key = config[:project]
+  
   # Skip if JIRA_SITE is not set (not a real JIRA test run)
-  unless ENV['JIRA_SITE']
-    pending "JIRA_SITE environment variable not set. Set it to run @real_jira tests."
+  unless config[:site]
+    pending "JIRA_SITE environment variable or site config not set. Set it to run @real_jira tests."
+  end
+  
+  unless project_key
+    pending "JIRA_PROJECT environment variable or project config not set. Set it to run @real_jira tests."
   end
   
   # Run the seeder script.

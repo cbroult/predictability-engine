@@ -31,7 +31,8 @@ module PredictabilityEngine
         return {
           site: profile['site'],
           email: profile['email'],
-          token: profile['token']
+          token: profile['token'],
+          project: profile['project']
         } unless profile.empty?
       end
 
@@ -39,7 +40,8 @@ module PredictabilityEngine
       {
         site: ENV['JIRA_SITE'] || jira_local['site'] || global_config['site'],
         email: ENV['JIRA_EMAIL'] || jira_local['email'] || global_config['email'],
-        token: ENV['JIRA_API_TOKEN'] || jira_local['token'] || global_config['token']
+        token: ENV['JIRA_API_TOKEN'] || jira_local['token'] || global_config['token'],
+        project: ENV['JIRA_PROJECT'] || jira_local['project'] || global_config['project']
       }
     end
 

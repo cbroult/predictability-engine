@@ -6,7 +6,7 @@ Feature: Real Jira Integration Pipeline
   So that I can ensure the integration remains robust
 
   Scenario: Run engine against freshly seeded Jira project
-    Given the Jira project "PIPELINE" is seeded with 5 test issues with cleanup
-    When I run `predictability-engine summary "project = PIPELINE"`
+    Given a Jira project is seeded with 5 test issues with cleanup
+    When I run `predictability-engine summary jira`
     Then the output should contain "Total Items: 5"
     And the output should contain "Completed Items: 1"

@@ -29,6 +29,15 @@ RSpec.describe PredictabilityEngine::Config do
         stub_const('ENV', ENV.to_h.merge('JIRA_PROFILE' => 'client-x'))
         expect(described_class.jira[:site]).to eq('https://client-x.atlassian.net')
       end
+
+      it 'returns project key from environment or file' do
+        stub_const('ENV', ENV.to_h.merge('JIRA_PROJECT' => 'PROJ-ENV'))
+        expect(described_class.jira[:project]).to eq('PROJ-ENV')
+
+        stub_const('ENV', ENV.to_h.reject { |k| k == 'JIRA_PROJECT' })
+        File.write(config_file, { 'jira' => { 'project' => 'PROJ-FILE' } }.to_yaml)
+        expect(described_class.jira[:project]).to eq('PROJ-FILE')
+      end
     end
 
     context 'with profile_name' do
