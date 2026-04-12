@@ -7,7 +7,14 @@ module PredictabilityEngine
   module DataSources
     class Jira < Base
       def perform_load(spec)
-        return build_work_items(mock_data('JIRA_MOCK_DATA')) if ENV['MOCK_JIRA'] == 'true'
+        if ENV['MOCK_JIRA'] == 'true'
+          data = mock_data('JIRA_MOCK_DATA')
+          # Even when mocked, we can validate the contract if requested
+          if ENV['JIRA_CONTRACT_CHECK'] == 'true'
+            data.each { |row| validate_issue_contract!(row) }
+          end
+          return build_work_items(data)
+        end
 
         profile, query = resolve_source(spec)
         client = build_client(profile)
@@ -23,16 +30,34 @@ module PredictabilityEngine
       private
 
       def validate_issue_contract!(issue)
-        # Required fields according to map_issue
-        raise Error, "Issue #{issue.key} is missing 'key'" unless issue.key
-        raise Error, "Issue #{issue.key} is missing 'summary'" unless issue.summary
-        raise Error, "Issue #{issue.key} is missing 'issuetype'" unless issue.issuetype
-        raise Error, "Issue #{issue.key} is missing 'issuetype.name'" unless issue.issuetype.name
-        raise Error, "Issue #{issue.key} is missing 'created'" unless issue.created
+        # Handle both JIRA::Resource::Issue and Hash (for mocks)
+        is_hash = issue.is_a?(Hash)
+        
+        key = is_hash ? issue[:key] || issue['key'] : issue.key
+        summary = is_hash ? issue[:summary] || issue['summary'] : issue.summary
+        issuetype = is_hash ? issue[:issuetype] || issue['issuetype'] : issue.issuetype
+        created = is_hash ? issue[:created] || issue['created'] : issue.created
+
+        raise Error, "Issue #{key} is missing 'key'" unless key
+        raise Error, "Issue #{key} is missing 'summary'" unless summary
+        raise Error, "Issue #{key} is missing 'issuetype'" unless issuetype
+        
+        # Handle issuetype object or string
+        type_name = if issuetype.respond_to?(:name)
+                      issuetype.name
+                    elsif issuetype.is_a?(Hash)
+                      issuetype[:name] || issuetype['name']
+                    else
+                      issuetype
+                    end
+        raise Error, "Issue #{key} is missing 'issuetype.name'" unless type_name
+        
+        raise Error, "Issue #{key} is missing 'created'" unless created
         
         # Required for cycle time and aging
-        unless issue.respond_to?(:changelog) && issue.changelog
-          warn "Warning: Issue #{issue.key} is missing 'changelog' (expand=changelog failed?)"
+        has_changelog = is_hash ? (issue[:changelog] || issue['changelog']) : (issue.respond_to?(:changelog) && issue.changelog)
+        unless has_changelog
+          warn "Warning: Issue #{key} is missing 'changelog' (expand=changelog failed?)"
         end
       end
 

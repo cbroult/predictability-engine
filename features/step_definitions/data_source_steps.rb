@@ -16,6 +16,21 @@ Given(/^Jira is mocked for filter "([^"]*)" with items:$/) do |_filter_id, table
 end
 
 Given(/^a Jira project is seeded with (\d+) test issues( with cleanup)?$/) do |count, cleanup|
+  if ENV['MOCK_JIRA'] == 'true'
+    # Provide mock data that satisfies the contract check
+    mock_issues = (1..count.to_i).map do |i|
+      {
+        key: "TEST-#{i}",
+        summary: "Test Issue #{i}",
+        issuetype: { name: "Story" },
+        created: "2024-01-01T10:00:00.000+0000",
+        changelog: { histories: [] }
+      }
+    end
+    set_environment_variable('JIRA_MOCK_DATA', mock_issues.to_json)
+    next
+  end
+
   config = PredictabilityEngine::Config.jira(ENV['JIRA_PROFILE'])
   project_key = config[:project]
   
@@ -41,8 +56,9 @@ Then(/^the JIRA issue contract should be verified for the seeded project$/) do
   # Set the contract check flag
   set_environment_variable('JIRA_CONTRACT_CHECK', 'true')
   
-  # Run a command that loads the data
+  # Run a command that loads the data and expect it to succeed
   step "I run `predictability-engine summary jira`"
+  step "the exit status should be 0"
 end
 
 Given(/^an extra large CSV file named "([^"]*)" with (\d+) completed and (\d+) in progress items$/) do |filename, completed_count, wip_count|

@@ -15,15 +15,17 @@ module PredictabilityEngine
       profile_name ||= ENV['JIRA_PROFILE'] || ENV['JIRA_PROJECT']
 
       # Load global JIRA credentials if exists
-      global_config = File.exist?(JIRA_CREDENTIALS_FILE) ? YAML.load_file(JIRA_CREDENTIALS_FILE) : {}
-      global_config ||= {}
+      global_raw = File.exist?(JIRA_CREDENTIALS_FILE) ? YAML.load_file(JIRA_CREDENTIALS_FILE) : {}
+      global_raw ||= {}
+      # Support both flat and nested 'jira' key in global config
+      global_config = global_raw.key?('jira') ? global_raw['jira'] : global_raw
       global_profiles = global_config.fetch('profiles', {})
 
       # Load local project JIRA config if exists
-      local_config = File.exist?(CONFIG_FILE) ? YAML.load_file(CONFIG_FILE) : {}
-      local_config ||= {}
-      jira_local = local_config.fetch('jira', {})
-      local_profiles = jira_local.fetch('profiles', {})
+      local_raw = File.exist?(CONFIG_FILE) ? YAML.load_file(CONFIG_FILE) : {}
+      local_raw ||= {}
+      local_config = local_raw.fetch('jira', {})
+      local_profiles = local_config.fetch('profiles', {})
 
       # Prioritize profile if profile_name is explicit or from env
       if profile_name
@@ -38,10 +40,10 @@ module PredictabilityEngine
 
       # Default fallback logic for global settings/env vars
       {
-        site: ENV['JIRA_SITE'] || jira_local['site'] || global_config['site'],
-        email: ENV['JIRA_EMAIL'] || jira_local['email'] || global_config['email'],
-        token: ENV['JIRA_API_TOKEN'] || jira_local['token'] || global_config['token'],
-        project: ENV['JIRA_PROJECT'] || jira_local['project'] || global_config['project']
+        site: ENV['JIRA_SITE'] || local_config['site'] || global_config['site'],
+        email: ENV['JIRA_EMAIL'] || local_config['email'] || global_config['email'],
+        token: ENV['JIRA_API_TOKEN'] || local_config['token'] || global_config['token'],
+        project: ENV['JIRA_PROJECT'] || local_config['project'] || global_config['project']
       }
     end
 
