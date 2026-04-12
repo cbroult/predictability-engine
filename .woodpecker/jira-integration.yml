@@ -1,0 +1,27 @@
+# JIRA Integration Pipeline
+# This pipeline runs scenarios against an actual JIRA instance.
+# It is triggered manually to avoid unnecessary issue creation and API usage.
+
+when:
+  event: manual
+  branch: main
+
+steps:
+  - name: jira-test
+    image: ruby:4.0.2-alpine
+    backend_options:
+      docker:
+        network_mode: host
+    environment:
+      JIRA_SITE:
+        from_secret: jira_site
+      JIRA_EMAIL:
+        from_secret: jira_email
+      JIRA_API_TOKEN:
+        from_secret: jira_api_token
+      CUCUMBER_PUBLISH_QUIET: "true"
+    commands:
+      - apk add --no-cache build-base nodejs npm
+      - npm install playwright && npx playwright install chromium --with-deps
+      - bundle install --jobs 4 --retry 3
+      - bundle exec cucumber features/jira_pipeline.feature --tags @real_jira

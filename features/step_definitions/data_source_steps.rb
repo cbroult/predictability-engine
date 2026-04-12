@@ -14,6 +14,18 @@ Given(/^Jira is mocked for filter "([^"]*)" with items:$/) do |_filter_id, table
   set_environment_variable('JIRA_MOCK_DATA', table.hashes.to_json)
 end
 
+Given(/^the Jira project "([^"]*)" is seeded with (\d+) test issues( with cleanup)?$/) do |project_key, count, cleanup|
+  # Skip if JIRA_SITE is not set (not a real JIRA test run)
+  unless ENV['JIRA_SITE']
+    pending "JIRA_SITE environment variable not set. Set it to run @real_jira tests."
+  end
+  
+  # Run the seeder script.
+  cleanup_flag = cleanup ? "--cleanup" : ""
+  system("ruby scripts/jira_seeder.rb --project #{project_key} --count #{count} #{cleanup_flag}")
+  expect($?).to be_success
+end
+
 Given(/^an extra large CSV file named "([^"]*)" with (\d+) completed and (\d+) in progress items$/) do |filename, completed_count, wip_count|
   require 'csv'
   require 'date'
