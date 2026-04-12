@@ -12,11 +12,29 @@ module PredictabilityEngine
         profile, query = resolve_source(spec)
         client = build_client(profile)
         issues = fetch_issues(client, query)
+        
+        # Contract Validation
+        issues.each { |issue| validate_issue_contract!(issue) } if ENV['JIRA_CONTRACT_CHECK'] == 'true'
+        
         data = issues.map { |issue| map_issue(issue) }
         build_work_items(data)
       end
 
       private
+
+      def validate_issue_contract!(issue)
+        # Required fields according to map_issue
+        raise Error, "Issue #{issue.key} is missing 'key'" unless issue.key
+        raise Error, "Issue #{issue.key} is missing 'summary'" unless issue.summary
+        raise Error, "Issue #{issue.key} is missing 'issuetype'" unless issue.issuetype
+        raise Error, "Issue #{issue.key} is missing 'issuetype.name'" unless issue.issuetype.name
+        raise Error, "Issue #{issue.key} is missing 'created'" unless issue.created
+        
+        # Required for cycle time and aging
+        unless issue.respond_to?(:changelog) && issue.changelog
+          warn "Warning: Issue #{issue.key} is missing 'changelog' (expand=changelog failed?)"
+        end
+      end
 
       def resolve_source(spec)
         profile_name = ENV['JIRA_PROFILE']

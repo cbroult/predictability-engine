@@ -34,6 +34,17 @@ Given(/^a Jira project is seeded with (\d+) test issues( with cleanup)?$/) do |c
   expect($?).to be_success
 end
 
+Then(/^the JIRA issue contract should be verified for the seeded project$/) do
+  config = PredictabilityEngine::Config.jira(ENV['JIRA_PROFILE'])
+  project_key = config[:project]
+  
+  # Set the contract check flag
+  set_environment_variable('JIRA_CONTRACT_CHECK', 'true')
+  
+  # Run a command that loads the data
+  step "I run `predictability-engine summary jira`"
+end
+
 Given(/^an extra large CSV file named "([^"]*)" with (\d+) completed and (\d+) in progress items$/) do |filename, completed_count, wip_count|
   require 'csv'
   require 'date'

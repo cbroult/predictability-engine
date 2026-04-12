@@ -59,6 +59,24 @@ RSpec.describe PredictabilityEngine::DataSources::Jira do
         expect(instance.send(:first_in_progress_date, issue)).to be_nil
       end
     end
+
+    describe '#validate_issue_contract!' do
+      let(:issue) { double('JiraIssue', key: 'PROJ-1', summary: 'Title', created: '2024-01-01', issuetype: double(name: 'Story')) }
+
+      it 'passes for valid issue' do
+        expect { instance.send(:validate_issue_contract!, issue) }.not_to raise_error
+      end
+
+      it 'raises error for missing summary' do
+        allow(issue).to receive(:summary).and_return(nil)
+        expect { instance.send(:validate_issue_contract!, issue) }.to raise_error(PredictabilityEngine::Error, /missing 'summary'/)
+      end
+
+      it 'raises error for missing issuetype' do
+        allow(issue).to receive(:issuetype).and_return(nil)
+        expect { instance.send(:validate_issue_contract!, issue) }.to raise_error(PredictabilityEngine::Error, /missing 'issuetype'/)
+      end
+    end
   end
 
   describe '#map_issue' do
