@@ -12,7 +12,7 @@ module PredictabilityEngine
     end
 
     def self.load_jira_config(profile_name = nil)
-      profile_name ||= ENV['JIRA_PROFILE']
+      profile_name ||= ENV['JIRA_PROFILE'] || ENV['JIRA_PROJECT']
 
       # Load global JIRA credentials if exists
       global_config = File.exist?(JIRA_CREDENTIALS_FILE) ? YAML.load_file(JIRA_CREDENTIALS_FILE) : {}
