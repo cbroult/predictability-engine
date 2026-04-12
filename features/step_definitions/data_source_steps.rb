@@ -16,28 +16,46 @@ Given(/^Jira is mocked for filter "([^"]*)" with items:$/) do |_filter_id, table
 end
 
 Given(/^a Jira project is seeded with (\d+) test issues( with cleanup)?$/) do |count, cleanup|
-  if ENV['MOCK_JIRA'] == 'true'
+  config = PredictabilityEngine::Config.jira(ENV['JIRA_PROFILE'])
+  
+  if ENV['MOCK_JIRA'] == 'true' || !config[:site]
+    puts "Using mock JIRA data for seeded project..." unless config[:site]
     # Provide mock data that satisfies the contract check
-    mock_issues = (1..count.to_i).map do |i|
-      {
-        key: "TEST-#{i}",
-        summary: "Test Issue #{i}",
+    mock_issues = (0...count.to_i).map do |i|
+      issue = {
+        key: "TEST-#{i + 1}",
+        summary: "Test Issue #{i + 1}",
         issuetype: { name: "Story" },
         created: "2024-01-01T10:00:00.000+0000",
         changelog: { histories: [] }
       }
+      
+      # Match jira_seeder.rb logic for simulation
+      case i % 5
+      when 0, 1, 2
+        issue[:changelog][:histories] << {
+          created: "2024-01-02T10:00:00.000+0000",
+          items: [{ field: 'status', toString: 'In Progress' }]
+        }
+      when 3
+        issue[:changelog][:histories] << {
+          created: "2024-01-02T10:00:00.000+0000",
+          items: [{ field: 'status', toString: 'In Progress' }]
+        }
+        issue[:changelog][:histories] << {
+          created: "2024-01-05T10:00:00.000+0000",
+          items: [{ field: 'status', toString: 'Done' }]
+        }
+        issue[:resolutiondate] = "2024-01-05T10:00:00.000+0000"
+      end
+      issue
     end
+    set_environment_variable('MOCK_JIRA', 'true')
     set_environment_variable('JIRA_MOCK_DATA', mock_issues.to_json)
     next
   end
 
-  config = PredictabilityEngine::Config.jira(ENV['JIRA_PROFILE'])
   project_key = config[:project]
-  
-  # Skip if JIRA_SITE is not set (not a real JIRA test run)
-  unless config[:site]
-    pending "JIRA_SITE environment variable or site config not set. Set it to run @real_jira tests."
-  end
   
   unless project_key
     pending "JIRA_PROJECT environment variable or project config not set. Set it to run @real_jira tests."

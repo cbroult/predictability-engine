@@ -69,6 +69,11 @@ class JiraSeeder
   private
 
   def build_client
+    # Validate configuration before building client
+    raise "Jira site not configured (use JIRA_SITE env var or ~/.config/jira/jira_credentials.yml)" unless @config[:site]
+    raise "Jira email not configured (use JIRA_EMAIL env var or ~/.config/jira/jira_credentials.yml)" unless @config[:email]
+    raise "Jira API token not configured (use JIRA_API_TOKEN env var or ~/.config/jira/jira_credentials.yml)" unless @config[:token]
+
     options = {
       username: @config[:email],
       password: @config[:token],

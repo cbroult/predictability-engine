@@ -102,4 +102,21 @@ RSpec.describe PredictabilityEngine::DataSources::Jira do
       expect(result[:end_date]).to eq(Date.parse('2024-01-10'))
     end
   end
+
+  describe '#build_client' do
+    it 'raises error when site is missing' do
+      allow(PredictabilityEngine::Config).to receive(:jira).and_return({ email: 'test@example.com', token: 'token' })
+      expect { instance.send(:build_client) }.to raise_error(PredictabilityEngine::Error, /Jira site not configured/)
+    end
+
+    it 'raises error when email is missing' do
+      allow(PredictabilityEngine::Config).to receive(:jira).and_return({ site: 'https://jira.com', token: 'token' })
+      expect { instance.send(:build_client) }.to raise_error(PredictabilityEngine::Error, /Jira email not configured/)
+    end
+
+    it 'raises error when token is missing' do
+      allow(PredictabilityEngine::Config).to receive(:jira).and_return({ site: 'https://jira.com', email: 'test@example.com' })
+      expect { instance.send(:build_client) }.to raise_error(PredictabilityEngine::Error, /Jira API token not configured/)
+    end
+  end
 end

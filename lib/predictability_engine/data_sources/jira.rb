@@ -81,6 +81,12 @@ module PredictabilityEngine
 
       def build_client(profile = nil)
         config = Config.jira(profile)
+        
+        # Validate configuration before building client
+        raise Error, "Jira site not configured (use JIRA_SITE env var or ~/.config/jira/jira_credentials.yml)" unless config[:site]
+        raise Error, "Jira email not configured (use JIRA_EMAIL env var or ~/.config/jira/jira_credentials.yml)" unless config[:email]
+        raise Error, "Jira API token not configured (use JIRA_API_TOKEN env var or ~/.config/jira/jira_credentials.yml)" unless config[:token]
+
         options = {
           username: config[:email],
           password: config[:token],
