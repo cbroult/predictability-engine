@@ -12,6 +12,8 @@ module PredictabilityEngine
     end
 
     def self.load_jira_config(profile_name = nil)
+      profile_name ||= ENV['JIRA_PROFILE']
+
       # Load global JIRA credentials if exists
       global_config = File.exist?(JIRA_CREDENTIALS_FILE) ? YAML.load_file(JIRA_CREDENTIALS_FILE) : {}
       global_config ||= {}
@@ -23,7 +25,7 @@ module PredictabilityEngine
       jira_local = local_config.fetch('jira', {})
       local_profiles = jira_local.fetch('profiles', {})
 
-      # Prioritize profile if profile_name is explicit
+      # Prioritize profile if profile_name is explicit or from env
       if profile_name
         profile = global_profiles[profile_name.to_s] || local_profiles[profile_name.to_s] || {}
         return {
@@ -33,11 +35,11 @@ module PredictabilityEngine
         } unless profile.empty?
       end
 
-      # Default fallback logic for environment variables
+      # Default fallback logic for global settings/env vars
       {
-        site: ENV['JIRA_SITE'],
-        email: ENV['JIRA_EMAIL'],
-        token: ENV['JIRA_API_TOKEN']
+        site: ENV['JIRA_SITE'] || jira_local['site'] || global_config['site'],
+        email: ENV['JIRA_EMAIL'] || jira_local['email'] || global_config['email'],
+        token: ENV['JIRA_API_TOKEN'] || jira_local['token'] || global_config['token']
       }
     end
 

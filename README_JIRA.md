@@ -14,19 +14,44 @@ Alternatively, you can manually manage your profiles in `~/.config/jira/jira_cre
 
 ```yaml
 jira:
+  # Global credentials (fallback)
+  site: "https://your-domain.atlassian.net"
+  email: "your-email@example.com"
+  token: "your-api-token"
+  
   # Named profiles for multiple instances
   profiles:
     client-x:
       site: "https://client-x.atlassian.net"
       email: "consultant@example.com"
       token: "client-x-token"
-    prod:
-      site: "https://prod.atlassian.net"
-      email: "admin@example.com"
-      token: "prod-token"
 ```
 
-> **Note:** When using a profile (e.g., `jira_profile: client-x`), the engine will use those credentials exactly as specified in the profile, with no fallback to environment variables.
+> **Note:** Priority order for credentials is: Explicit profile in YAML > `JIRA_*` environment variables > Global keys in YAML.
+
+## Transparent Configuration (CI/CD)
+
+For GitHub Actions, Woodpecker CI, or local development without YAML files, you can use environment variables:
+
+- `JIRA_SITE`: JIRA instance URL
+- `JIRA_EMAIL`: Your JIRA email
+- `JIRA_API_TOKEN`: Your JIRA API token
+- `JIRA_PROJECT`: Default JIRA project key (e.g., `PROJ`)
+- `JIRA_PROFILE`: Default credential profile to use
+
+When these are set, you can use the `jira` keyword as a data source:
+
+```bash
+# Uses JIRA_PROJECT and JIRA_EMAIL/TOKEN/SITE from environment
+predictability-engine report jira html
+```
+
+Or specify a project key directly:
+
+```bash
+# Uses project = "MYPROJ"
+predictability-engine report MYPROJ html
+```
 
 ## Creating JIRA Data Sources
 

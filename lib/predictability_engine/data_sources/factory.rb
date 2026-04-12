@@ -5,7 +5,7 @@ module PredictabilityEngine
     class Factory
       def self.for(spec)
         case spec
-        when /^jira:/, /^jql:/, /\.yml$/, /\.yaml$/
+        when /^jira:/, /^jql:/, /\.yml$/, /\.yaml$/, 'jira', /^[A-Z][A-Z0-9]+$/
           Jira.new
         when /\.xlsx$/
           Excel.new

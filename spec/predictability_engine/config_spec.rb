@@ -14,9 +14,20 @@ RSpec.describe PredictabilityEngine::Config do
         expect(described_class.jira[:site]).to eq('https://env.atlassian.net')
       end
 
-      it 'does not use global jira settings from file' do
+      it 'falls back to global jira settings from file if env is missing' do
         File.write(config_file, { 'jira' => { 'site' => 'https://global.atlassian.net' } }.to_yaml)
-        expect(described_class.jira[:site]).to be_nil
+        stub_const('ENV', ENV.to_h.reject { |k| k == 'JIRA_SITE' })
+        expect(described_class.jira[:site]).to eq('https://global.atlassian.net')
+      end
+
+      it 'uses JIRA_PROFILE from environment' do
+        File.write(config_file, {
+          'jira' => {
+            'profiles' => { 'client-x' => { 'site' => 'https://client-x.atlassian.net' } }
+          }
+        }.to_yaml)
+        stub_const('ENV', ENV.to_h.merge('JIRA_PROFILE' => 'client-x'))
+        expect(described_class.jira[:site]).to eq('https://client-x.atlassian.net')
       end
     end
 
