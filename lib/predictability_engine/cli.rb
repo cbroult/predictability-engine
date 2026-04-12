@@ -198,7 +198,7 @@ module PredictabilityEngine
       filename += '.yml' unless filename.end_with?('.yml', '.yaml')
       content = <<~YAML
         # JIRA Data Source Configuration
-        # jira_profile: prod-instance # Optional: profile name from .predictability_engine.yml
+        # jira_profile: prod-instance # Optional: profile name from ~/.config/jira/jira_credentials.yml
         # project: MYPROJ            # Optional: JIRA Project Key
         # filter_id: "12345"         # Optional: JIRA Filter ID
         # filter_name: "My Filter"   # Optional: JIRA Filter Name
@@ -206,6 +206,29 @@ module PredictabilityEngine
       YAML
       File.write(filename, content)
       puts "Template created at #{filename}"
+    end
+
+    desc 'jira_config PROFILE', 'Generate/Update JIRA credentials in ~/.config/jira/jira_credentials.yml'
+    def jira_config(profile)
+      site = ask("Jira site (e.g., https://your-domain.atlassian.net):")
+      email = ask("Jira email:")
+      token = ask("Jira API token:", echo: false)
+      puts "" # newline after hidden token input
+
+      path = Config::JIRA_CREDENTIALS_FILE
+      FileUtils.mkdir_p(File.dirname(path))
+
+      config = File.exist?(path) ? YAML.load_file(path) : {}
+      config ||= {}
+      config['profiles'] ||= {}
+      config['profiles'][profile] = {
+        'site' => site,
+        'email' => email,
+        'token' => token
+      }
+
+      File.write(path, config.to_yaml)
+      puts "Jira credentials for profile '#{profile}' saved to #{path}"
     end
 
     desc 'forecast FILE BACKLOG_COUNT', 'Run Monte Carlo simulation for BACKLOG_COUNT items'
@@ -235,8 +258,8 @@ module PredictabilityEngine
 
     public
 
-    desc 'ask FILE QUESTION', 'Ask the AI assistant about the data in FILE'
-    def ask(file, question)
+    desc 'ask_ai FILE QUESTION', 'Ask the AI assistant about the data in FILE'
+    def ask_ai(file, question)
       # Assistant needs the manager or at least items.
       manager = DataManager.new
       manager.load(file)

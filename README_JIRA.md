@@ -4,15 +4,16 @@ The Predictability Engine supports direct integration with JIRA using YAML-based
 
 ## Setup Credentials
 
-Store your JIRA credentials in `.predictability_engine.yml` in your project root or home directory.
+The easiest way to set up your credentials is using the `jira_config` command. It will prompt for your JIRA site, email, and API token and securely store them in `~/.config/jira/jira_credentials.yml`.
+
+```bash
+predictability-engine jira_config prod
+```
+
+Alternatively, you can manually manage your profiles in `~/.config/jira/jira_credentials.yml`. Profiles in this file take precedence over those in `.predictability_engine.yml`.
 
 ```yaml
 jira:
-  # Global credentials (fallback)
-  site: "https://your-domain.atlassian.net"
-  email: "your-email@example.com"
-  token: "your-api-token"
-  
   # Named profiles for multiple instances
   profiles:
     client-x:
@@ -24,6 +25,8 @@ jira:
       email: "admin@example.com"
       token: "prod-token"
 ```
+
+> **Note:** When using a profile (e.g., `jira_profile: client-x`), the engine will use those credentials exactly as specified in the profile, with no fallback to environment variables.
 
 ## Creating JIRA Data Sources
 
@@ -38,7 +41,7 @@ predictability-engine init my-team.yml
 A JIRA source YAML file supports the following options:
 
 ```yaml
-jira_profile: prod-instance # Optional: Use specific profile from .predictability_engine.yml
+jira_profile: prod-instance # Optional: Use specific profile from ~/.config/jira/jira_credentials.yml
 project: MYPROJ            # Fetch all items in a project
 # OR
 filter_id: "12345"         # Fetch items from a saved filter

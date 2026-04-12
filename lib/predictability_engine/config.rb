@@ -5,22 +5,39 @@ require 'yaml'
 module PredictabilityEngine
   class Config
     CONFIG_FILE = '.predictability_engine.yml'
+    JIRA_CREDENTIALS_FILE = File.expand_path('~/.config/jira/jira_credentials.yml')
 
     def self.jira(profile_name = nil)
       load_jira_config(profile_name)
     end
 
     def self.load_jira_config(profile_name = nil)
-      all_config = File.exist?(CONFIG_FILE) ? YAML.load_file(CONFIG_FILE) : {}
-      jira_config = all_config.fetch('jira', {})
-      profiles = jira_config.fetch('profiles', {})
+      # Load global JIRA credentials if exists
+      global_config = File.exist?(JIRA_CREDENTIALS_FILE) ? YAML.load_file(JIRA_CREDENTIALS_FILE) : {}
+      global_config ||= {}
+      global_profiles = global_config.fetch('profiles', {})
 
-      profile = profile_name ? profiles.fetch(profile_name.to_s, {}) : {}
+      # Load local project JIRA config if exists
+      local_config = File.exist?(CONFIG_FILE) ? YAML.load_file(CONFIG_FILE) : {}
+      local_config ||= {}
+      jira_local = local_config.fetch('jira', {})
+      local_profiles = jira_local.fetch('profiles', {})
 
+      # Prioritize profile if profile_name is explicit
+      if profile_name
+        profile = global_profiles[profile_name.to_s] || local_profiles[profile_name.to_s] || {}
+        return {
+          site: profile['site'],
+          email: profile['email'],
+          token: profile['token']
+        } unless profile.empty?
+      end
+
+      # Default fallback logic for environment variables
       {
-        site: profile['site'] || jira_config['site'] || ENV['JIRA_SITE'],
-        email: profile['email'] || jira_config['email'] || ENV['JIRA_EMAIL'],
-        token: profile['token'] || jira_config['token'] || ENV['JIRA_API_TOKEN']
+        site: ENV['JIRA_SITE'],
+        email: ENV['JIRA_EMAIL'],
+        token: ENV['JIRA_API_TOKEN']
       }
     end
 

@@ -14,9 +14,9 @@ RSpec.describe PredictabilityEngine::Config do
         expect(described_class.jira[:site]).to eq('https://env.atlassian.net')
       end
 
-      it 'uses global jira settings from file' do
+      it 'does not use global jira settings from file' do
         File.write(config_file, { 'jira' => { 'site' => 'https://global.atlassian.net' } }.to_yaml)
-        expect(described_class.jira[:site]).to eq('https://global.atlassian.net')
+        expect(described_class.jira[:site]).to be_nil
       end
     end
 
@@ -38,7 +38,7 @@ RSpec.describe PredictabilityEngine::Config do
         expect(described_class.jira('client-x')[:site]).to eq('https://client-x.atlassian.net')
       end
 
-      it 'falls back to global settings if profile is missing key' do
+      it 'does not fall back to global settings if profile is missing key' do
         expect(described_class.jira('client-x')[:email]).to be_nil
         # Let's add email to global
         File.write(config_file, {
@@ -47,7 +47,7 @@ RSpec.describe PredictabilityEngine::Config do
             'profiles' => { 'client-x' => { 'site' => 'https://client-x.atlassian.net' } }
           }
         }.to_yaml)
-        expect(described_class.jira('client-x')[:email]).to eq('global@example.com')
+        expect(described_class.jira('client-x')[:email]).to be_nil
       end
     end
   end
