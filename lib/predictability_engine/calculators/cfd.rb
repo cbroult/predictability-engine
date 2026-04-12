@@ -6,9 +6,9 @@ module PredictabilityEngine
   module Calculators
     module Cfd
       def self.calculate(work_items, start_date: nil, end_date: nil)
-        arrival_data = work_items.map { |i| { date: i.start_date, type: :arrived } }
+        arrival_data = work_items.map { |i| { date: i.start_date || i.end_date || Date.today, type: :arrived } }
         departure_data = work_items.select(&:completed?).map { |i| { date: i.end_date, type: :departed } }
-        events = (arrival_data + departure_data).sort_by { |e| e[:date] }
+        events = (arrival_data + departure_data).sort_by { |e| [e[:date], e[:type] == :arrived ? 0 : 1] }
         return [] if events.empty?
 
         results = process_events(events)

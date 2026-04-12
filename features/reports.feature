@@ -43,6 +43,7 @@ Feature: Report generation in multiple formats
     And a file named "reports/forecast_data/dashboard.html" should exist
     And the HTML file "reports/forecast_data/dashboard.html" should have vertical rules for confidence levels
     And the HTML file "reports/forecast_data/dashboard.html" should have CFD areas with no stacking
+    And the HTML file "reports/forecast_data/dashboard.html" should have confidence rules aligned with forecast areas
 
   Scenario: Generating a PDF report via viz
     When I run `predictability-engine viz pdf sample_data.csv`

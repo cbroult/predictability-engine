@@ -12,7 +12,7 @@ module PredictabilityEngine
         return nil if backlog.zero? && work_items.none? { |i| i.end_date && i.end_date > Date.today }
 
         results = simulate_backlog(backlog, historical, trials)
-        days_to_future = days_to_last_scheduled_item(work_items)
+        days_to_future = days_to_last_scheduled_event(work_items)
 
         build_summary(work_items, results, days_to_future, percentiles)
       end
@@ -40,8 +40,10 @@ module PredictabilityEngine
         Simulators::MonteCarlo.when_will_it_be_done(backlog, historical, trials: trials)
       end
 
-      def self.days_to_last_scheduled_item(work_items)
-        future_dates = work_items.select { |i| i.end_date && i.end_date > Date.today }.map(&:end_date)
+      def self.days_to_last_scheduled_event(work_items)
+        arrival_dates = work_items.select { |i| i.start_date && i.start_date > Date.today }.map(&:start_date)
+        departure_dates = work_items.select { |i| i.end_date && i.end_date > Date.today }.map(&:end_date)
+        future_dates = arrival_dates + departure_dates
         future_dates.map { |d| (d - Date.today).to_i }.max || 0
       end
 
@@ -81,14 +83,14 @@ module PredictabilityEngine
           res = history.map { |d| d[:departed] }
           (1..max_days).each do |i|
             fd = future_data[i - 1] ? future_data[i - 1][:departed] : summary[:departed_so_far]
-            forecasted = i <= days ? (i * (summary[:wip].to_f / days)).round : summary[:wip]
+            forecasted = i <= days ? (i * (summary[:wip].to_f / days)) : summary[:wip]
             res << (fd + forecasted)
           end
           h[p] = res
         end
       end
 
-      private_class_method :simulate_backlog, :days_to_last_scheduled_item, :build_summary,
+      private_class_method :simulate_backlog, :days_to_last_scheduled_event, :build_summary,
                            :ensure_data_up_to_today, :build_dates, :build_arrivals, :build_forecast_map
     end
   end

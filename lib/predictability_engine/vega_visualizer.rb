@@ -119,10 +119,15 @@ module PredictabilityEngine
       sorted_dates.map do |date_str|
         p_list = data_by_date[date_str].sort
         label = p_list.map { |p| "#{p}%" }.join(", ")
+        
+        # Find arrival count for this date
+        idx = f[:dates].index { |d| d.to_s == date_str }
+        arrival_count = idx ? f[:arrivals][idx] : f[:summary][:total_items]
+
         { date: date_str,
           label: label,
           tooltip: p_list.map { |p| "#{p}% Confidence (#{date_str})" }.join("\n"),
-          total_items: f[:summary][:total_items] }
+          total_items: arrival_count }
       end
     end
 

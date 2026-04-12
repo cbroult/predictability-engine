@@ -102,9 +102,11 @@ module PredictabilityEngine
 
         UnicodePlot.lineplot!(plot, f_x, f_y,
                               name: "#{p}% Confidence", color: f_colors[p] || :white)
-        deadline_x = params[:x_coords][params[:hist_size] - 1 + data[:summary][:"p#{p}"]]
+        deadline_idx = params[:hist_size] - 1 + data[:summary][:"p#{p}"]
+        deadline_x = params[:x_coords][deadline_idx]
+        arrival_at_deadline = params[:arrivals][deadline_idx] || params[:total_items]
         # Use normal color for vertical lines (neutral); omitted from legend
-        UnicodePlot.lineplot!(plot, [deadline_x, deadline_x], [0, params[:total_items]], color: :normal)
+        UnicodePlot.lineplot!(plot, [deadline_x, deadline_x], [0, arrival_at_deadline], color: :normal)
       end
     end
 

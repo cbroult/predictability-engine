@@ -44,6 +44,67 @@ Then(/^the HTML file "([^"]*)" should have CFD areas with no stacking$/) do |fil
   expect(content).to match(/"type":"area".*?"encoding":\{.*?"y":\{.*?"stack":null/m)
 end
 
+Then(/^the HTML file "([^"]*)" should have confidence rules aligned with forecast areas$/) do |filename|
+  require 'json'
+  require 'date'
+  content = File.read(check_file_path(filename))
+  
+  # Find all vegaEmbed specs in the file
+  specs = []
+  content.scan(/vegaEmbed\("[^"]*", \{/).each do |match|
+    # For each match, find the full balanced JSON spec
+    start_pos = content.index(match)
+    start_pos = content.index('{', start_pos)
+    brace_count = 0
+    end_pos = -1
+    content[start_pos..].chars.each_with_index do |c, i|
+      brace_count += 1 if c == '{'
+      brace_count -= 1 if c == '}'
+      if brace_count == 0
+        end_pos = start_pos + i
+        break
+      end
+    end
+    spec_json = content[start_pos..end_pos]
+    specs << JSON.parse(spec_json)
+  end
+
+  # Find the Forecasted CFD spec (the one with rule layers for confidence)
+  spec = specs.find do |s|
+    s['layer'] && s['layer'].any? { |l| l['mark'] && l['mark']['type'] == 'rule' && l['encoding'] && l['encoding']['tooltip'] && l['encoding']['tooltip']['field'] == 'tooltip' }
+  end
+  expect(spec).not_to be_nil, "Could not find Forecasted CFD spec in HTML"
+
+  main_data = spec['data']['values']
+
+  # Find the rule layers
+  vert_layers = spec['layer'].select { |l| l['data'] && l['data']['values'] && l['data']['values'].any? { |v| v['label'] } }
+  expect(vert_layers).not_to be_empty
+
+  vert_data = vert_layers.first['data']['values']
+
+  vert_data.each do |v|
+    pcts = v['label'].scan(/\d+/).map(&:to_i)
+    date = v['date']
+    rule_total = v['total_items']
+
+    pcts.each do |p|
+      # Check rule date
+      point = main_data.find { |d| d['date'] == date && d['type'] == "#{p}% Confidence" }
+      expect(point).not_to be_nil, "No data point for #{p}% on #{date}"
+      expect(point['count']).to be_within(0.0001).of(rule_total)
+
+      # Check previous date
+      prev_date = (Date.parse(date) - 1).to_s
+      prev_point = main_data.find { |d| d['date'] == prev_date && d['type'] == "#{p}% Confidence" }
+      if prev_point
+        # Verify it hadn't reached the top yet (this was the bug)
+        expect(prev_point['count']).to be < rule_total, "Forecast for #{p}% reached top too early on #{prev_date}"
+      end
+    end
+  end
+end
+
 
 def check_file_path(filename)
   file_path = File.join(aruba.config.working_directory, filename)
