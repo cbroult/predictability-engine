@@ -35,7 +35,13 @@ Then(/^the HTML file "([^"]*)" should have vertical rules for confidence levels$
   content = File.read(check_file_path(filename))
   # Vega spec for Forecasted CFD contains rules with tooltips like "50% Confidence (2026-04-18)"
   expect(content).to include('"mark":{"type":"rule"')
-  expect(content).to match(/"tooltip":"\d+% Confidence \(\d{4}-\d{2}-\d{2}\)"/)
+  expect(content).to match(/"tooltip":"[^"]*\d+% Confidence \(\d{4}-\d{2}-\d{2}\)[^"]*"/)
+end
+
+Then(/^the HTML file "([^"]*)" should have CFD areas with no stacking$/) do |filename|
+  content = File.read(check_file_path(filename))
+  # Search for the area encoding and verify it has stack: null
+  expect(content).to match(/"type":"area".*?"encoding":\{.*?"y":\{.*?"stack":null/m)
 end
 
 

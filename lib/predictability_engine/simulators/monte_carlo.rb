@@ -43,9 +43,12 @@ module PredictabilityEngine
       end
 
       def self.run_simulation(trials)
+        srand(42)
         results = []
         trials.times { results << yield }
         results.sort!
+      ensure
+        srand
       end
 
       private_class_method :run_simulation, :validate_and_run

@@ -61,16 +61,16 @@ module PredictabilityEngine
 
     def self.cfd_color_scale(pcts)
       sorted_pcts = pcts.sort
-      dom = %w[Arrivals Departures] + sorted_pcts.map { |p| "#{p}% Confidence" }
+      dom = ['Arrivals'] + sorted_pcts.map { |p| "#{p}% Confidence" } + ['Departures']
       palette = ['#72b7b2', '#e45756', '#b279a2', '#ff9da7', '#ad494a', '#8ca27a']
-      range = ['#4c78a8', '#59a14f'] + palette.take(sorted_pcts.size)
+      range = ['#4c78a8'] + palette.take(sorted_pcts.size) + ['#59a14f']
       [dom, range]
     end
 
     def self.cfd_area_layer(pcts, legend: true)
       cfg = { field: 'type', type: 'nominal' }
       if legend && !pcts.empty?
-        cfg[:legend] = { title: 'Flow & Forecast', orient: 'bottom', columns: 4 }
+        cfg[:legend] = { title: 'Flow & Forecast', orient: 'bottom', columns: 3 }
       end
       { mark: { type: 'area', tooltip: true },
         encoding: { y: { field: 'count', type: 'quantitative', title: 'Total Items', stack: nil },
@@ -88,18 +88,41 @@ module PredictabilityEngine
                     } } }
     end
 
-    def self.cfd_vert_layer(f, pcts)
-      { data: { values: cfd_vert_data(f, pcts) },
-        mark: { type: 'rule', strokeDash: [2, 2], color: 'black' },
-        encoding: { y: { value: 0 },
-                    y2: { field: 'total_items', type: 'quantitative' },
-                    tooltip: { field: 'tooltip', type: 'nominal' } } }
+    def self.cfd_vert_layers(f, pcts)
+      data = cfd_vert_data(f, pcts)
+      [
+        { data: { values: data },
+          mark: { type: 'rule', strokeDash: [4, 2], color: '#e45756', strokeWidth: 2, tooltip: true },
+          encoding: { x: { field: 'date', type: 'temporal', timeUnit: 'utc-yearmonthdate' },
+                      y: { datum: 0 },
+                      y2: { field: 'total_items', type: 'quantitative' },
+                      tooltip: { field: 'tooltip', type: 'nominal' } } },
+        { data: { values: data },
+          mark: { type: 'text', color: '#e45756', align: 'left', baseline: 'middle',
+                  fontWeight: 'bold', fontSize: 10, angle: -45, dx: 5, tooltip: true },
+          encoding: { x: { field: 'date', type: 'temporal', timeUnit: 'utc-yearmonthdate' },
+                      y: { field: 'total_items', type: 'quantitative' },
+                      text: { field: 'label' },
+                      tooltip: { field: 'tooltip', type: 'nominal' } } }
+      ]
     end
 
     def self.cfd_vert_data(f, pcts)
-      pcts.map do |p|
+      data_by_date = pcts.each_with_object({}) do |p, h|
         d = f[:summary][:today] + f[:summary][:"p#{p}"]
-        { date: d.to_s, label: "#{p}%", tooltip: "#{p}% Confidence (#{d})", total_items: f[:summary][:total_items] }
+        date_str = d.to_s
+        h[date_str] ||= []
+        h[date_str] << p
+      end
+
+      sorted_dates = data_by_date.keys.sort
+      sorted_dates.map do |date_str|
+        p_list = data_by_date[date_str].sort
+        label = p_list.map { |p| "#{p}%" }.join(", ")
+        { date: date_str,
+          label: label,
+          tooltip: p_list.map { |p| "#{p}% Confidence (#{date_str})" }.join("\n"),
+          total_items: f[:summary][:total_items] }
       end
     end
 

@@ -18,7 +18,7 @@ module PredictabilityEngine
 
   HTML_STYLE_LANDSCAPE = <<~CSS.freeze
     <style>
-      body { #{HTML_BASE_STYLE} margin: 0; padding: 15px; height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; background: #f4f7f6; }
+      body { #{HTML_BASE_STYLE} margin: 0; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; background: #f4f7f6; }
       header { display: flex; justify-content: space-between; align-items: baseline; padding: 0 10px 10px 10px; border-bottom: 2px solid #e9ecef; margin-bottom: 15px; }
       h1 { margin: 0; font-size: 1.5rem; color: #2c3e50; font-weight: 700; }
       .dashboard-container { display: grid; grid-template-columns: 260px 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 15px; flex-grow: 1; min-height: 0; }
@@ -32,6 +32,18 @@ module PredictabilityEngine
       ul { list-style: none; padding: 0; margin: 10px 0; }
       li { margin-bottom: 8px; font-size: 0.95rem; color: #505d6b; display: flex; justify-content: space-between; }
       li strong { color: #2c3e50; }
+
+      @media screen {
+        body { height: 100vh; overflow: hidden; }
+      }
+
+      @media print {
+        body { height: auto; overflow: visible; padding: 5px; background: white; }
+        .dashboard-container { grid-template-columns: 220px 1fr 1fr; gap: 10px; }
+        .chart-panel, .summary-panel { box-shadow: none; border: 1px solid #eee; padding: 10px; }
+        header { margin-bottom: 10px; padding-bottom: 5px; }
+        h1 { font-size: 1.2rem; }
+      }
     </style>
   CSS
 

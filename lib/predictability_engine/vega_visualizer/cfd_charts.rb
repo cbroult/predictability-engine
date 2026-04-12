@@ -24,14 +24,29 @@ module PredictabilityEngine
 
         VegaVisualizer.apply_standard_dims(
           Vega.lite.data(unified)
-              .encoding(
-                x: { field: 'date', type: 'temporal', title: 'Date', timeUnit: 'utc-yearmonthdate' },
-                y: { field: 'count', type: 'quantitative', title: 'Total Items', scale: { zero: false } },
-                color: { field: 'type', type: 'nominal', scale: { domain: dom, range: range } }
-              )
-              .layer([VegaVisualizer.cfd_area_layer(percentiles),
-                      VegaVisualizer.cfd_line_layer(percentiles),
-                      VegaVisualizer.cfd_vert_layer(data, percentiles)]),
+              .layer([
+                { mark: { type: 'area', tooltip: true },
+                  encoding: {
+                    x: { field: 'date', type: 'temporal', title: 'Date', timeUnit: 'utc-yearmonthdate' },
+                    y: { field: 'count', type: 'quantitative', title: 'Total Items', stack: nil, scale: { zero: false } },
+                    color: { field: 'type', type: 'nominal', scale: { domain: dom, range: range },
+                             legend: { title: 'Flow & Forecast', orient: 'bottom', columns: 4 } },
+                    order: { field: 'order', type: 'quantitative' }
+                  }
+                },
+                { mark: { type: 'line', tooltip: true },
+                  encoding: {
+                    x: { field: 'date', type: 'temporal', timeUnit: 'utc-yearmonthdate' },
+                    y: { field: 'count', type: 'quantitative' },
+                    color: { field: 'type', type: 'nominal', legend: nil },
+                    strokeDash: {
+                      condition: { test: "datum.type == 'Arrivals' || datum.type == 'Departures'", value: [] },
+                      value: [4, 4]
+                    }
+                  }
+                },
+                *VegaVisualizer.cfd_vert_layers(data, percentiles)
+              ]),
           title: title
         )
       end

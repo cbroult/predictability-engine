@@ -3,7 +3,7 @@
 #### CORE PRINCIPLES
 - **Specification Driven Development**: All new features and changes must be driven by specifications, examples, or tests (BDD/TDD).
 - **Behavioral Focus**: We specify the *what* and the *why* before the *how*.
-- **DRY (Don't Repeat Yourself)**: Avoid redundant code and logic; abstract common functionality into reusable components.
+- **DRY (Don't Repeat Yourself)**: Avoid redundant code and logic; abstract common functionality into reusable components. Never duplicate information which would require manual updates the next time a change is needed.
 - **ACID (Data Integrity)**: While typically for databases, we apply these principles to our Predictability Engine's data processing (Atomicity of calculations, Consistency of metrics, Isolation of simulations, Durability of results).
 - **YAGNI (You Ain't Gonna Need It)**: Only implement features when they are truly needed; avoid over-engineering.
 - **Fail-Fast & Descriptive Errors**: Implement robust error handling that catches issues early and provides clear, actionable feedback to the user or AI agent.
