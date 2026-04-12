@@ -11,7 +11,7 @@
 2. **Convention over Configuration**:
    - If a YAML file is empty, use its basename as the JIRA filter name (e.g., `my-team.yml` -> JQL: `filter = "my-team"`).
    - If the filename matches `profile-name.filter-name.yml`, use `profile-name` for credentials and `filter-name` for the query.
-   - If a YAML file specifies a `project`, use `project = "[project]" AND status = "Done"`.
+   - If a YAML file specifies a `project`, use `project = "[project]"` (this will fetch both active and completed items).
 3. **Shared & Independent Credentials**:
    - Supports multiple JIRA instances via named profiles in `.predictability_engine.yml`.
    - YAML files can explicitly reference a JIRA profile (e.g., `jira_profile: prod-instance`).
@@ -24,6 +24,7 @@
 6. **Intuitive Onboarding**: A CLI command (e.g., `predictability-engine init [name].yml`) creates a template YAML file with common options.
 7. **Robust Data Mapping**: Automatic detection of `start_date` based on the first transition to an "In Progress" status, and `end_date` based on resolution or the last transition to "Done".
 8. **Consistent Output Structure**: Reports are stored in `reports/[source_name]/` with a standardized directory structure for assets and sub-reports.
+9. **Real JIRA Integration Testing**: Cucumber scenarios must execute against a real JIRA instance (or a local containerized equivalent) instead of mocking at the Gherkin step level. To support CI without a persistent JIRA instance, the test suite should support a "recording" mode (e.g., using VCR-like network level mocking) that is refreshed periodically against a real instance.
 
 ### Implementation Solutions
 
@@ -65,7 +66,7 @@
 1. Update `DataSources::Jira` to fetch issue changelogs for better `start_date` detection.
 2. Implement robust `issuetype` and `status` mapping logic.
 3. Add unit tests for JIRA history parsing and credential profiles.
-4. Add integration tests using `MOCK_JIRA` mode with sample history data.
+4. Add integration tests using a real JIRA instance (e.g., via Docker) or a high-fidelity proxy that ensures network-level integration (e.g., VCR for Ruby), rather than mocking at the Gherkin level. This ensures we test the `jira-ruby` client and our history parsing logic against real API responses.
 
 #### Phase 3: Automatic Sub-reports & UI
 1. Update `PredictabilityEngine.run_report` to handle multiple reports and a "Batch" output mode.
