@@ -7,6 +7,7 @@ A turn-key solution for implementing Daniel Vacanti's Actionable Agile Metrics a
 - **Leading Indicators (10th Anniversary Edition)**: Emphasis on **Aging WIP** as the primary leading indicator for predictability.
 - **Flow Metrics Calculation**: Automated calculation of Cycle Time (distribution & percentiles), Throughput (daily & average), and WIP.
 - **Visualizations**: Graphical representations of Cycle Time Scatter Plots, Throughput Histograms, and Cumulative Flow Diagrams (CFD) both in the terminal (ASCII) and as high-quality HTML/SVG.
+- **JIRA Integration**: Support for JQL queries, JIRA filters, and multi-instance credential profiles via YAML configuration.
 - **Monte Carlo Simulations**: Statistical forecasting for "When will it be done?" and "How many items will be finished?".
 - **Agentic AI Assistant**: A ReAct-based AI agent that can analyze your data, detect anomalies in Cumulative Flow Diagrams (CFD), and answer complex forecasting questions in natural language.
 - **CLI Interface**: Simple command-line interface for easy interaction.
@@ -46,6 +47,19 @@ Get a quick snapshot of your flow metrics:
 ```bash
 ./bin/predictability-engine summary sample_data.csv
 ```
+
+#### JIRA Integration
+Initialize a JIRA source template:
+```bash
+./bin/predictability-engine init my-team.yml
+```
+
+Run all report formats for a JIRA source:
+```bash
+./bin/predictability-engine batch my-team.yml
+```
+
+See [JIRA Integration Guide](README_JIRA.md) for more details.
 
 #### Forecast Completion
 Run 10,000 Monte Carlo simulations for a backlog of X items:

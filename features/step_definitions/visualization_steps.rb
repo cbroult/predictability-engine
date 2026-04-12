@@ -108,6 +108,18 @@ Then(/^the HTML file "([^"]*)" should have confidence rules aligned with the rig
 end
 
 
+Then(/^the HTML file "([^"]*)" should have navigation links:$/) do |filename, table|
+  content = File.read(check_file_path(filename))
+  table.hashes.each do |row|
+    active_class = row['active'] == 'true' ? 'active' : ''
+    # Expecting <a href='url' class='active_class'>label</a>
+    # We use a flexible regex to handle potential extra spaces
+    pattern = /<a\s+href=['"]#{Regexp.escape(row['url'])}['"]\s+class=['"]#{Regexp.escape(active_class)}['"]>#{Regexp.escape(row['label'])}<\/a>/
+    expect(content).to match(pattern)
+  end
+end
+
+
 def check_file_path(filename)
   file_path = File.join(aruba.config.working_directory, filename)
   expect(File.exist?(file_path)).to be true

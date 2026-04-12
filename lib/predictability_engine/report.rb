@@ -9,16 +9,26 @@ module PredictabilityEngine
   class Report
     include Constants
 
-    attr_reader :items, :title, :percentiles, :images_path
+    attr_reader :items, :title, :percentiles, :images_path, :type
 
-    def initialize(items, title: 'Predictability Report', percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
-      @items = items
+    def initialize(items, title: 'Predictability Report', percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, type: nil)
+      @type = type
+      @items = type ? items.select { |i| (i.type || 'Unspecified') == type } : items
       @title = title
       @percentiles = percentiles
       @images_path = nil
     end
 
-    def self.generate_all(items) = new(items, title: 'Full Predictability Dashboard')
+    def self.generate_all(items)
+      reports = { all: new(items, title: 'Full Predictability Dashboard') }
+      types = items.map { |i| i.type || 'Unspecified' }.uniq
+      if types.size > 1
+        types.each do |type|
+          reports[type] = new(items, title: "Dashboard: #{type}", type: type)
+        end
+      end
+      reports
+    end
 
     def render(format, layout: nil, color: false, **extra_opts)
       config = find_format_config(format)&.last
@@ -38,14 +48,14 @@ module PredictabilityEngine
       @images_path = nil
     end
 
-    def render_html(layout: :landscape, **_opts)
+    def render_html(layout: :landscape, sub_reports: nil, **_opts)
       charts = CHART_CONFIG.map do |id, cfg|
         chart = VegaVisualizer.send(cfg[:vega] || id, @items,
                                     title: nil,
                                     percentiles: @percentiles)
         { title: cfg[:title], chart: chart }
       end
-      Visualizer.to_full_html(charts, @items, title: @title, layout: layout, percentiles: @percentiles)
+      Visualizer.to_full_html(charts, @items, title: @title, layout: layout, percentiles: @percentiles, sub_reports: sub_reports)
     end
 
     def playwright_bin

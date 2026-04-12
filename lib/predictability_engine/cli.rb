@@ -136,20 +136,9 @@ module PredictabilityEngine
 
     desc 'all_formats FILE', 'Generate all report formats at once'
     def all_formats(file)
-      items = PredictabilityEngine.load_items(file)
-      report = Report.generate_all(items)
-      # Generate images once for markdown/confluence
-      base = File.basename(file, '.*')
-      report.generate_chart_images("reports/#{base}")
-
       %i[terminal html pdf md conf a3_landscape ppt].each do |fmt|
         begin
-          content = report.render(fmt, color: options[:color])
-          if fmt == :terminal
-            puts content
-          else
-            puts PredictabilityEngine.write_report(file, fmt, content, nil)
-          end
+          PredictabilityEngine.run_and_print_report(file, fmt, options)
         rescue StandardError => e
           warn "Failed to generate #{fmt} report: #{e.message}"
         end
@@ -196,6 +185,27 @@ module PredictabilityEngine
     method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
     def report(input_file, format = 'terminal', output = nil)
       PredictabilityEngine.run_and_print_report(input_file, format, options, output: output)
+    end
+
+    desc 'batch SOURCE', 'Run all report formats for the given SOURCE'
+    method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
+    def batch(source)
+      Viz.new([], options).all_formats(source)
+    end
+
+    desc 'init FILENAME', 'Create a template YAML file for JIRA source'
+    def init(filename)
+      filename += '.yml' unless filename.end_with?('.yml', '.yaml')
+      content = <<~YAML
+        # JIRA Data Source Configuration
+        # jira_profile: prod-instance # Optional: profile name from .predictability_engine.yml
+        # project: MYPROJ            # Optional: JIRA Project Key
+        # filter_id: "12345"         # Optional: JIRA Filter ID
+        # filter_name: "My Filter"   # Optional: JIRA Filter Name
+        # query: "project = PROJ"    # Optional: Direct JQL query
+      YAML
+      File.write(filename, content)
+      puts "Template created at #{filename}"
     end
 
     desc 'forecast FILE BACKLOG_COUNT', 'Run Monte Carlo simulation for BACKLOG_COUNT items'

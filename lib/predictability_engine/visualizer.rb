@@ -21,6 +21,11 @@ module PredictabilityEngine
       body { #{HTML_BASE_STYLE} margin: 0; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; background: #f4f7f6; }
       header { display: flex; justify-content: space-between; align-items: baseline; padding: 0 10px 10px 10px; border-bottom: 2px solid #e9ecef; margin-bottom: 15px; }
       h1 { margin: 0; font-size: 1.5rem; color: #2c3e50; font-weight: 700; }
+      .nav-links { display: flex; gap: 10px; list-style: none; margin: 0; padding: 0; align-items: center; }
+      .nav-links li { margin: 0; display: block; }
+      .nav-links a { text-decoration: none; color: #3498db; font-size: 0.9rem; padding: 5px 12px; border-radius: 20px; border: 1.5px solid #3498db; font-weight: 600; transition: all 0.2s; }
+      .nav-links a:hover { background: #3498db; color: white; }
+      .nav-links a.active { background: #2c3e50; color: white; border-color: #2c3e50; cursor: default; }
       .dashboard-container { display: grid; grid-template-columns: 260px 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 15px; flex-grow: 1; min-height: 0; min-width: 1050px; }
       .summary-panel { grid-row: span 2; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-y: auto; border: 1px solid #e9ecef; }
       .summary-panel h2 { font-size: 1.25rem; margin-top: 0; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 8px; margin-bottom: 15px; }
@@ -63,6 +68,7 @@ module PredictabilityEngine
   HTML_LANDSCAPE_BODY = <<~HTML
     <header>
       <h1>{{TITLE}}</h1>
+      <nav>{{NAV_BAR}}</nav>
       <div style="font-size: 0.8rem; color: #6c757d;">Generated: {{DATE}}</div>
     </header>
     <div class="dashboard-container">
@@ -100,15 +106,24 @@ module PredictabilityEngine
     end
 
     def self.to_full_html(content_or_chart, work_items = nil, title: 'Predictability Engine Dashboard',
-                          layout: :landscape, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
+                          layout: :landscape, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, sub_reports: nil)
       style = HTML_STYLE_LANDSCAPE
       body = HTML_LANDSCAPE_BODY
       summary = work_items ? SummaryVisualizer.metrics_html(work_items, percentiles: percentiles) : ''
+
+      nav_bar = if sub_reports && sub_reports.any?
+                  "<ul class='nav-links'><li><strong>View:</strong></li>" +
+                    sub_reports.map { |r| "<li><a href='#{r[:url]}' class='#{r[:active] ? 'active' : ''}'>#{r[:label]}</a></li>" }.join +
+                    "</ul>"
+                else
+                  ''
+                end
 
       html = HTML_BASE.gsub('{{STYLE}}', style).gsub('{{BODY}}', body)
       html.gsub!('{{TITLE}}', title)
       html.gsub!('{{DATE}}', Time.now.strftime('%Y-%m-%d %H:%M'))
       html.gsub!('{{SUMMARY_CONTENT}}', summary)
+      html.gsub!('{{NAV_BAR}}', nav_bar)
 
       content = prepare_html_content(content_or_chart, :landscape, html)
       # If it was a single chart, it might still have {{CHART_PANELS}} placeholder
