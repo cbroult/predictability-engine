@@ -120,14 +120,15 @@ module PredictabilityEngine
         p_list = data_by_date[date_str].sort
         label = p_list.map { |p| "#{p}%" }.join(", ")
         
-        # Find arrival count for this date
+        # Use the forecast count for rule height to hit the surface's top-right corner
         idx = f[:dates].index { |d| d.to_s == date_str }
-        arrival_count = idx ? f[:arrivals][idx] : f[:summary][:total_items]
+        # All percentiles in p_list reached their goal on this date
+        forecast_val = idx ? f[:forecasts][p_list.first][idx] : f[:summary][:departed_so_far] + f[:summary][:wip]
 
         { date: date_str,
           label: label,
           tooltip: p_list.map { |p| "#{p}% Confidence (#{date_str})" }.join("\n"),
-          total_items: arrival_count }
+          total_items: forecast_val }
       end
     end
 

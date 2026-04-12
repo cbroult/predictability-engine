@@ -16,11 +16,7 @@ module PredictabilityEngine
 
     def self.draw_aging(pdf, work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
       data = Calculators::Aging.item_age_data(work_items)
-      pcts = PredictabilityEngine.mapped_percentiles(work_items, percentiles)
       Primitives.draw_bar_chart(pdf, data.map { |d| d[:id].to_s }, data.map { |d| d[:age] })
-
-      pdf.move_down 10
-      pdf.text "SLE Benchmarks: #{pcts.map { |p| "#{p[:label]}: #{p[:val]}" }.join(', ')}", size: 8
     end
 
     def self.draw_cfd(pdf, work_items)

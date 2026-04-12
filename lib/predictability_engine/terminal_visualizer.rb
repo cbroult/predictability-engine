@@ -13,8 +13,7 @@ module PredictabilityEngine
       plot = UnicodePlot.barplot(data.map { |d| d[:id].to_s }, data.map { |d| d[:age] },
                                  title: 'Aging Work In Progress (Days)', color: color ? :blue : nil)
       rendered = render_to_string(plot, color: color)
-      [rendered, '', '--- SLE Benchmarks (Historical) ---',
-       pcts.map { |p| "  #{p[:label]}: #{p[:val]} days" }.join("\n")].join("\n")
+      rendered
     end
 
     def self.cycle_time_scatter(work_items, title: 'Cycle Time Scatter Plot', color: false,
@@ -104,9 +103,10 @@ module PredictabilityEngine
                               name: "#{p}% Confidence", color: f_colors[p] || :white)
         deadline_idx = params[:hist_size] - 1 + data[:summary][:"p#{p}"]
         deadline_x = params[:x_coords][deadline_idx]
-        arrival_at_deadline = params[:arrivals][deadline_idx] || params[:total_items]
+        # Use the forecast value at the deadline to hit the corner of the surface
+        forecast_at_deadline = data[:forecasts][p][deadline_idx]
         # Use normal color for vertical lines (neutral); omitted from legend
-        UnicodePlot.lineplot!(plot, [deadline_x, deadline_x], [0, arrival_at_deadline], color: :normal)
+        UnicodePlot.lineplot!(plot, [deadline_x, deadline_x], [0, forecast_at_deadline], color: :normal)
       end
     end
 
