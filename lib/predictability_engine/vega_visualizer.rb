@@ -108,9 +108,13 @@ module PredictabilityEngine
     end
 
     def self.cfd_vert_data(f, pcts)
-      data_by_date = pcts.each_with_object({}) do |p, h|
-        d = f[:summary][:today] + f[:summary][:"p#{p}"]
-        date_str = d.to_s
+      sorted_pcts = pcts.sort
+      data_by_date = sorted_pcts.each_with_index.each_with_object({}) do |(p, i), h|
+        # Shift to the next percentile's date, except for the last one
+        p_for_date = (i < sorted_pcts.size - 1) ? sorted_pcts[i+1] : p
+        days = f[:summary][:"p#{p_for_date}"]
+        next unless days
+        date_str = (f[:summary][:today] + days).to_s
         h[date_str] ||= []
         h[date_str] << p
       end

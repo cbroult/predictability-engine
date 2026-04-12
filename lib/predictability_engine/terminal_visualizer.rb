@@ -94,14 +94,19 @@ module PredictabilityEngine
       # Forecast confidence paths
       # Use distinct colors for forecast paths
       f_colors = { 50 => :yellow, 75 => :red, 85 => :magenta, 95 => :cyan, 98 => :white }
-      percentiles.sort.reverse.each do |p|
+      sorted_pcts = percentiles.sort
+      sorted_pcts.reverse.each do |p|
         # Slice to only show forecast from the last historical point onwards
         f_x = params[:x_coords].drop(params[:hist_size] - 1)
         f_y = data[:forecasts][p].drop(params[:hist_size] - 1)
 
         UnicodePlot.lineplot!(plot, f_x, f_y,
                               name: "#{p}% Confidence", color: f_colors[p] || :white)
-        deadline_idx = params[:hist_size] - 1 + data[:summary][:"p#{p}"]
+        
+        # Shift to the next percentile's date for rule alignment, except for the last one
+        i = sorted_pcts.index(p)
+        target_p = (i < sorted_pcts.size - 1) ? sorted_pcts[i + 1] : p
+        deadline_idx = params[:hist_size] - 1 + data[:summary][:"p#{target_p}"]
         deadline_x = params[:x_coords][deadline_idx]
         # Use the forecast value at the deadline to hit the corner of the surface
         forecast_at_deadline = data[:forecasts][p][deadline_idx]
