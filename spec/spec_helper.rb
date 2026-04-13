@@ -16,7 +16,9 @@
 #
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 require 'simplecov'
+require_relative 'support/simplecov_patch'
 SimpleCov.start do
+  enable_coverage :branch
   add_filter '/spec/'
   add_filter '/features/'
 end
