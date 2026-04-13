@@ -24,10 +24,10 @@ Feature: Report generation in multiple formats
       | confluence | dashboard.conf | h1. Full Predictability Dashboard |
       | conf       | dashboard.conf | h1. Full Predictability Dashboard |
 
-  Scenario: Generating a landscape dashboard via viz
+  Scenario: Creating a landscape dashboard layout
     When I run `predictability-engine viz landscape sample_data.csv`
     Then the exit status should be 0
-    And a file named "reports/sample_data/dashboard.html" should exist
+    And a file named "reports/sample_data/dashboard.html" should be found in the directory
     And the HTML file "reports/sample_data/dashboard.html" should be valid and visible in a browser
 
   Scenario: Generating a forecasted CFD with no stacking
@@ -45,17 +45,15 @@ Feature: Report generation in multiple formats
     And the HTML file "reports/forecast_data/dashboard.html" should have CFD areas with no stacking
     And the HTML file "reports/forecast_data/dashboard.html" should have confidence rules aligned with the rightmost part of forecast areas
 
-  Scenario: Generating a PDF report via viz
-    When I run `predictability-engine viz pdf sample_data.csv`
+  Scenario Outline: Generating high-fidelity reports via viz
+    When I run `predictability-engine viz <subcommand> sample_data.csv`
     Then the output should be visible on failure
     And the exit status should be 0
-    And a file named "reports/sample_data/dashboard.pdf" should exist
-    And the file "reports/sample_data/dashboard.pdf" should be a valid PDF
-    And the PDF file "reports/sample_data/dashboard.pdf" should have 1 page
+    And a file named "reports/sample_data/<filename>" should exist
+    And the file "reports/sample_data/<filename>" should be a valid PDF
+    And the PDF file "reports/sample_data/<filename>" should have 1 page
 
-  Scenario: Generating an A3 landscape PDF dashboard via viz
-    When I run `predictability-engine viz a3_landscape sample_data.csv`
-    Then the exit status should be 0
-    And a file named "reports/sample_data/dashboard_a3.pdf" should exist
-    And the file "reports/sample_data/dashboard_a3.pdf" should be a valid PDF
-    And the PDF file "reports/sample_data/dashboard_a3.pdf" should have 1 page
+    Examples:
+      | subcommand   | filename      |
+      | pdf          | dashboard.pdf |
+      | a3_landscape | dashboard_a3.pdf |

@@ -3,15 +3,15 @@
 module PredictabilityEngine
   module VegaVisualizer
     module AgingWipVisualizer
-      def self.aging_wip(work_items, title: 'Aging Work In Progress',
-                         percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, **_opts)
-        data = Calculators::Aging.item_age_data(work_items)
+      def self.aging_wip(items, title: 'Aging Work In Progress',
+                         pcts: PredictabilityEngine::DEFAULT_PERCENTILES, **)
+        data = Calculators::Aging.item_age_data(items)
         return Vega.lite.data([]).title(title || 'Aging Work In Progress') if data.empty?
 
-        pcts = PredictabilityEngine.mapped_percentiles(work_items, percentiles)
+        mapped = PredictabilityEngine.mapped_percentiles(items, pcts)
         VegaVisualizer.apply_standard_dims(
           Vega.lite.data(data)
-              .layer([aging_bar_layer, *aging_rule_layers(pcts)]),
+              .layer([aging_bar_layer, *aging_rule_layers(mapped)]),
           title: title
         )
       end
@@ -25,12 +25,11 @@ module PredictabilityEngine
                                legend: { orient: 'bottom', title: 'Age' } } } }
       end
 
-      def self.aging_rule_layers(pcts)
-        pcts.map do |p|
+      def self.aging_rule_layers(mapped_pcts)
+        mapped_pcts.map do |p|
           { data: { values: [{ val: p[:val] }] },
             mark: { type: 'rule', strokeDash: [4, 4] },
-            encoding: { y: { field: 'val', type: 'quantitative' },
-                        color: { value: '#e45756' } } }
+            encoding: { y: { field: 'val', type: 'quantitative' }, color: { value: '#e45756' } } }
         end
       end
     end

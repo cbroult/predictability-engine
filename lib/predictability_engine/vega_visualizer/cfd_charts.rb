@@ -4,15 +4,9 @@ module PredictabilityEngine
   module VegaVisualizer
     module CfdCharts
       def self.cfd(work_items, title: 'Cumulative Flow Diagram')
-        data = VegaVisualizer.format_cfd_data(Calculators::Cfd.calculate(work_items))
-        dom, range = VegaVisualizer.cfd_color_scale([])
-        chart = Vega.lite.data(data)
-                    .encoding(
-                      x: { field: 'date', type: 'temporal', title: 'Date', timeUnit: 'utc-yearmonthdate' },
-                      color: { field: 'type', type: 'nominal', scale: { domain: dom, range: range } }
-                    )
-                    .layer([VegaVisualizer.cfd_area_layer([], legend: false)])
-        VegaVisualizer.apply_standard_dims(chart, title: title)
+        data = Calculators::Cfd.calculate(work_items)
+        formatted = VegaVisualizer.format_cfd_data(data)
+        render_cfd(formatted, [], title)
       end
 
       def self.forecasted_cfd(work_items, percentiles, title)
@@ -20,36 +14,34 @@ module PredictabilityEngine
         return cfd(work_items, title: title) unless data
 
         unified = VegaVisualizer.build_cfd_unified_data(data, percentiles)
-        dom, range = VegaVisualizer.cfd_color_scale(percentiles)
-
-        VegaVisualizer.apply_standard_dims(
-          Vega.lite.data(unified)
-              .layer([
-                { mark: { type: 'area', tooltip: true },
-                  encoding: {
-                    x: { field: 'date', type: 'temporal', title: 'Date', timeUnit: 'utc-yearmonthdate' },
-                    y: { field: 'count', type: 'quantitative', title: 'Total Items', stack: nil, scale: { zero: false } },
-                    color: { field: 'type', type: 'nominal', scale: { domain: dom, range: range },
-                             legend: { title: 'Flow & Forecast', orient: 'bottom', columns: 4 } },
-                    order: { field: 'order', type: 'quantitative' }
-                  }
-                },
-                { mark: { type: 'line', tooltip: true },
-                  encoding: {
-                    x: { field: 'date', type: 'temporal', timeUnit: 'utc-yearmonthdate' },
-                    y: { field: 'count', type: 'quantitative' },
-                    color: { field: 'type', type: 'nominal', legend: nil },
-                    strokeDash: {
-                      condition: { test: "datum.type == 'Arrivals' || datum.type == 'Departures'", value: [] },
-                      value: [4, 4]
-                    }
-                  }
-                },
-                *VegaVisualizer.cfd_vert_layers(data, percentiles)
-              ]),
-          title: title
-        )
+        render_cfd(unified, percentiles, title, forecast: data)
       end
+
+      def self.render_cfd(data, percentiles, title, forecast: nil)
+        dom, range = VegaVisualizer.cfd_color_scale(percentiles)
+        chart = base_cfd_chart(data, dom, range)
+                .layer(cfd_layers(percentiles, forecast))
+        VegaVisualizer.apply_standard_dims(chart, title: title)
+      end
+
+      def self.cfd_layers(percentiles, forecast)
+        layers = [VegaVisualizer.cfd_area_layer(percentiles, legend: !percentiles.empty?)]
+        return layers unless forecast
+
+        layers + [VegaVisualizer.cfd_line_layer(percentiles),
+                  *VegaVisualizer.cfd_vert_layers(forecast, percentiles)]
+      end
+
+      def self.base_cfd_chart(data, dom, range)
+        Vega.lite.data(data)
+            .encoding(
+              x: { field: 'date', type: 'temporal', title: 'Date', timeUnit: 'utc-yearmonthdate' },
+              y: { field: 'count', type: 'quantitative', title: 'Total Items' },
+              color: { field: 'type', type: 'nominal', scale: { domain: dom, range: range } }
+            )
+      end
+
+      private_class_method :base_cfd_chart
     end
   end
 end

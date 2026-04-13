@@ -23,20 +23,16 @@ Feature: Sub-report Navigation
       | reports/mixed_types/types/Bug.html   |
       | reports/mixed_types/types/Task.html  |
 
-  Scenario: Verifying navigation links in the main dashboard
+  Scenario Outline: Verifying navigation links
     When I run `predictability-engine report mixed_types.csv html`
-    Then the HTML file "reports/mixed_types/dashboard.html" should have navigation links:
-      | label | url                | active |
-      | All   | dashboard.html     | true   |
-      | Story | types/Story.html   | false  |
-      | Bug   | types/Bug.html     | false  |
-      | Task  | types/Task.html    | false  |
+    Then the HTML file "<path>" should have navigation links:
+      | label | url                | active   |
+      | All   | <all_url>          | <all_a>  |
+      | Story | <story_url>        | <story_a>|
+      | Bug   | <bug_url>          | <bug_a>  |
+      | Task  | <task_url>         | <task_a> |
 
-  Scenario: Verifying navigation links in a sub-dashboard
-    When I run `predictability-engine report mixed_types.csv html`
-    Then the HTML file "reports/mixed_types/types/Story.html" should have navigation links:
-      | label | url                | active |
-      | All   | ../dashboard.html  | false  |
-      | Story | Story.html         | true   |
-      | Bug   | Bug.html           | false  |
-      | Task  | Task.html          | false  |
+    Examples:
+      | path                                 | all_url           | all_a | story_url        | story_a | bug_url        | bug_a | task_url        | task_a |
+      | reports/mixed_types/dashboard.html   | dashboard.html    | true  | types/Story.html | false   | types/Bug.html | false | types/Task.html | false  |
+      | reports/mixed_types/types/Story.html | ../dashboard.html | false | Story.html       | true    | Bug.html       | false | Task.html       | false  |

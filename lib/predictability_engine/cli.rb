@@ -137,11 +137,9 @@ module PredictabilityEngine
     desc 'all_formats FILE', 'Generate all report formats at once'
     def all_formats(file)
       %i[terminal html pdf md conf a3_landscape ppt].each do |fmt|
-        begin
-          PredictabilityEngine.run_and_print_report(file, fmt, options)
-        rescue StandardError => e
-          warn "Failed to generate #{fmt} report: #{e.message}"
-        end
+        PredictabilityEngine.run_and_print_report(file, fmt, options)
+      rescue StandardError => e
+        warn "Failed to generate #{fmt} report: #{e.message}"
       end
     end
 
@@ -210,10 +208,10 @@ module PredictabilityEngine
 
     desc 'jira_config PROFILE', 'Generate/Update JIRA credentials in ~/.config/jira/jira_credentials.yml'
     def jira_config(profile)
-      site = ask("Jira site (e.g., https://your-domain.atlassian.net):")
-      email = ask("Jira email:")
-      token = ask("Jira API token:", echo: false)
-      puts "" # newline after hidden token input
+      site = ask('Jira site (e.g., https://your-domain.atlassian.net):')
+      email = ask('Jira email:')
+      token = ask('Jira API token:', echo: false)
+      puts '' # newline after hidden token input
 
       path = Config::JIRA_CREDENTIALS_FILE
       FileUtils.mkdir_p(File.dirname(path))

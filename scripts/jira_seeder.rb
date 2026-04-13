@@ -16,7 +16,7 @@ require_relative '../lib/predictability_engine/config'
 
 class JiraSeeder
   def initialize(options)
-    @config = PredictabilityEngine::Config.jira(ENV['JIRA_PROFILE'])
+    @config = PredictabilityEngine::Config.jira(ENV.fetch('JIRA_PROFILE', nil))
     @project_key = options[:project] || @config[:project]
     @count = options[:count] || 5
     @client = build_client
@@ -24,7 +24,7 @@ class JiraSeeder
 
   def run
     puts "Seeding Jira project #{@project_key} with #{@count} issues..."
-    
+
     # 1. Verify project exists
     project = @client.Project.find(@project_key)
     puts "Found project: #{project.name}"
@@ -34,12 +34,12 @@ class JiraSeeder
       summary = "Test Issue #{Time.now.to_i} - #{i}"
       issue = @client.Issue.build
       issue.save({
-        'fields' => {
-          'project' => { 'key' => @project_key },
-          'summary' => summary,
-          'issuetype' => { 'name' => 'Story' }
-        }
-      })
+                   'fields' => {
+                     'project' => { 'key' => @project_key },
+                     'summary' => summary,
+                     'issuetype' => { 'name' => 'Story' }
+                   }
+                 })
       puts "Created issue: #{issue.key}"
 
       # 3. Transition some issues to simulate workflow
@@ -52,8 +52,8 @@ class JiraSeeder
         transition_to(issue, 'Done')
       end
     end
-    
-    puts "Seeding completed successfully."
+
+    puts 'Seeding completed successfully.'
   end
 
   def cleanup
@@ -63,31 +63,19 @@ class JiraSeeder
       puts "  Deleting #{issue.key}"
       issue.delete
     end
-    puts "Cleanup completed."
+    puts 'Cleanup completed.'
   end
 
   private
 
   def build_client
-    # Validate configuration before building client
-    raise "Jira site not configured (use JIRA_SITE env var or ~/.config/jira/jira_credentials.yml)" unless @config[:site]
-    raise "Jira email not configured (use JIRA_EMAIL env var or ~/.config/jira/jira_credentials.yml)" unless @config[:email]
-    raise "Jira API token not configured (use JIRA_API_TOKEN env var or ~/.config/jira/jira_credentials.yml)" unless @config[:token]
-
-    options = {
-      username: @config[:email],
-      password: @config[:token],
-      site: @config[:site],
-      context_path: '',
-      auth_type: :basic
-    }
-    ::JIRA::Client.new(options)
+    PredictabilityEngine::Config.jira_client(ENV.fetch('JIRA_PROFILE', nil))
   end
 
   def transition_to(issue, status_name)
     transitions = @client.Transition.all(issue: issue)
     target = transitions.find { |t| t.name.downcase.include?(status_name.downcase) }
-    
+
     if target
       transition = issue.transitions.build
       transition.save!('transition' => { 'id' => target.id })
@@ -100,14 +88,14 @@ end
 
 options = {}
 OptionParser.new do |opts|
-  opts.banner = "Usage: jira_seeder.rb [options]"
-  opts.on("-p", "--project KEY", "Jira project key") { |v| options[:project] = v }
-  opts.on("-c", "--count N", Integer, "Number of issues to create") { |v| options[:count] = v }
-  opts.on("--cleanup", "Delete all issues in the project before seeding") { options[:cleanup] = true }
+  opts.banner = 'Usage: jira_seeder.rb [options]'
+  opts.on('-p', '--project KEY', 'Jira project key') { |v| options[:project] = v }
+  opts.on('-c', '--count N', Integer, 'Number of issues to create') { |v| options[:count] = v }
+  opts.on('--cleanup', 'Delete all issues in the project before seeding') { options[:cleanup] = true }
 end.parse!
 
 if options[:project].nil?
-  puts "Error: Project key is required."
+  puts 'Error: Project key is required.'
   exit 1
 end
 

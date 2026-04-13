@@ -19,8 +19,8 @@ RSpec.describe PredictabilityEngine::Calculators::Throughput do
 
     it 'returns counts per completion day' do
       res = described_class.daily(all_items)
-      expect(res[day_one]).to eq(1)
       expect(res[day_two]).to eq(2)
+      expect(res[day_one]).to eq(1)
       expect(res.keys.size).to eq(2)
     end
 

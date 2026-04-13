@@ -4,17 +4,17 @@ require 'date'
 
 module PredictabilityEngine
   module MermaidVisualizer
-    def self.cfd_plot(work_items, **_opts)
-      data = Calculators::Cfd.calculate(work_items).last(20)
+    def self.cfd_plot(items, **_opts)
+      data = Calculators::Cfd.calculate(items).last(20)
       dates = data.map { |d| d[:date].to_s }
       format_mermaid_xy("Cumulative Flow Diagram (Last #{dates.size} days)", dates, 'Items',
                         [data.map { |d| d[:arrived] }, data.map { |d| d[:departed] }],
                         labels: %w[Arrivals Departures])
     end
 
-    def self.forecasted_cfd_plot(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, **_opts)
-      data = Calculators::Cfd.forecast_series(work_items, percentiles: percentiles)
-      return cfd_plot(work_items) unless data
+    def self.forecasted_cfd_plot(items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, **_opts)
+      data = Calculators::Cfd.forecast_series(items, percentiles: percentiles)
+      return cfd_plot(items) unless data
 
       series = [data[:arrivals]]
       labels = ['Arrivals']
@@ -40,20 +40,20 @@ module PredictabilityEngine
       res
     end
 
-    def self.aging_wip(work_items, **_opts)
-      data = Calculators::Aging.item_age_data(work_items)
+    def self.aging_wip(items, **_opts)
+      data = Calculators::Aging.item_age_data(items)
       format_mermaid_xy('Aging Work In Progress', data.map { |d| d[:id] }, 'Age (days)',
                         [data.map { |d| d[:age] }], labels: ['Age'], type: 'bar')
     end
 
-    def self.throughput_histogram(work_items, **_opts)
-      counts = Calculators::Throughput.histogram_data(work_items)
+    def self.throughput_histogram(items, **_opts)
+      counts = Calculators::Throughput.histogram_data(items)
       format_mermaid_xy('Throughput Histogram', counts.map { |c| c[0] }, 'Frequency',
                         [counts.map { |c| c[1] }], labels: ['Frequency'], type: 'bar')
     end
 
-    def self.cycle_time_scatter(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, **_opts)
-      completed = Calculators::CycleTime.completed_sorted(work_items)
+    def self.cycle_time_scatter(items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, **_opts)
+      completed = Calculators::CycleTime.completed_sorted(items)
       return '' if completed.empty?
 
       dates = completed.map { |i| i.end_date.to_s }.uniq.last(20)

@@ -1,5 +1,7 @@
 {
   "threshold": 0.8,
+  "minLines": 2,
+  "minTokens": 16,
   "reporters": [
     "html",
     "console"

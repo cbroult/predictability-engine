@@ -5,20 +5,19 @@ require 'stringio'
 
 module PredictabilityEngine
   module TerminalVisualizer
-    def self.aging_wip(work_items, color: false, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, **_opts)
-      data = Calculators::Aging.item_age_data(work_items)
+    def self.aging_wip(items, color: false, pcts: DEFAULT_PERCENTILES, **)
+      data = Calculators::Aging.item_age_data(items)
       return 'No items currently in progress.' if data.empty?
 
-      pcts = PredictabilityEngine.mapped_percentiles(work_items, percentiles)
+      PredictabilityEngine.mapped_percentiles(items, pcts)
       plot = UnicodePlot.barplot(data.map { |d| d[:id].to_s }, data.map { |d| d[:age] },
                                  title: 'Aging Work In Progress (Days)', color: color ? :blue : nil)
-      rendered = render_to_string(plot, color: color)
-      rendered
+      render_to_string(plot, color: color)
     end
 
-    def self.cycle_time_scatter(work_items, title: 'Cycle Time Scatter Plot', color: false,
-                                percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, **_opts)
-      completed = Calculators::CycleTime.completed_sorted(work_items)
+    def self.cycle_time_scatter(items, title: 'Cycle Time Scatter Plot', color: false,
+                                pcts: DEFAULT_PERCENTILES, **)
+      completed = Calculators::CycleTime.completed_sorted(items)
       return 'No completed items to plot.' if completed.empty?
 
       start = completed.first.end_date
@@ -26,14 +25,14 @@ module PredictabilityEngine
       plot = UnicodePlot.scatterplot(x, completed.map(&:cycle_time), title: title,
                                                                      xlabel: "Days since #{start}",
                                                                      ylabel: 'Cycle Time (days)')
-      PredictabilityEngine.mapped_percentiles(work_items, percentiles).each do |p|
+      PredictabilityEngine.mapped_percentiles(items, pcts).each do |p|
         UnicodePlot.lineplot!(plot, x.minmax, [p[:val], p[:val]], name: p[:label])
       end
       render_to_string(plot, color: color)
     end
 
-    def self.throughput_histogram(work_items, title: 'Throughput Histogram', color: false, **_opts)
-      daily = Calculators::Throughput.daily(work_items).values
+    def self.throughput_histogram(items, title: 'Throughput Histogram', color: false, **)
+      daily = Calculators::Throughput.daily(items).values
       return 'No throughput data to plot.' if daily.empty?
 
       plot = UnicodePlot.histogram(daily, title: title, xlabel: 'Items per day', ylabel: 'Frequency')
@@ -88,31 +87,40 @@ module PredictabilityEngine
 
     def self.add_forecast_layers!(plot, data, params, percentiles)
       # Departures next
-      UnicodePlot.stairs!(plot, params[:x_coords].take(params[:hist_size]), data[:departed],
-                          name: 'Departures', color: :green)
+      add_historical_departures!(plot, data, params)
 
       # Forecast confidence paths
       # Use distinct colors for forecast paths
       f_colors = { 50 => :yellow, 75 => :red, 85 => :magenta, 95 => :cyan, 98 => :white }
       sorted_pcts = percentiles.sort
       sorted_pcts.reverse.each do |p|
-        # Slice to only show forecast from the last historical point onwards
-        f_x = params[:x_coords].drop(params[:hist_size] - 1)
-        f_y = data[:forecasts][p].drop(params[:hist_size] - 1)
-
-        UnicodePlot.lineplot!(plot, f_x, f_y,
-                              name: "#{p}% Confidence", color: f_colors[p] || :white)
-        
-        # Shift to the next percentile's date for rule alignment, except for the last one
-        i = sorted_pcts.index(p)
-        target_p = (i < sorted_pcts.size - 1) ? sorted_pcts[i + 1] : p
-        deadline_idx = params[:hist_size] - 1 + data[:summary][:"p#{target_p}"]
-        deadline_x = params[:x_coords][deadline_idx]
-        # Use the forecast value at the deadline to hit the corner of the surface
-        forecast_at_deadline = data[:forecasts][p][deadline_idx]
-        # Use normal color for vertical lines (neutral); omitted from legend
-        UnicodePlot.lineplot!(plot, [deadline_x, deadline_x], [0, forecast_at_deadline], color: :normal)
+        add_confidence_layer!(plot, data, params, p, sorted_pcts: sorted_pcts, color: f_colors[p] || :white)
       end
+    end
+
+    def self.add_historical_departures!(plot, data, params)
+      UnicodePlot.stairs!(plot, params[:x_coords].take(params[:hist_size]), data[:departed],
+                          name: 'Departures', color: :green)
+    end
+
+    def self.add_confidence_layer!(plot, data, params, percentile, **opts)
+      sorted_pcts = opts[:sorted_pcts]
+      color = opts[:color]
+      # Slice to only show forecast from the last historical point onwards
+      f_x = params[:x_coords].drop(params[:hist_size] - 1)
+      f_y = data[:forecasts][percentile].drop(params[:hist_size] - 1)
+
+      UnicodePlot.lineplot!(plot, f_x, f_y, name: "#{percentile}% Confidence", color: color)
+
+      # Shift to the next percentile's date for rule alignment, except for the last one
+      idx = sorted_pcts.index(percentile)
+      target_p = idx < sorted_pcts.size - 1 ? sorted_pcts[idx + 1] : percentile
+      deadline_idx = params[:hist_size] - 1 + data[:summary][:"p#{target_p}"]
+      deadline_x = params[:x_coords][deadline_idx]
+      # Use the forecast value at the deadline to hit the corner of the surface
+      forecast_at_deadline = data[:forecasts][percentile][deadline_idx]
+      # Use normal color for vertical lines (neutral); omitted from legend
+      UnicodePlot.lineplot!(plot, [deadline_x, deadline_x], [0, forecast_at_deadline], color: :normal)
     end
 
     def self.render_to_string(plot, color: false)

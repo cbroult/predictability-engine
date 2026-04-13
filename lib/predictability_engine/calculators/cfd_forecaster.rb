@@ -41,10 +41,14 @@ module PredictabilityEngine
       end
 
       def self.days_to_last_scheduled_event(work_items)
-        arrival_dates = work_items.select { |i| i.start_date && i.start_date > Date.today }.map(&:start_date)
-        departure_dates = work_items.select { |i| i.end_date && i.end_date > Date.today }.map(&:end_date)
-        future_dates = arrival_dates + departure_dates
-        future_dates.map { |d| (d - Date.today).to_i }.max || 0
+        arrival_dates = future_dates(work_items, :start_date)
+        departure_dates = future_dates(work_items, :end_date)
+        future = arrival_dates + departure_dates
+        future.map { |d| (d - Date.today).to_i }.max || 0
+      end
+
+      def self.future_dates(work_items, field)
+        work_items.map { |i| i.send(field) }.compact.select { |d| d > Date.today }
       end
 
       def self.build_summary(work_items, results, days_to_future, percentiles)

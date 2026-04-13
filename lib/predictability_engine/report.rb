@@ -11,7 +11,8 @@ module PredictabilityEngine
 
     attr_reader :items, :title, :percentiles, :images_path, :type
 
-    def initialize(items, title: 'Predictability Report', percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, type: nil)
+    def initialize(items, title: 'Predictability Report', percentiles: PredictabilityEngine::DEFAULT_PERCENTILES,
+                   type: nil)
       @type = type
       @items = type ? items.select { |i| (i.type || 'Unspecified') == type } : items
       @title = title
@@ -48,14 +49,15 @@ module PredictabilityEngine
       @images_path = nil
     end
 
-    def render_html(layout: :landscape, sub_reports: nil, **_opts)
+    def render_html(layout: :landscape, sub_reports: nil, **)
       charts = CHART_CONFIG.map do |id, cfg|
         chart = VegaVisualizer.send(cfg[:vega] || id, @items,
                                     title: nil,
                                     percentiles: @percentiles)
         { title: cfg[:title], chart: chart }
       end
-      Visualizer.to_full_html(charts, @items, title: @title, layout: layout, percentiles: @percentiles, sub_reports: sub_reports)
+      Visualizer.to_full_html(charts, @items, title: @title, layout: layout, percentiles: @percentiles,
+                                              sub_reports: sub_reports)
     end
 
     def playwright_bin
@@ -140,38 +142,9 @@ module PredictabilityEngine
       FileUtils.rm_f(ppt_file) if ppt_file
     end
 
-    def render_ppt_multi_slide
-      require 'powerpoint'
-      base_dir = "tmp/ppt_#{object_id}"
-      FileUtils.mkdir_p(base_dir)
-      generate_chart_images(base_dir)
-
-      deck = Powerpoint::Presentation.new
-      deck.add_intro(@title, "Generated on #{Time.now.strftime('%Y-%m-%d %H:%M')}")
-
-      metrics = SummaryVisualizer.metrics_terminal(@items, color: false, percentiles: @percentiles)
-      deck.add_textual_slide('Flow Metrics Summary', metrics.split("\n").map(&:strip).reject(&:empty?))
-
-      CHART_CONFIG.each_key do |id|
-        img = File.join(@images_path, "#{id}.png") if @images_path
-        deck.add_pictorial_slide(CHART_CONFIG[id][:title], img) if img && File.exist?(img)
-      end
-
-      ppt_file = File.join(base_dir, 'dashboard.pptx')
-      deck.save(ppt_file)
-      File.binread(ppt_file)
-    ensure
-      FileUtils.rm_rf(base_dir) if base_dir
-    end
-
     def capture_screenshot(html_path, img_path)
-      Playwright.create(playwright_cli_executable_path: playwright_bin) do |p|
-        p.chromium.launch do |browser|
-          page = browser.new_page(viewport: { width: 1280, height: 720 })
-          page.goto("file://#{File.expand_path(html_path)}")
-          sleep 2 # wait for Vega to render
-          page.screenshot(path: img_path, fullPage: true)
-        end
+      with_playwright_page(html_path) do |page|
+        page.screenshot(path: img_path, fullPage: true)
       end
     end
 
@@ -187,29 +160,34 @@ module PredictabilityEngine
       temp_html = "tmp/report_#{object_id}.html"
       FileUtils.mkdir_p('tmp')
       File.write(temp_html, render_html(layout: layout))
-      pdf_data = capture_pdf(temp_html, format, landscape)
-      pdf_data
+      capture_pdf(temp_html, format, landscape)
     ensure
       FileUtils.rm_f(temp_html)
     end
 
     def capture_pdf(html_path, format, landscape)
+      w, h = pdf_viewport_size(format, landscape)
       pdf_data = nil
-      Playwright.create(playwright_cli_executable_path: playwright_bin) do |p|
-        p.chromium.launch do |browser|
-          w, h = pdf_viewport_size(format, landscape)
-          page = browser.new_page(viewport: { width: w, height: h })
-          page.goto("file://#{File.expand_path(html_path)}")
-          sleep 2
-          pdf_data = page.pdf(format: format, landscape: landscape, printBackground: true,
-                              pageRanges: '1',
-                              margin: { top: '0', right: '0', bottom: '0', left: '0' })
-        end
+      with_playwright_page(html_path, width: w, height: h) do |page|
+        pdf_data = page.pdf(format: format, landscape: landscape, printBackground: true,
+                            pageRanges: '1',
+                            margin: { top: '0', right: '0', bottom: '0', left: '0' })
       end
       pdf_data
     end
 
-    def render_pdf_prawn(**_opts)
+    def with_playwright_page(html_path, width: 1280, height: 720)
+      Playwright.create(playwright_cli_executable_path: playwright_bin) do |p|
+        p.chromium.launch do |browser|
+          page = browser.new_page(viewport: { width: width, height: height })
+          page.goto("file://#{File.expand_path(html_path)}")
+          sleep 2 # wait for Vega to render
+          yield page
+        end
+      end
+    end
+
+    def render_pdf_prawn(**)
       require 'prawn'
       Prawn::Document.new(page_layout: :landscape, margin: 30) do |pdf|
         Report.send(:setup_pdf_font_on_doc, pdf)

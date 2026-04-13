@@ -3,10 +3,10 @@
 module PredictabilityEngine
   module VegaVisualizer
     module BasicCharts
-      def self.cycle_time_scatter(work_items, percentiles, title: 'Cycle Time Scatter Plot')
-        completed = PredictabilityEngine.completed_items(work_items)
+      def self.cycle_time_scatter(items, pcts, title: 'Cycle Time Scatter Plot')
+        completed = PredictabilityEngine.completed_items(items)
         data = completed.map { |i| { date: i.end_date.to_s, cycle_time: i.cycle_time, id: i.id } }
-        pct_data = PredictabilityEngine.mapped_percentiles(work_items, percentiles)
+        pct_data = PredictabilityEngine.mapped_percentiles(items, pcts)
         VegaVisualizer.apply_standard_dims(
           Vega.lite.data(data + pct_data.map { |p| { type: p[:label], val: p[:val] } })
               .layer([scatter_points_layer, scatter_rules_layer(pct_data.size)]),
@@ -22,17 +22,17 @@ module PredictabilityEngine
       end
 
       def self.scatter_rules_layer(count)
-        range = ['#72b7b2', '#e45756', '#b279a2', '#ff9da7', '#ad494a', '#8ca27a']
+        palette = ['#72b7b2', '#e45756', '#b279a2', '#ff9da7', '#ad494a', '#8ca27a']
         { transform: [{ filter: 'datum.type != null' }],
           mark: { type: 'rule', strokeDash: [4, 4] },
           encoding: { y: { field: 'val', type: 'quantitative' },
                       color: { field: 'type', type: 'nominal', title: 'Percentiles',
-                               scale: { range: range.take(count) },
+                               scale: { range: palette.take(count) },
                                legend: { orient: 'bottom', columns: 3 } } } }
       end
 
-      def self.throughput_histogram(work_items, title: 'Throughput Histogram')
-        data = Calculators::Throughput.daily(work_items).values.map { |v| { throughput: v } }
+      def self.throughput_histogram(items, title: 'Throughput Histogram')
+        data = Calculators::Throughput.daily(items).values.map { |v| { throughput: v } }
         VegaVisualizer.apply_standard_dims(
           Vega.lite.data(data).mark(type: 'bar', tooltip: true)
               .encoding(x: { field: 'throughput', type: 'quantitative', bin: true, title: 'Items per Day' },

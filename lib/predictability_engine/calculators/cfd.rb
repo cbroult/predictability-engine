@@ -6,21 +6,25 @@ module PredictabilityEngine
   module Calculators
     module Cfd
       def self.calculate(work_items, start_date: nil, end_date: nil)
-        arrival_data = work_items.map { |i| { date: i.start_date || i.end_date || Date.today, type: :arrived } }
-        departure_data = work_items.select(&:completed?).map { |i| { date: i.end_date, type: :departed } }
-        events = (arrival_data + departure_data).sort_by { |e| [e[:date], e[:type] == :arrived ? 0 : 1] }
+        events = collect_events(work_items)
         return [] if events.empty?
 
         results = process_events(events)
         fill_daily_gaps(results, start_date, end_date)
       end
 
-      def self.forecast_summary(work_items, trials: 10_000, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
-        CfdForecaster.forecast_summary(work_items, trials: trials, percentiles: percentiles)
+      def self.collect_events(work_items)
+        arrival_data = work_items.map { |i| { date: i.start_date || i.end_date || Date.today, type: :arrived } }
+        departure_data = work_items.select(&:completed?).map { |i| { date: i.end_date, type: :departed } }
+        (arrival_data + departure_data).sort_by { |e| [e[:date], e[:type] == :arrived ? 0 : 1] }
       end
 
-      def self.forecast_series(work_items, trials: 10_000, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
-        CfdForecaster.forecast_series(work_items, trials: trials, percentiles: percentiles)
+      def self.forecast_summary(items, **)
+        CfdForecaster.forecast_summary(items, **)
+      end
+
+      def self.forecast_series(items, **)
+        CfdForecaster.forecast_series(items, **)
       end
 
       def self.fill_daily_gaps(results, start_date, end_date)

@@ -12,36 +12,17 @@ RSpec.describe PredictabilityEngine::Calculators::CfdForecaster do
 
   describe '.forecast_series' do
     context 'with standard data' do
-      let(:items) do
-        [
-          PredictabilityEngine::Models::WorkItem.new(item_id: 1, start_date: today - 10, end_date: today - 5),
-          PredictabilityEngine::Models::WorkItem.new(item_id: 2, start_date: today - 2, end_date: nil)
-        ]
-      end
+      let(:items) { [create_item(1, -10, -5), create_item(2, -2)] }
 
       it 'aligns vertical lines with forecast curves' do
         data = described_class.forecast_series(items, percentiles: [50])
         expect(data).not_to be_nil
-
-        hist_size = data[:departed].size
-        p50_days = data[:summary][:p50]
-        deadline_index = hist_size - 1 + p50_days
-
-        deadline_val = data[:forecasts][50][deadline_index]
-        total_items = data[:summary][:total_items]
-
-        expect(deadline_val).to eq(total_items),
-                                "Expected #{total_items} items at index #{deadline_index}, got #{deadline_val}"
+        verify_deadline(data, 50)
       end
     end
 
     context 'with data ending in the past' do
-      let(:items) do
-        [
-          PredictabilityEngine::Models::WorkItem.new(item_id: 1, start_date: today - 20, end_date: today - 15),
-          PredictabilityEngine::Models::WorkItem.new(item_id: 2, start_date: today - 10, end_date: nil)
-        ]
-      end
+      let(:items) { [create_item(1, -20, -15), create_item(2, -10)] }
 
       it 'correctly synchronizes history up to today before forecasting' do
         data = described_class.forecast_series(items, percentiles: [85])
@@ -55,27 +36,27 @@ RSpec.describe PredictabilityEngine::Calculators::CfdForecaster do
     end
 
     context 'with future-scheduled items' do
-      let(:items) do
-        [
-          PredictabilityEngine::Models::WorkItem.new(item_id: 1, start_date: today - 10, end_date: today - 5),
-          PredictabilityEngine::Models::WorkItem.new(item_id: 2, start_date: today - 2, end_date: today + 10),
-          PredictabilityEngine::Models::WorkItem.new(item_id: 3, start_date: today - 2, end_date: nil)
-        ]
-      end
+      let(:items) { [create_item(1, -10, -5), create_item(2, -2, 10), create_item(3, -2)] }
 
       it 'aligns the forecast based on the maximum of simulation and scheduled dates' do
         data = described_class.forecast_series(items, percentiles: [50])
-        p50_days = data[:summary][:p50]
-        # Item 2 is scheduled for +10 days. If simulation says <10, p50 should be 10.
-        expect(p50_days).to be >= 10
-
-        hist_size = data[:departed].size
-        deadline_index = hist_size - 1 + p50_days
-        deadline_val = data[:forecasts][50][deadline_index]
-        total_items = data[:summary][:total_items]
-
-        expect(deadline_val).to eq(total_items)
+        expect(data[:summary][:p50]).to be >= 10
+        verify_deadline(data, 50)
       end
     end
+  end
+
+  def verify_deadline(data, percentile)
+    hist_size = data[:departed].size
+    deadline_idx = hist_size - 1 + data[:summary][:"p#{percentile}"]
+    expect(data[:forecasts][percentile][deadline_idx]).to eq(data[:summary][:total_items])
+  end
+
+  def create_item(item_id, start_offset, end_offset = nil)
+    PredictabilityEngine::Models::WorkItem.new(
+      item_id: item_id,
+      start_date: today + start_offset,
+      end_date: end_offset ? today + end_offset : nil
+    )
   end
 end

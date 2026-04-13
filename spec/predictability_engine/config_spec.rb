@@ -5,70 +5,55 @@ require 'spec_helper'
 RSpec.describe PredictabilityEngine::Config do
   let(:config_file) { described_class::CONFIG_FILE }
 
-  after { File.delete(config_file) if File.exist?(config_file) }
+  after { FileUtils.rm_f(config_file) }
 
   describe '.jira' do
     context 'without profile_name' do
-      it 'uses environment variables by default' do
-        stub_const('ENV', ENV.to_h.merge('JIRA_SITE' => 'https://env.atlassian.net'))
-        expect(described_class.jira[:site]).to eq('https://env.atlassian.net')
-      end
+      it 'handles environment and global fallbacks' do
+        # 1. Environment variables
+        stub_const('ENV', ENV.to_h.merge('JIRA_SITE' => 'https://env.net'))
+        expect(described_class.jira[:site]).to eq('https://env.net')
 
-      it 'falls back to global jira settings from file if env is missing' do
-        File.write(config_file, { 'jira' => { 'site' => 'https://global.atlassian.net' } }.to_yaml)
+        # 2. File fallback
+        write_config({ 'jira' => { 'site' => 'https://file.net' } })
         stub_const('ENV', ENV.to_h.reject { |k| k == 'JIRA_SITE' })
-        expect(described_class.jira[:site]).to eq('https://global.atlassian.net')
+        expect(described_class.jira[:site]).to eq('https://file.net')
+
+        # 3. Profile from environment
+        write_config({ 'jira' => { 'profiles' => { 'p' => { 'site' => 'https://p.net' } } } })
+        stub_const('ENV', ENV.to_h.merge('JIRA_PROFILE' => 'p'))
+        expect(described_class.jira[:site]).to eq('https://p.net')
       end
 
-      it 'uses JIRA_PROFILE from environment' do
-        File.write(config_file, {
-          'jira' => {
-            'profiles' => { 'client-x' => { 'site' => 'https://client-x.atlassian.net' } }
-          }
-        }.to_yaml)
-        stub_const('ENV', ENV.to_h.merge('JIRA_PROFILE' => 'client-x'))
-        expect(described_class.jira[:site]).to eq('https://client-x.atlassian.net')
-      end
-
-      it 'returns project key from environment or file' do
-        stub_const('ENV', ENV.to_h.merge('JIRA_PROJECT' => 'PROJ-ENV'))
-        expect(described_class.jira[:project]).to eq('PROJ-ENV')
+      it 'returns project key accurately' do
+        stub_const('ENV', ENV.to_h.merge('JIRA_PROJECT' => 'ENV-P'))
+        expect(described_class.jira[:project]).to eq('ENV-P')
 
         stub_const('ENV', ENV.to_h.reject { |k| k == 'JIRA_PROJECT' })
-        File.write(config_file, { 'jira' => { 'project' => 'PROJ-FILE' } }.to_yaml)
-        expect(described_class.jira[:project]).to eq('PROJ-FILE')
+        write_config({ 'jira' => { 'project' => 'FILE-P' } })
+        expect(described_class.jira[:project]).to eq('FILE-P')
       end
     end
 
     context 'with profile_name' do
-      let(:yaml_content) do
-        {
-          'jira' => {
-            'site' => 'https://global.atlassian.net',
-            'profiles' => {
-              'client-x' => { 'site' => 'https://client-x.atlassian.net' }
-            }
-          }
-        }.to_yaml
+      it 'prioritizes profile specific settings' do
+        write_config({ 'jira' => { 'profiles' => { 'p' => { 'site' => 'https://p.net' } } } })
+        expect(described_class.jira('p')[:site]).to eq('https://p.net')
       end
 
-      before { File.write(config_file, yaml_content) }
-
-      it 'uses profile specific settings' do
-        expect(described_class.jira('client-x')[:site]).to eq('https://client-x.atlassian.net')
+      it 'prevents global setting leak to profile' do
+        write_config({
+                       'jira' => {
+                         'email' => 'g@e.com',
+                         'profiles' => { 'p' => { 'site' => 'https://p.net' } }
+                       }
+                     })
+        expect(described_class.jira('p')[:email]).to be_nil
       end
+    end
 
-      it 'does not fall back to global settings if profile is missing key' do
-        expect(described_class.jira('client-x')[:email]).to be_nil
-        # Let's add email to global
-        File.write(config_file, {
-          'jira' => {
-            'email' => 'global@example.com',
-            'profiles' => { 'client-x' => { 'site' => 'https://client-x.atlassian.net' } }
-          }
-        }.to_yaml)
-        expect(described_class.jira('client-x')[:email]).to be_nil
-      end
+    def write_config(data)
+      File.write(config_file, data.to_yaml)
     end
   end
 end

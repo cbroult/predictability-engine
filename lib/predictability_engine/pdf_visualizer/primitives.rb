@@ -18,9 +18,7 @@ module PredictabilityEngine
       def self.draw_series(pdf, series_data, labels_count, max_y)
         pdf.stroke_color series_data[:color]
         points = series_data[:values].each_with_index.map do |v, i|
-          x = (i.to_f / (labels_count - 1)) * chart_width
-          y = (v.to_f / max_y) * chart_height
-          [x, y]
+          [x_coord(i, labels_count), y_coord(v, max_y)]
         end
 
         pdf.stroke do
@@ -58,11 +56,17 @@ module PredictabilityEngine
 
         draw_canvas(pdf) do
           values.each_with_index do |v, i|
-            x = labels.size <= 1 ? 0 : (i.to_f / (labels.size - 1)) * chart_width
-            y = (v.to_f / max_y) * chart_height
-            pdf.fill_circle [x, y], 1.5
+            pdf.fill_circle [x_coord(i, labels.size), y_coord(v, max_y)], 1.5
           end
         end
+      end
+
+      def self.x_coord(index, total)
+        total <= 1 ? 0 : (index.to_f / (total - 1)) * chart_width
+      end
+
+      def self.y_coord(value, max_y)
+        (value.to_f / max_y) * chart_height
       end
 
       def self.draw_canvas(pdf)

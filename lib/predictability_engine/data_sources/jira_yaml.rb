@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'yaml'
-require 'pathname'
 
 module PredictabilityEngine
   module DataSources
@@ -16,6 +15,7 @@ module PredictabilityEngine
       def profile
         return @config['jira_profile'] if @config['jira_profile']
         return nil unless @path.basename.to_s.count('.') >= 2
+
         @path.basename.to_s.split('.').first
       end
 
@@ -27,6 +27,7 @@ module PredictabilityEngine
 
       def load_config
         return {} unless @path.exist?
+
         YAML.load_file(@path) || {}
       rescue StandardError
         {}
@@ -43,12 +44,14 @@ module PredictabilityEngine
 
       def project_query
         return nil unless @config['project']
+
         "project = \"#{@config['project']}\""
       end
 
       def filter_query
         return "filter = \"#{@config['filter_id']}\"" if @config['filter_id']
         return "filter = \"#{@config['filter_name']}\"" if @config['filter_name']
+
         nil
       end
     end

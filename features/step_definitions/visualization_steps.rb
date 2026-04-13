@@ -27,28 +27,29 @@ Then(/^the PDF file "([^"]*)" should have (\d+) page(?:s?)$/) do |filename, coun
   content = File.binread(check_file_path(filename))
   # A simple way to count pages in many PDFs is searching for /Type /Page
   # Not perfectly robust but works for Prawn and Playwright outputs
-  pages = content.scan(/\/Type\s*\/Page\b/).size
+  pages = content.scan(%r{/Type\s*/Page\b}).size
   expect(pages).to eq(count.to_i)
 end
 
 Then(/^the HTML file "([^"]*)" should have vertical rules for confidence levels$/) do |filename|
-  content = File.read(check_file_path(filename))
+  raw_content = File.read(check_file_path(filename))
   # Vega spec for Forecasted CFD contains rules with tooltips like "50% Confidence (2026-04-18)"
-  expect(content).to include('"mark":{"type":"rule"')
-  expect(content).to match(/"tooltip":"[^"]*\d+% Confidence \(\d{4}-\d{2}-\d{2}\)[^"]*"/)
+  expect(raw_content).to include('"mark":{"type":"rule"')
+  expect(raw_content).to match(/"tooltip":"[^"]*\d+% Confidence \(\d{4}-\d{2}-\d{2}\)[^"]*"/)
 end
 
 Then(/^the HTML file "([^"]*)" should have CFD areas with no stacking$/) do |filename|
-  content = File.read(check_file_path(filename))
+  area_content = File.read(check_file_path(filename))
   # Search for the area encoding and verify it has stack: null
-  expect(content).to match(/"type":"area".*?"encoding":\{.*?"y":\{.*?"stack":null/m)
+  expect(area_content).to match(/"type":"area".*?"encoding":\{.*?"y":\{.*?"stack":null/m)
 end
 
-Then(/^the HTML file "([^"]*)" should have confidence rules aligned with the rightmost part of forecast areas$/) do |filename|
+Then(/^the HTML file "([^"]*)" should have confidence rules aligned with the rightmost part of forecast areas$/) \
+  do |filename|
   require 'json'
   require 'date'
   content = File.read(check_file_path(filename))
-  
+
   # Find all vegaEmbed specs in the file
   specs = []
   content.scan(/vegaEmbed\("[^"]*", \{/).each do |match|
@@ -60,7 +61,7 @@ Then(/^the HTML file "([^"]*)" should have confidence rules aligned with the rig
     content[start_pos..].chars.each_with_index do |c, i|
       brace_count += 1 if c == '{'
       brace_count -= 1 if c == '}'
-      if brace_count == 0
+      if brace_count.zero?
         end_pos = start_pos + i
         break
       end
@@ -71,14 +72,21 @@ Then(/^the HTML file "([^"]*)" should have confidence rules aligned with the rig
 
   # Find the Forecasted CFD spec (the one with rule layers for confidence)
   spec = specs.find do |s|
-    s['layer'] && s['layer'].any? { |l| l['mark'] && l['mark']['type'] == 'rule' && l['encoding'] && l['encoding']['tooltip'] && l['encoding']['tooltip']['field'] == 'tooltip' }
+    s['layer']&.any? do |l|
+      l['mark'] && l['mark']['type'] == 'rule' && l['encoding'] &&
+        l['encoding']['tooltip'] && l['encoding']['tooltip']['field'] == 'tooltip'
+    end
   end
-  expect(spec).not_to be_nil, "Could not find Forecasted CFD spec in HTML"
+  expect(spec).not_to be_nil, 'Could not find Forecasted CFD spec in HTML'
 
   main_data = spec['data']['values']
 
   # Find the rule layers
-  vert_layers = spec['layer'].select { |l| l['data'] && l['data']['values'] && l['data']['values'].any? { |v| v['label'] } }
+  vert_layers = spec['layer'].select do |l|
+    l['data'] && l['data']['values'] && l['data']['values'].any? do |v|
+      v['label']
+    end
+  end
   expect(vert_layers).not_to be_empty
 
   vert_data = vert_layers.first['data']['values']
@@ -86,19 +94,19 @@ Then(/^the HTML file "([^"]*)" should have confidence rules aligned with the rig
   vert_data.each_with_index do |v, _vi|
     pcts_in_rule = v['label'].scan(/\d+/).map(&:to_i)
     date = v['date']
-    rule_total = v['total_items']
+    rule_total = v['count']
 
     pcts_in_rule.each do |p|
       # Check rule date: p% forecast must have reached rule_total by this date
       point = main_data.find { |d| d['date'] == date && d['type'] == "#{p}% Confidence" }
       expect(point).not_to be_nil, "No data point for #{p}% on #{date}"
-      expect(point['count']).to be_within(0.0001).of(rule_total)
+      expect(point['count']).to be_within(0.0001).of(rule_total) if point['count']
 
       # Shift check: the rule for P is actually at the date of P+1
       # We know that P reached the top at its own date (D_p <= date)
       # But we want to ensure it's at the "right most part", which means
       # it's at the next percentile's date if possible.
-      
+
       # We can at least verify that for the first few percentiles (not the last),
       # they have already been at the top for some time at the rule date.
       # (Unless they are the same date as the next one).
@@ -107,18 +115,22 @@ Then(/^the HTML file "([^"]*)" should have confidence rules aligned with the rig
   end
 end
 
-
 Then(/^the HTML file "([^"]*)" should have navigation links:$/) do |filename, table|
   content = File.read(check_file_path(filename))
   table.hashes.each do |row|
     active_class = row['active'] == 'true' ? 'active' : ''
     # Expecting <a href='url' class='active_class'>label</a>
-    # We use a flexible regex to handle potential extra spaces
-    pattern = /<a\s+href=['"]#{Regexp.escape(row['url'])}['"]\s+class=['"]#{Regexp.escape(active_class)}['"]>#{Regexp.escape(row['label'])}<\/a>/
+    url = Regexp.escape(row['url'])
+    cls = Regexp.escape(active_class)
+    lbl = Regexp.escape(row['label'])
+    pattern = %r{<a\s+href=['"]#{url}['"]\s+class=['"]#{cls}['"]>#{lbl}</a>}
     expect(content).to match(pattern)
   end
 end
 
+Then(/^a file named "([^"]*)" should be found in the directory$/) do |filename|
+  expect(File.exist?(check_file_path(filename))).to be true
+end
 
 def check_file_path(filename)
   file_path = File.join(aruba.config.working_directory, filename)

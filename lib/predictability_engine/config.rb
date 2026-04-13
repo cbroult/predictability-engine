@@ -3,6 +3,7 @@
 require 'yaml'
 
 module PredictabilityEngine
+  # Configuration management for the predictability engine.
   class Config
     CONFIG_FILE = '.predictability_engine.yml'
     JIRA_CREDENTIALS_FILE = File.expand_path('~/.config/jira/jira_credentials.yml')
@@ -11,42 +12,82 @@ module PredictabilityEngine
       load_jira_config(profile_name)
     end
 
-    def self.load_jira_config(profile_name = nil)
-      profile_name ||= ENV['JIRA_PROFILE'] || ENV['JIRA_PROJECT']
+    def self.jira_client(profile = nil)
+      require 'jira-ruby'
+      config = jira(profile)
+      validate_jira!(config)
+      options = {
+        username: config[:email], password: config[:token], site: config[:site],
+        context_path: '', auth_type: :basic
+      }
+      ::JIRA::Client.new(options)
+    end
 
-      # Load global JIRA credentials if exists
-      global_raw = File.exist?(JIRA_CREDENTIALS_FILE) ? YAML.load_file(JIRA_CREDENTIALS_FILE) : {}
-      global_raw ||= {}
-      # Support both flat and nested 'jira' key in global config
-      global_config = global_raw.key?('jira') ? global_raw['jira'] : global_raw
-      global_profiles = global_config.fetch('profiles', {})
+    def self.validate_jira!(config)
+      %i[site email token].each do |key|
+        next if config[key]
 
-      # Load local project JIRA config if exists
-      local_raw = File.exist?(CONFIG_FILE) ? YAML.load_file(CONFIG_FILE) : {}
-      local_raw ||= {}
-      local_config = local_raw.fetch('jira', {})
-      local_profiles = local_config.fetch('profiles', {})
-
-      # Prioritize profile if profile_name is explicit or from env
-      if profile_name
-        profile = global_profiles[profile_name.to_s] || local_profiles[profile_name.to_s] || {}
-        return {
-          site: profile['site'],
-          email: profile['email'],
-          token: profile['token'],
-          project: profile['project']
-        } unless profile.empty?
+        name = key.to_s.capitalize
+        raise Error, "Jira #{name} not configured (use JIRA_#{name.upcase} env var or credentials file)"
       end
+    end
 
-      # Default fallback logic for global settings/env vars
+    def self.load_jira_config(profile_name = nil)
+      profile_name ||= default_profile_name
+      global = load_global_jira_config
+      local = load_local_jira_config
+
+      config = load_profile(profile_name, global, local) if profile_name
+      config || fallback_config(global, local)
+    end
+
+    def self.default_profile_name
+      ENV.fetch('JIRA_PROFILE', nil) || ENV.fetch('JIRA_PROJECT', nil)
+    end
+
+    def self.fallback_config(global, local)
       {
-        site: ENV['JIRA_SITE'] || local_config['site'] || global_config['site'],
-        email: ENV['JIRA_EMAIL'] || local_config['email'] || global_config['email'],
-        token: ENV['JIRA_API_TOKEN'] || local_config['token'] || global_config['token'],
-        project: ENV['JIRA_PROJECT'] || local_config['project'] || global_config['project']
+        site: jira_val('SITE', global, local),
+        email: jira_val('EMAIL', global, local),
+        token: jira_val('API_TOKEN', global, local),
+        project: jira_val('PROJECT', global, local)
       }
     end
 
-    private_class_method :load_jira_config
+    def self.jira_val(name, global, local)
+      key = name.downcase.to_sym
+      ENV.fetch("JIRA_#{name}", nil) || local[key] || global[key]
+    end
+
+    def self.load_global_jira_config
+      load_jira_file(JIRA_CREDENTIALS_FILE, global: true)
+    end
+
+    def self.load_local_jira_config
+      load_jira_file(CONFIG_FILE, global: false)
+    end
+
+    def self.load_jira_file(path, global: true)
+      raw = File.exist?(path) ? YAML.load_file(path) : {}
+      raw ||= {}
+      config = global ? (raw['jira'] || raw) : raw.fetch('jira', {})
+      { site: config['site'], email: config['email'], token: config['token'],
+        project: config['project'], profiles: config.fetch('profiles', {}) }
+    end
+
+    def self.load_profile(name, global, local)
+      profile = global[:profiles][name.to_s] || local[:profiles][name.to_s] || {}
+      return if profile.empty?
+
+      {
+        site: profile['site'],
+        email: profile['email'],
+        token: profile['token'],
+        project: profile['project']
+      }
+    end
+
+    private_class_method :load_jira_config, :load_global_jira_config, :load_local_jira_config,
+                         :load_profile, :default_profile_name, :fallback_config, :load_jira_file, :jira_val
   end
 end

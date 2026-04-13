@@ -30,7 +30,8 @@ Testing is not a phase — it is woven into every stage of the development lifec
    - Use **ATDD/BDD with Cucumber/Aruba** to drive implementation of CLI features.
    - Implement **Dynamic Verification** scenarios in BDD to ensure reports correctly update when input data changes.
    - Implement **Alignment Verification** in both unit tests and BDD scenarios to ensure vertical rule integrity in Forecasted CFDs.
-   - Enforce code style and quality with **RuboCop**.
+   - Enforce code style and quality with **RuboCop**. Always correct RuboCop errors without changing the RuboCop configuration.
+   - Monitor and eliminate code duplication with **jscpd**. NEVER ignore jscpd findings and NEVER change the jscpd configuration.
 4. **Deploy & Release (Continuous Deployment & Release on Demand)**:
    - Automate the pipeline to ensure that every change that passes tests is potentially releasable.
    - Use **SimpleCov** to monitor test coverage (aim for 90%+).
@@ -63,12 +64,12 @@ Testing is not a phase — it is woven into every stage of the development lifec
 #### TOOLS & AUTOMATION
 - **BDD/Acceptance**: Cucumber & Aruba. Default configuration (via `cucumber.yml`) suppresses publish reminders and uses progress formatting.
 - **Unit Testing**: RSpec.
-- **Code Quality**: RuboCop.
+- **Code Quality**: RuboCop. Always correct RuboCop errors without changing the RuboCop configuration.
 - **Visualizations**: **unicode_plot** (CLI), **vega** (HTML/JSON), **mermaid** (Markdown/Confluence). Wrapped in full HTML templates for browser viewing. Includes a single-screen landscape dashboard optimized for quick, scroll-free insights. Focuses on **Aging WIP** as the leading indicator for predictability, as emphasized in the 10th Anniversary Edition of Daniel Vacanti's *Actionable Agile Metrics*.
 - **Reporting Engine**: Supports multiple layouts (`standard` vertical or `landscape` grid). Defaults to `landscape` for high-fidelity PDF exports and `standard` for HTML, but configurable via `--layout`.
 - **High-Fidelity Reports**: PDF exports leverage headless browser rendering (via **Playwright**) to ensure that interactive Vega-Lite charts are captured with maximum fidelity, matching the web experience.
 - **Naming Convention**: Generated reports are stored in `reports/[input_basename]/` with standardized names (e.g., `dashboard.html`, `dashboard.md`, `dashboard.pdf`, `dashboard.conf`).
-- **Duplicate Detection**: **jscpd** (Configured for 2 lines / 16 tokens). Threshold is set to 0.8% to balance extreme DRYness with code readability (clones are primarily in method signatures and structural test patterns).
+- **Duplicate Detection**: **jscpd** (Configured for 2 lines / 16 tokens). Threshold is set to 0.8% to balance extreme DRYness with code readability (clones are primarily in method signatures and structural test patterns). NEVER ignore jscpd findings and NEVER change the jscpd configuration.
 - **Browser Validation**: **Playwright** (Used for verifying HTML chart rendering in the pipeline).
 - **Security Analysis**: **bundler-audit** (Continuous scanning of dependencies).
 - **Architecture Diagrams**: **Mermaid** (C4/Sequence diagrams embedded in Markdown).

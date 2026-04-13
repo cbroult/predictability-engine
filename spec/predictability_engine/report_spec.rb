@@ -23,7 +23,7 @@ RSpec.describe PredictabilityEngine::Report do
         allow(File).to receive(:exist?).and_return(true)
 
         content = report.render(:terminal)
-        
+
         expect(content).not_to include('![](images/')
         expect(content).to include('Aging Work In Progress')
       end
@@ -36,7 +36,7 @@ RSpec.describe PredictabilityEngine::Report do
         allow(File).to receive(:exist?).with(/.*\.png$/).and_return(true)
 
         content = report.render(:markdown)
-        
+
         expect(content).to include('![](images/')
       end
     end

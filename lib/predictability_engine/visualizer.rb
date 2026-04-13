@@ -15,7 +15,6 @@ module PredictabilityEngine
 
   HTML_BASE_STYLE = 'font-family: sans-serif; background: #f8f9fa;'
 
-
   HTML_STYLE_LANDSCAPE = <<~CSS.freeze
     <style>
       body { #{HTML_BASE_STYLE} margin: 0; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; background: #f4f7f6; }
@@ -64,7 +63,6 @@ module PredictabilityEngine
     </html>
   HTML
 
-
   HTML_LANDSCAPE_BODY = <<~HTML
     <header>
       <h1>{{TITLE}}</h1>
@@ -105,19 +103,16 @@ module PredictabilityEngine
       define_singleton_method("vega_#{m}") { |items| VegaVisualizer.send(m, items) }
     end
 
-    def self.to_full_html(content_or_chart, work_items = nil, title: 'Predictability Engine Dashboard',
-                          layout: :landscape, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, sub_reports: nil)
+    def self.to_full_html(content_or_chart, work_items = nil, **opts)
+      title = opts.fetch(:title, 'Predictability Engine Dashboard')
+      percentiles = opts.fetch(:percentiles, PredictabilityEngine::DEFAULT_PERCENTILES)
+      sub_reports = opts.fetch(:sub_reports, nil)
+
       style = HTML_STYLE_LANDSCAPE
       body = HTML_LANDSCAPE_BODY
       summary = work_items ? SummaryVisualizer.metrics_html(work_items, percentiles: percentiles) : ''
 
-      nav_bar = if sub_reports && sub_reports.any?
-                  "<ul class='nav-links'><li><strong>View:</strong></li>" +
-                    sub_reports.map { |r| "<li><a href='#{r[:url]}' class='#{r[:active] ? 'active' : ''}'>#{r[:label]}</a></li>" }.join +
-                    "</ul>"
-                else
-                  ''
-                end
+      nav_bar = build_nav_bar(sub_reports)
 
       html = HTML_BASE.gsub('{{STYLE}}', style).gsub('{{BODY}}', body)
       html.gsub!('{{TITLE}}', title)
@@ -133,6 +128,15 @@ module PredictabilityEngine
         html.gsub!('{{CHART_PANELS}}', panel)
       end
       html
+    end
+
+    def self.build_nav_bar(sub_reports)
+      return '' unless sub_reports&.any?
+
+      links = sub_reports.map do |r|
+        "<li><a href='#{r[:url]}' class='#{'active' if r[:active]}'>#{r[:label]}</a></li>"
+      end.join
+      "<ul class='nav-links'><li><strong>View:</strong></li>#{links}</ul>"
     end
 
     def self.prepare_html_content(content_or_chart, layout, html)

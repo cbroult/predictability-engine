@@ -41,20 +41,22 @@ module PredictabilityEngine
           Helpers.metric_lines(work_items, metrics), ''
         ]
 
-        if metrics[:aging]
-          out += [
-            "#{cyan}Aging WIP Summary:#{reset}",
-            "  Active WIP: #{metrics[:aging][:count]} items",
-            "  Average Age: #{metrics[:aging][:avg_age]} days",
-            "  Max Age: #{metrics[:aging][:max_age]} days", ''
-          ]
-        end
+        out += aging_summary_lines(metrics, "#{cyan}Aging WIP Summary:#{reset}", '  ') if metrics[:aging]
 
         out += [
           "#{cyan}Cycle Time Percentiles:#{reset}",
           Helpers.percentile_lines(metrics, percentiles, prefix: '  '), ''
         ]
         out.join("\n")
+      end
+
+      def self.aging_summary_lines(metrics, title, prefix, bold = '')
+        [
+          title, '',
+          "#{prefix}#{bold}Active WIP:#{bold} #{metrics[:aging][:count]} items",
+          "#{prefix}#{bold}Average WIP Age:#{bold} #{metrics[:aging][:avg_age]} days",
+          "#{prefix}#{bold}Oldest Item Age:#{bold} #{metrics[:aging][:max_age]} days", ''
+        ]
       end
 
       def self.render_markdown_summary(work_items, metrics, percentiles)
@@ -66,22 +68,13 @@ module PredictabilityEngine
       end
 
       def self.render_markup_summary(work_items, metrics, percentiles, styling)
-        head2 = styling[:head2]
-        head3 = styling[:head3]
-        bold = styling[:bold]
+        head2, head3, bold = styling.values_at(:head2, :head3, :bold)
         out = [
           "#{head2} Flow Metrics Summary", '',
           Helpers.metric_lines(work_items, metrics, prefix: '* ', bold: bold), ''
         ]
 
-        if metrics[:aging]
-          out += [
-            "#{head3} Aging WIP Summary", '',
-            "* #{bold}Active WIP:#{bold} #{metrics[:aging][:count]} items",
-            "* #{bold}Average WIP Age:#{bold} #{metrics[:aging][:avg_age]} days",
-            "* #{bold}Oldest Item Age:#{bold} #{metrics[:aging][:max_age]} days", ''
-          ]
-        end
+        out += aging_summary_lines(metrics, "#{head3} Aging WIP Summary", '* ', bold) if metrics[:aging]
 
         out += [
           "#{head3} Cycle Time Percentiles", '',
