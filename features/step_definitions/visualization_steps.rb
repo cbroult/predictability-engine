@@ -44,52 +44,97 @@ Then(/^the HTML file "([^"]*)" should have CFD areas with no stacking$/) do |fil
   expect(area_content).to match(/"type":"area".*?"encoding":\{.*?"y":\{.*?"stack":null/m)
 end
 
-Then(/^the HTML file "([^"]*)" should have confidence rules aligned with the rightmost part of forecast areas$/) \
-  do |filename|
+Then(/^the HTML file "([^"]*)" should have rotated X-axis labels$/) do |filename|
+  content = File.read(check_file_path(filename))
+  # Check for labelAngle: -45 in the X axis encoding
+  expect(content).to match(/"encoding":\{"x":\{.*?"axis":\{.*?"labelAngle":-45/m)
+end
+
+Then(/^the HTML file "([^"]*)" should have a confidence rule for (\d+)% at a date >= Today$/) do |filename, pct|
   require 'json'
   require 'date'
   content = File.read(check_file_path(filename))
+  spec = find_cfd_spec(content)
+  vert_data = find_vert_data(spec)
 
-  # Find all vegaEmbed specs in the file
-  specs = []
-  content.scan(/vegaEmbed\("[^"]*", \{/).each do |match|
-    # For each match, find the full balanced JSON spec
-    start_pos = content.index(match)
-    start_pos = content.index('{', start_pos)
-    brace_count = 0
-    end_pos = -1
-    content[start_pos..].chars.each_with_index do |c, i|
-      brace_count += 1 if c == '{'
-      brace_count -= 1 if c == '}'
-      if brace_count.zero?
-        end_pos = start_pos + i
-        break
-      end
-    end
-    spec_json = content[start_pos..end_pos]
-    specs << JSON.parse(spec_json)
-  end
+  today = Date.parse(ENV['MOCK_TODAY'] || Date.current.to_s)
 
-  # Find the Forecasted CFD spec (the one with rule layers for confidence)
-  spec = specs.find do |s|
-    s['layer']&.any? do |l|
-      l['mark'] && l['mark']['type'] == 'rule' && l['encoding'] &&
-        l['encoding']['tooltip'] && l['encoding']['tooltip']['field'] == 'tooltip'
-    end
-  end
-  expect(spec).not_to be_nil, 'Could not find Forecasted CFD spec in HTML'
+  rule = vert_data.find { |v| v['label'].include?("#{pct}%") }
+  expect(rule).not_to be_nil, "Could not find rule for #{pct}%"
+  expect(Date.parse(rule['date'])).to be >= today
+end
 
+Then(/^the HTML file "([^"]*)" should have confidence rules hit the forecast plateau$/) do |filename|
+  require 'json'
+  content = File.read(check_file_path(filename))
+  spec = find_cfd_spec(content)
+  vert_data = find_vert_data(spec)
   main_data = spec['data']['values']
 
-  # Find the rule layers
-  vert_layers = spec['layer'].select do |l|
-    l['data'] && l['data']['values'] && l['data']['values'].any? do |v|
-      v['label']
+  arrivals = main_data.select { |d| d['type'] == 'Arrivals' }
+  max_arrivals = arrivals.map { |d| d['count'] }.max
+
+  vert_data.each do |v|
+    expect(v['count']).to eq(max_arrivals),
+                          "Rule for #{v['label']} hit #{v['count']}, expected plateau at #{max_arrivals}"
+  end
+end
+
+def find_cfd_spec(content)
+  specs = extract_vega_specs(content)
+  spec = specs.find { |s| cfd_forecast_spec?(s) }
+  raise 'Could not find Forecasted CFD spec' unless spec
+
+  spec
+end
+
+def cfd_forecast_spec?(spec)
+  spec['layer']&.any? do |l|
+    l['mark'] && l['mark']['type'] == 'rule' && l['encoding'] &&
+      l['encoding']['tooltip'] && l['encoding']['tooltip']['field'] == 'tooltip'
+  end
+end
+
+def extract_vega_specs(content)
+  specs = []
+  content.scan(/vegaEmbed\("[^"]*", \{/).each do |match|
+    start_pos = content.index(match)
+    start_pos = content.index('{', start_pos)
+    spec_json = extract_balanced_json(content, start_pos)
+    specs << JSON.parse(spec_json)
+  end
+  specs
+end
+
+def extract_balanced_json(content, start_pos)
+  brace_count = 0
+  end_pos = -1
+  content[start_pos..].chars.each_with_index do |c, i|
+    brace_count += 1 if c == '{'
+    brace_count -= 1 if c == '}'
+    if brace_count.zero?
+      end_pos = start_pos + i
+      break
     end
   end
-  expect(vert_layers).not_to be_empty
+  content[start_pos..end_pos]
+end
 
-  vert_data = vert_layers.first['data']['values']
+def find_vert_data(spec)
+  vert_layers = spec['layer'].select do |l|
+    l['data'] && l['data']['values'] && l['data']['values'].any? { |v| v['label'] }
+  end
+  raise 'Could not find rule layers' if vert_layers.empty?
+
+  vert_layers.first['data']['values']
+end
+
+Then(/^the HTML file "([^"]*)" should have confidence rules aligned with the rightmost part of forecast areas$/) \
+  do |filename|
+  content = File.read(check_file_path(filename))
+  spec = find_cfd_spec(content)
+  main_data = spec['data']['values']
+  vert_data = find_vert_data(spec)
 
   vert_data.each_with_index do |v, _vi|
     pcts_in_rule = v['label'].scan(/\d+/).map(&:to_i)

@@ -19,7 +19,7 @@ module PredictabilityEngine
         (@end_date - @start_date).to_i + 1 # Include both start and end days
       end
 
-      def age(date = Date.current)
+      def age(date = PredictabilityEngine.today)
         return nil if completed? || @start_date.nil?
         return 0 if date < @start_date
 

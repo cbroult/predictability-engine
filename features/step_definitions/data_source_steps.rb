@@ -102,6 +102,17 @@ Given(/^an extra large CSV file named "([^"]*)" with (\d+) completed and (\d+) i
   write_file(filename, content)
 end
 
+Given(/^adjusted data for "([^"]*)"$/) do |template|
+  step %(the template CSV file "#{template}" is adjusted to recent dates and saved as "adjusted_#{template}")
+end
+
+Given(/^Today is "([^"]*)"$/) do |date_str|
+  # Set for current process (for data shifting)
+  ENV['MOCK_TODAY'] = date_str
+  # Set for Aruba subprocesses
+  set_environment_variable('MOCK_TODAY', date_str)
+end
+
 def shift_dates_to_today(rows)
   delta = calculate_delta(rows)
   rows.each { |row| shift_row_dates(row, delta) }

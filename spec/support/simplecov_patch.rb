@@ -6,7 +6,7 @@ require 'simplecov'
 module SimpleCov
   class SourceFile
     def build_branches
-      coverage_branch_data = coverage_data.fetch("branches", {})
+      coverage_branch_data = coverage_data.fetch('branches', {})
       return [] if coverage_branch_data.nil?
 
       branches = coverage_branch_data.flat_map do |condition, coverage_branches|

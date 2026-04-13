@@ -80,8 +80,22 @@ RSpec.describe PredictabilityEngine::Report do
         # Stub the multi-slide renderer to avoid requiring powerpoint gem in unit tests if not needed,
         # but it is already in Gemfile so it should be fine.
         allow(report).to receive(:render_ppt_multi_slide).and_return('fake_ppt_content')
-        
+
         expect(report.render(:ppt)).to eq('fake_ppt_content')
+      end
+    end
+
+    describe 'PDF rendering' do
+      it 'falls back to Prawn if Playwright fails' do
+        allow(report).to receive(:render_pdf_playwright).and_raise(StandardError, 'No Playwright')
+        allow(report).to receive(:render_pdf_prawn).and_return('fake_pdf_content')
+
+        expect(report.render(:pdf)).to eq('fake_pdf_content')
+      end
+
+      it 'uses high_fidelity: false to force Prawn' do
+        allow(report).to receive(:render_pdf_prawn).and_return('fake_pdf_content')
+        expect(report.render(:pdf, high_fidelity: false)).to eq('fake_pdf_content')
       end
     end
   end
@@ -90,7 +104,7 @@ RSpec.describe PredictabilityEngine::Report do
     it 'generates sub-reports by type if multiple types exist' do
       items << PredictabilityEngine::Models::WorkItem.new(item_id: 'PROJ-2', title: 'Task 2', type: 'Bug')
       items[0].instance_variable_set(:@type, 'Story') # Ensure first item has a type
-      
+
       reports = described_class.generate_all(items)
       expect(reports).to have_key('Story')
       expect(reports).to have_key('Bug')

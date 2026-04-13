@@ -2,7 +2,7 @@
 
 require 'simplecov'
 require_relative '../../spec/support/simplecov_patch'
-SimpleCov.command_name "Cucumber"
+SimpleCov.command_name 'Cucumber'
 SimpleCov.start do
   enable_coverage :branch
   add_filter '/spec/'
@@ -21,5 +21,5 @@ Before do
   # Add SimpleCov helper for subprocesses
   project_root = File.expand_path('../..', __dir__)
   # We use set_environment_variable which is the Aruba way
-  set_environment_variable('RUBYOPT', "-I#{project_root}/spec -rsimplecov_helper #{ENV['RUBYOPT']}")
+  set_environment_variable('RUBYOPT', "-I#{project_root}/spec -rsimplecov_helper #{ENV.fetch('RUBYOPT', nil)}")
 end

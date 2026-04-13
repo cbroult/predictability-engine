@@ -3,11 +3,11 @@
 module PredictabilityEngine
   module Calculators
     class Aging
-      def self.current_wip(work_items, date = Date.current)
+      def self.current_wip(work_items, date = PredictabilityEngine.today)
         work_items.select { |item| item.in_progress?(date) }
       end
 
-      def self.summary_metrics(work_items, date = Date.current)
+      def self.summary_metrics(work_items, date = PredictabilityEngine.today)
         wip = current_wip(work_items, date)
         return nil if wip.empty?
 
@@ -19,7 +19,7 @@ module PredictabilityEngine
         }
       end
 
-      def self.item_age_data(work_items, date = Date.current)
+      def self.item_age_data(work_items, date = PredictabilityEngine.today)
         data = current_wip(work_items, date).map do |item|
           {
             id: item.id,

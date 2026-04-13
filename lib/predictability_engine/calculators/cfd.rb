@@ -14,7 +14,9 @@ module PredictabilityEngine
       end
 
       def self.collect_events(work_items)
-        arrival_data = work_items.map { |i| { date: i.start_date || i.end_date || Date.current, type: :arrived } }
+        arrival_data = work_items.map do |i|
+          { date: i.start_date || i.end_date || PredictabilityEngine.today, type: :arrived }
+        end
         departure_data = work_items.select(&:completed?).map { |i| { date: i.end_date, type: :departed } }
         (arrival_data + departure_data).sort_by { |e| [e[:date], e[:type] == :arrived ? 0 : 1] }
       end

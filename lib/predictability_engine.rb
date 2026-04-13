@@ -24,6 +24,10 @@ module PredictabilityEngine
     items.reject(&:completed?)
   end
 
+  def self.today
+    ENV['MOCK_TODAY'] ? Date.parse(ENV['MOCK_TODAY']) : Date.current
+  end
+
   def self.cycle_time_percentile(items, percentile)
     Calculators::CycleTime.percentile(items, percentile)
   end
