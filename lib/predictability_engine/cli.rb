@@ -14,130 +14,130 @@ module PredictabilityEngine
 
     class_option :color, type: :boolean, default: true, desc: 'Enable/disable color output for terminal charts'
 
-    desc 'scatter FILE', 'Show Cycle Time scatter plot'
-    def scatter(file)
-      items = PredictabilityEngine.load_items(file)
+    desc 'scatter SOURCE', 'Show Cycle Time scatter plot'
+    def scatter(source)
+      items = PredictabilityEngine.load_items(source)
       puts Visualizer.cycle_time_scatter(items, color: options[:color])
     end
 
-    desc 'throughput FILE', 'Show Throughput histogram'
-    def throughput(file)
-      items = PredictabilityEngine.load_items(file)
+    desc 'throughput SOURCE', 'Show Throughput histogram'
+    def throughput(source)
+      items = PredictabilityEngine.load_items(source)
       puts Visualizer.throughput_histogram(items, color: options[:color])
     end
 
-    desc 'cfd FILE', 'Show Cumulative Flow Diagram'
-    def cfd(file)
-      items = PredictabilityEngine.load_items(file)
+    desc 'cfd SOURCE', 'Show Cumulative Flow Diagram'
+    def cfd(source)
+      items = PredictabilityEngine.load_items(source)
       puts Visualizer.cfd_plot(items, color: options[:color])
     end
 
-    desc 'aging_wip FILE', 'Show Aging Work In Progress'
-    def aging_wip(file)
-      items = PredictabilityEngine.load_items(file)
+    desc 'aging_wip SOURCE', 'Show Aging Work In Progress'
+    def aging_wip(source)
+      items = PredictabilityEngine.load_items(source)
       puts Visualizer.aging_wip(items, color: options[:color])
     end
 
-    desc 'html_scatter FILE [OUTPUT]', 'Generate Vega-Lite HTML scatter plot'
-    def html_scatter(file, output = nil)
-      generate_html_chart(file, output, 'scatter') do |items|
+    desc 'html_scatter SOURCE [OUTPUT]', 'Generate Vega-Lite HTML scatter plot'
+    def html_scatter(source, output = nil)
+      generate_html_chart(source, output, 'scatter') do |items|
         Visualizer.vega_cycle_time_scatter(items)
       end
     end
 
-    desc 'html_throughput FILE [OUTPUT]', 'Generate Vega-Lite HTML throughput histogram'
-    def html_throughput(file, output = nil)
-      generate_html_chart(file, output, 'throughput') do |items|
+    desc 'html_throughput SOURCE [OUTPUT]', 'Generate Vega-Lite HTML throughput histogram'
+    def html_throughput(source, output = nil)
+      generate_html_chart(source, output, 'throughput') do |items|
         Visualizer.vega_throughput_histogram(items)
       end
     end
 
-    desc 'html_cfd FILE [OUTPUT]', 'Generate Vega-Lite HTML CFD'
-    def html_cfd(file, output = nil)
-      generate_html_chart(file, output, 'cfd') do |items|
+    desc 'html_cfd SOURCE [OUTPUT]', 'Generate Vega-Lite HTML CFD'
+    def html_cfd(source, output = nil)
+      generate_html_chart(source, output, 'cfd') do |items|
         Visualizer.vega_cfd(items)
       end
     end
 
-    desc 'forecasted_cfd FILE', 'Show Forecasted Cumulative Flow Diagram'
-    def forecasted_cfd(file)
-      items = PredictabilityEngine.load_items(file)
+    desc 'forecasted_cfd SOURCE', 'Show Forecasted Cumulative Flow Diagram'
+    def forecasted_cfd(source)
+      items = PredictabilityEngine.load_items(source)
       puts Visualizer.forecasted_cfd_plot(items, color: options[:color])
     end
 
-    desc 'html_forecasted_cfd FILE [OUTPUT]', 'Generate Vega-Lite HTML Forecasted CFD'
-    def html_forecasted_cfd(file, output = nil)
-      generate_html_chart(file, output, 'forecasted_cfd') do |items|
+    desc 'html_forecasted_cfd SOURCE [OUTPUT]', 'Generate Vega-Lite HTML Forecasted CFD'
+    def html_forecasted_cfd(source, output = nil)
+      generate_html_chart(source, output, 'forecasted_cfd') do |items|
         Visualizer.vega_forecasted_cfd(items)
       end
     end
 
-    desc 'html_aging_wip FILE [OUTPUT]', 'Generate Vega-Lite HTML Aging WIP'
-    def html_aging_wip(file, output = nil)
-      generate_html_chart(file, output, 'aging_wip') do |items|
+    desc 'html_aging_wip SOURCE [OUTPUT]', 'Generate Vega-Lite HTML Aging WIP'
+    def html_aging_wip(source, output = nil)
+      generate_html_chart(source, output, 'aging_wip') do |items|
         Visualizer.vega_aging_wip(items)
       end
     end
 
-    desc 'all FILE', 'Show all terminal summary and visualizations'
-    def all(file)
-      run_and_print_report(file, :terminal)
+    desc 'all SOURCE', 'Show all terminal summary and visualizations'
+    def all(source)
+      run_and_print_report(source, :terminal)
     end
 
-    desc 'html_all FILE [OUTPUT]', 'Generate a combined HTML dashboard (landscape)'
-    def html_all(file, output = nil)
-      run_and_print_report(file, :html, output: output)
+    desc 'html_all SOURCE [OUTPUT]', 'Generate a combined HTML dashboard (landscape)'
+    def html_all(source, output = nil)
+      run_and_print_report(source, :html, output: output)
     end
 
-    desc 'landscape FILE [OUTPUT]', 'Alias for html_all'
-    def landscape(file, output = nil)
-      run_and_print_report(file, :landscape, output: output)
+    desc 'landscape SOURCE [OUTPUT]', 'Alias for html_all'
+    def landscape(source, output = nil)
+      run_and_print_report(source, :landscape, output: output)
     end
 
-    desc 'dashboard FILE [OUTPUT]', 'Alias for landscape'
-    def dashboard(file, output = nil)
-      landscape(file, output)
+    desc 'dashboard SOURCE [OUTPUT]', 'Alias for landscape'
+    def dashboard(source, output = nil)
+      landscape(source, output)
     end
 
-    desc 'all_html FILE [OUTPUT]', 'Alias for html_all'
-    def all_html(file, output = nil)
-      html_all(file, output)
+    desc 'all_html SOURCE [OUTPUT]', 'Alias for html_all'
+    def all_html(source, output = nil)
+      html_all(source, output)
     end
 
-    desc 'pdf FILE [OUTPUT]', 'Generate a PDF report'
-    def pdf(file, output = nil)
-      run_and_print_report(file, :pdf, output: output)
+    desc 'pdf SOURCE [OUTPUT]', 'Generate a PDF report'
+    def pdf(source, output = nil)
+      run_and_print_report(source, :pdf, output: output)
     end
 
-    desc 'a3_landscape FILE [OUTPUT]', 'Generate an A3 landscape PDF dashboard'
-    def a3_landscape(file, output = nil)
-      run_and_print_report(file, :a3_landscape, output: output)
+    desc 'a3_landscape SOURCE [OUTPUT]', 'Generate an A3 landscape PDF dashboard'
+    def a3_landscape(source, output = nil)
+      run_and_print_report(source, :a3_landscape, output: output)
     end
 
-    desc 'markdown FILE [OUTPUT]', 'Generate a Markdown report'
-    def markdown(file, output = nil)
-      run_and_print_report(file, :markdown, output: output)
+    desc 'markdown SOURCE [OUTPUT]', 'Generate a Markdown report'
+    def markdown(source, output = nil)
+      run_and_print_report(source, :markdown, output: output)
     end
 
-    desc 'md FILE [OUTPUT]', 'Alias for markdown'
-    def md(file, output = nil)
-      markdown(file, output)
+    desc 'md SOURCE [OUTPUT]', 'Alias for markdown'
+    def md(source, output = nil)
+      markdown(source, output)
     end
 
-    desc 'confluence FILE [OUTPUT]', 'Generate a Confluence markup report'
-    def confluence(file, output = nil)
-      run_and_print_report(file, :confluence, output: output)
+    desc 'confluence SOURCE [OUTPUT]', 'Generate a Confluence markup report'
+    def confluence(source, output = nil)
+      run_and_print_report(source, :confluence, output: output)
     end
 
-    desc 'conf FILE [OUTPUT]', 'Alias for confluence'
-    def conf(file, output = nil)
-      confluence(file, output)
+    desc 'conf SOURCE [OUTPUT]', 'Alias for confluence'
+    def conf(source, output = nil)
+      confluence(source, output)
     end
 
-    desc 'all_formats FILE', 'Generate all report formats at once'
-    def all_formats(file)
+    desc 'all_formats SOURCE', 'Generate all report formats at once'
+    def all_formats(source)
       %i[terminal html pdf md conf a3_landscape ppt].each do |fmt|
-        PredictabilityEngine.run_and_print_report(file, fmt, options)
+        PredictabilityEngine.run_and_print_report(source, fmt, options)
       rescue StandardError => e
         warn "Failed to generate #{fmt} report: #{e.message}"
       end
@@ -145,22 +145,22 @@ module PredictabilityEngine
 
     private
 
-    def run_and_print_report(file, format, output: nil)
-      PredictabilityEngine.run_and_print_report(file, format, options, output: output)
+    def run_and_print_report(source, format, output: nil)
+      PredictabilityEngine.run_and_print_report(source, format, options, output: output)
     end
 
-    def generate_html_chart(file, output, type)
-      items = PredictabilityEngine.load_items(file)
-      path = generate_output_path(file, output, "#{type}.html")
+    def generate_html_chart(source, output, type)
+      items = PredictabilityEngine.load_items(source)
+      path = generate_output_path(source, output, "#{type}.html")
       FileUtils.mkdir_p(File.dirname(path))
       File.write(path, Visualizer.to_full_html(yield(items), items))
       puts "Chart generated at #{path}"
     end
 
-    def generate_output_path(file, output, filename)
+    def generate_output_path(source, output, filename)
       return output if output
 
-      base = File.basename(file, '.*')
+      base = File.basename(source, '.*')
       File.join('reports', base, filename)
     end
   end
@@ -172,17 +172,17 @@ module PredictabilityEngine
 
     desc 'viz SUBCOMMAND ...ARGS', 'Visualization commands'
     subcommand 'viz', Viz
-    desc 'summary FILE', 'Load data from FILE and show flow metrics summary'
+    desc 'summary SOURCE', 'Load data from SOURCE and show flow metrics summary'
     method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
-    def summary(file)
-      items = PredictabilityEngine.load_items(file)
+    def summary(source)
+      items = PredictabilityEngine.load_items(source)
       puts SummaryVisualizer.metrics_terminal(items, color: options[:color])
     end
 
-    desc 'report FILE FORMAT [OUTPUT]', 'Generate a full report in various formats (terminal, html, pdf, md, conf)'
+    desc 'report SOURCE FORMAT [OUTPUT]', 'Generate a full report in various formats (terminal, html, pdf, md, conf)'
     method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
-    def report(input_file, format = 'terminal', output = nil)
-      PredictabilityEngine.run_and_print_report(input_file, format, options, output: output)
+    def report(input_source, format = 'terminal', output = nil)
+      PredictabilityEngine.run_and_print_report(input_source, format, options, output: output)
     end
 
     desc 'batch SOURCE', 'Run all report formats for the given SOURCE'
@@ -229,9 +229,9 @@ module PredictabilityEngine
       puts "Jira credentials for profile '#{profile}' saved to #{path}"
     end
 
-    desc 'forecast FILE BACKLOG_COUNT', 'Run Monte Carlo simulation for BACKLOG_COUNT items'
-    def forecast(file, backlog_count)
-      items = PredictabilityEngine.load_items(file)
+    desc 'forecast SOURCE BACKLOG_COUNT', 'Run Monte Carlo simulation for BACKLOG_COUNT items'
+    def forecast(source, backlog_count)
+      items = PredictabilityEngine.load_items(source)
 
       historical = Calculators::Throughput.daily(items).values
       results = Simulators::MonteCarlo.when_will_it_be_done(backlog_count.to_i, historical)
@@ -256,11 +256,11 @@ module PredictabilityEngine
 
     public
 
-    desc 'ask_ai FILE QUESTION', 'Ask the AI assistant about the data in FILE'
-    def ask_ai(file, question)
+    desc 'ask_ai SOURCE QUESTION', 'Ask the AI assistant about the data in SOURCE'
+    def ask_ai(source, question)
       # Assistant needs the manager or at least items.
       manager = DataManager.new
-      manager.load(file)
+      manager.load(source)
 
       assistant = Agents::Assistant.new(manager)
       puts 'AI Thinking...'
