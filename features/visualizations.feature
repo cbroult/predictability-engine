@@ -4,12 +4,7 @@ Feature: Visualization command
   I want to see graphical representations in my terminal
 
   Background:
-    Given a file named "sample_data.csv" with:
-      """
-      id,title,start_date,end_date
-      PROJ-1,Implement core,2026-03-01,2026-03-05
-      PROJ-2,Fix bug A,2026-03-02,2026-03-04
-      """
+    Given the template CSV file "sample_data.csv" is adjusted to recent dates and saved as "sample_data.csv"
 
   Scenario Outline: Terminal visualizations
     When I run `predictability-engine viz <command> sample_data.csv`
@@ -39,24 +34,20 @@ Feature: Visualization command
     And a file named "reports/sample_data/dashboard.html" should contain "Flow Metrics Summary"
 
   Scenario: Visualizing forecasted CFD in terminal
-    Given a file named "forecast_input.csv" with:
-      """
-      id,title,start_date,end_date
-      PROJ-1,Done 1,2026-03-01,2026-03-05
-      PROJ-2,WIP 1,2026-03-05,
-      PROJ-3,WIP 2,2026-03-06,
-      """
+    Given a file named "forecast_input.csv" with the following adjusted data:
+      | id     | title  | start_date | end_date   |
+      | PROJ-1 | Done 1 | 2026-03-01 | 2026-03-05 |
+      | PROJ-2 | WIP 1  | 2026-03-05 |            |
+      | PROJ-3 | WIP 2  | 2026-03-06 |            |
     When I run `predictability-engine viz forecasted_cfd forecast_input.csv`
     Then the exit status should be 0
     And the output should contain "Forecasted Cumulative Flow Diagram"
 
   Scenario: Visualizing forecasted CFD in HTML
-    Given a file named "html_forecast_input.csv" with:
-      """
-      id,title,start_date,end_date
-      PROJ-1,Done 1,2026-03-01,2026-03-05
-      PROJ-2,WIP 1,2026-03-05,
-      """
+    Given a file named "html_forecast_input.csv" with the following adjusted data:
+      | id     | title       | start_date | end_date   |
+      | H-1    | HTML Item   | 2026-03-01 | 2026-03-05 |
+      | H-2    | HTML Active | 2026-03-05 |            |
     When I run `predictability-engine viz html_forecasted_cfd html_forecast_input.csv`
     Then the exit status should be 0
     And a file named "reports/html_forecast_input/forecasted_cfd.html" should exist
@@ -77,31 +68,25 @@ Feature: Visualization command
       | summary sample_data.csv                 | --no-color | should not|
 
   Scenario: Dynamic verification of HTML report updates
-    Given a file named "dynamic_test.csv" with:
-      """
-      id,title,start_date,end_date
-      PROJ-1,Dynamic Item 1,2026-03-01,2026-03-02
-      """
+    Given a file named "dynamic_test.csv" with the following adjusted data:
+      | id     | title          | start_date | end_date   |
+      | DYN-1  | Primary Item   | 2026-03-01 | 2026-03-02 |
     When I run `predictability-engine viz html_all dynamic_test.csv`
     Then the exit status should be 0
     And a file named "reports/dynamic_test/dashboard.html" should contain "Total Items:</strong> 1"
-    Given a file named "dynamic_test.csv" with:
-      """
-      id,title,start_date,end_date
-      PROJ-1,Item A,2026-03-01,2026-03-02
-      PROJ-2,Item B,2026-03-01,2026-03-02
-      """
+    Given a file named "dynamic_test.csv" with the following adjusted data:
+      | id     | title          | start_date | end_date   |
+      | DYN-A  | Alpha Item     | 2026-03-01 | 2026-03-02 |
+      | DYN-B  | Beta Item      | 2026-03-01 | 2026-03-02 |
     When I run `predictability-engine viz html_all dynamic_test.csv`
     Then the exit status should be 0
     And a file named "reports/dynamic_test/dashboard.html" should contain "Total Items:</strong> 2"
 
   Scenario: Verifying Forecasted CFD vertical lines in HTML report
-    Given a file named "align_test.csv" with:
-      """
-      id,title,start_date,end_date
-      PROJ-1,Done,2026-04-01,2026-04-02
-      PROJ-2,WIP,2026-04-05,
-      """
+    Given a file named "align_test.csv" with the following adjusted data:
+      | id     | title | start_date | end_date   |
+      | PROJ-1 | Done  | 2026-04-01 | 2026-04-02 |
+      | PROJ-2 | WIP   | 2026-04-05 |            |
     When I run `predictability-engine viz html_forecasted_cfd align_test.csv`
     Then the exit status should be 0
     And the HTML file "reports/align_test/forecasted_cfd.html" should have vertical rules for confidence levels

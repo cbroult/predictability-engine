@@ -20,7 +20,10 @@
     "Gemfile.lock",
     ".woodpecker/**",
     ".playwright-mcp/**",
-    ".background_output_*.txt"
+    ".background_output_*.txt",
+    ".output.txt",
+    ".idea/**",
+    "report/**"
   ],
   "absolute": true
 }

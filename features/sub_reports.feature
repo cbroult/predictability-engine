@@ -5,14 +5,12 @@ Feature: Sub-report Navigation
   And navigate between them easily in the HTML report
 
   Background:
-    Given a file named "mixed_types.csv" with:
-      """
-      id,title,type,start_date,end_date
-      STORY-1,Implement login,Story,2024-03-01,2024-03-05
-      STORY-2,Add search,Story,2024-03-02,2024-03-06
-      BUG-1,Fix crash,Bug,2024-03-03,2024-03-04
-      TASK-1,Update README,Task,2024-03-04,2024-03-04
-      """
+    Given a file named "mixed_types.csv" with the following adjusted data:
+      | id      | title           | type  | start_date | end_date   |
+      | STORY-1 | Implement login | Story | 2024-03-01 | 2024-03-05 |
+      | STORY-2 | Add search      | Story | 2024-03-02 | 2024-03-06 |
+      | BUG-1   | Fix crash       | Bug   | 2024-03-03 | 2024-03-04 |
+      | TASK-1  | Update README   | Task  | 2024-03-04 | 2024-03-04 |
 
   Scenario: Generating reports for mixed types
     When I run `predictability-engine report mixed_types.csv html`

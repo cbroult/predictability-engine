@@ -4,12 +4,7 @@ Feature: All formats report generation
   I want to run a single command to generate all formats
 
   Background:
-    Given a file named "sample_data.csv" with:
-      """
-      id,title,start_date,end_date
-      PROJ-1,Implement core,2026-03-01,2026-03-05
-      PROJ-2,Fix bug A,2026-03-02,2026-03-04
-      """
+    Given the template CSV file "sample_data.csv" is adjusted to recent dates and saved as "sample_data.csv"
 
   Scenario: Generating all formats at once
     When I run `predictability-engine viz all_formats sample_data.csv`

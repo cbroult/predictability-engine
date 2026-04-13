@@ -4,12 +4,10 @@ Feature: Report generation in multiple formats
   I want to generate reports in Markdown, Confluence markup, and PDF
 
   Background:
-    Given a file named "sample_data.csv" with:
-      """
-      id,title,start_date,end_date
-      PROJ-1,Implement core,2026-03-01,2026-03-05
-      PROJ-2,Fix bug A,2026-03-02,2026-03-04
-      """
+    Given a file named "sample_data.csv" with the following adjusted data:
+      | id     | title            | start_date | end_date   |
+      | R-1    | Base Feature     | 2026-03-01 | 2026-03-05 |
+      | R-2    | Initial Bugfix   | 2026-03-02 | 2026-03-04 |
 
   Scenario Outline: Generating reports via the viz subcommand
     When I run `predictability-engine viz <subcommand> sample_data.csv`
@@ -31,13 +29,11 @@ Feature: Report generation in multiple formats
     And the HTML file "reports/sample_data/dashboard.html" should be valid and visible in a browser
 
   Scenario: Generating a forecasted CFD with no stacking
-    Given a file named "forecast_data.csv" with:
-      """
-      id,title,start_date,end_date
-      PROJ-1,Implement core,2026-03-01,2026-03-05
-      PROJ-2,Fix bug A,2026-03-02,2026-03-04
-      PROJ-3,In progress,2026-03-03,
-      """
+    Given a file named "forecast_data.csv" with the following adjusted data:
+      | id     | title          | start_date | end_date   |
+      | PROJ-1 | Implement core | 2026-03-01 | 2026-03-05 |
+      | PROJ-2 | Fix bug A      | 2026-03-02 | 2026-03-04 |
+      | PROJ-3 | In progress    | 2026-03-03 |            |
     When I run `predictability-engine viz landscape forecast_data.csv`
     Then the exit status should be 0
     And a file named "reports/forecast_data/dashboard.html" should exist

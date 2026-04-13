@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'active_support/all'
 require 'English'
 require 'roo'
 require_relative '../../lib/predictability_engine'
@@ -8,12 +9,14 @@ Given(/^an excel file named "([^"]*)" with items:$/) do |filename, table|
   # We create a dummy file to satisfy the existence check if needed,
   # but the engine will use the mock data if ENV['MOCK_EXCEL_DATA'] is set.
   write_file(filename, 'dummy')
-  set_environment_variable('MOCK_EXCEL_DATA', table.hashes.to_json)
+  shifted_data = shift_dates_to_today(table.hashes)
+  set_environment_variable('MOCK_EXCEL_DATA', shifted_data.to_json)
 end
 
 Given(/^Jira is mocked for filter "([^"]*)" with items:$/) do |_filter_id, table|
   set_environment_variable('MOCK_JIRA', 'true')
-  set_environment_variable('JIRA_MOCK_DATA', table.hashes.to_json)
+  shifted_data = shift_dates_to_today(table.hashes)
+  set_environment_variable('JIRA_MOCK_DATA', shifted_data.to_json)
 end
 
 Given(/^a Jira project is seeded with (\d+) test issues( with cleanup)?$/) do |count, cleanup|
@@ -80,21 +83,69 @@ Given(/^an extra large CSV file named "([^"]*)" with (\d+) completed and (\d+) i
   wip_count = wip.to_i
   require 'csv'
   require 'date'
-  current_date = Date.parse('2026-04-11')
+  current_date = Date.current
 
   content = CSV.generate do |csv|
     csv << %w[id title start_date end_date]
     # Completed items
-    (1..completed_count.to_i).each do |i|
-      start_date = current_date - rand(200..400)
-      end_date = start_date + rand(5..30)
+    (1..completed_count).each do |i|
+      start_date = current_date - rand(200..400).days
+      end_date = start_date + rand(5..30).days
       csv << ["PROJ-#{i}", "Task #{i}", start_date.iso8601, end_date.iso8601]
     end
     # WIP items
-    ((completed_count.to_i + 1)..(completed_count.to_i + wip_count.to_i)).each do |i|
-      start_date = current_date - rand(1..100)
+    ((completed_count + 1)..(completed_count + wip_count)).each do |i|
+      start_date = current_date - rand(1..100).days
       csv << ["PROJ-#{i}", "In Progress Task #{i}", start_date.iso8601, nil]
     end
+  end
+  write_file(filename, content)
+end
+
+def shift_dates_to_today(rows)
+  delta = calculate_delta(rows)
+  rows.each { |row| shift_row_dates(row, delta) }
+  rows
+end
+
+def calculate_delta(rows)
+  all_dates = rows.flat_map { |r| [r['start_date'], r['end_date'], r['created'], r['resolutiondate']] }
+                  .compact_blank
+                  .map { |d| Date.parse(d) }
+  max_date = all_dates.max || Date.current
+  (Date.current - max_date).to_i
+end
+
+def shift_row_dates(row, delta)
+  %w[start_date end_date created resolutiondate].each do |field|
+    next if row[field].blank?
+
+    row[field] = (Date.parse(row[field]) + delta.days).iso8601
+  end
+end
+
+Given(/^the template CSV file "([^"]*)" is adjusted to recent dates and saved as "([^"]*)"$/) \
+  do |template, filename|
+  require 'csv'
+  require 'date'
+
+  template_path = File.expand_path("../../#{template}", __dir__)
+  rows = CSV.read(template_path, headers: true)
+  shifted_rows = shift_dates_to_today(rows)
+
+  write_file(filename, shifted_rows.to_csv)
+end
+
+Given(/^a file named "([^"]*)" with the following adjusted data:$/) \
+  do |filename, table|
+  require 'csv'
+  require 'date'
+
+  rows = shift_dates_to_today(table.hashes)
+
+  content = CSV.generate do |csv|
+    csv << rows.first.keys
+    rows.each { |row| csv << row.values }
   end
   write_file(filename, content)
 end

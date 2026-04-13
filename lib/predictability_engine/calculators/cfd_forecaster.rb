@@ -9,7 +9,7 @@ module PredictabilityEngine
         backlog = work_items.reject(&:completed?).size
         historical = Throughput.daily(work_items).values
         return nil if historical.empty?
-        return nil if backlog.zero? && work_items.none? { |i| i.end_date && i.end_date > Date.today }
+        return nil if backlog.zero? && work_items.none? { |i| i.end_date && i.end_date > Date.current }
 
         results = simulate_backlog(backlog, historical, trials)
         days_to_future = days_to_last_scheduled_event(work_items)
@@ -24,7 +24,7 @@ module PredictabilityEngine
         summary = forecast_summary(work_items, trials: trials, percentiles: percentiles)
         return nil unless summary
 
-        today_index = cfd_data.index { |d| d[:date] == Date.today } || (cfd_data.size - 1)
+        today_index = cfd_data.index { |d| d[:date] == Date.current } || (cfd_data.size - 1)
         history = cfd_data[0..today_index].last(15)
         future_data = cfd_data[(today_index + 1)..] || []
         max_days = [percentiles.map { |p| summary[:"p#{p}"] }.max || 0, future_data.size].max
@@ -44,15 +44,15 @@ module PredictabilityEngine
         arrival_dates = future_dates(work_items, :start_date)
         departure_dates = future_dates(work_items, :end_date)
         future = arrival_dates + departure_dates
-        future.map { |d| (d - Date.today).to_i }.max || 0
+        future.map { |d| (d - Date.current).to_i }.max || 0
       end
 
       def self.future_dates(work_items, field)
-        work_items.map { |i| i.send(field) }.compact.select { |d| d > Date.today }
+        work_items.map { |i| i.send(field) }.compact.select { |d| d > Date.current }
       end
 
       def self.build_summary(work_items, results, days_to_future, percentiles)
-        res = { wip: work_items.reject(&:completed?).size, today: Date.today,
+        res = { wip: work_items.reject(&:completed?).size, today: Date.current,
                 total_items: work_items.size, departed_so_far: work_items.count(&:completed?) }
         percentiles.each do |p|
           sim_days = Simulators::MonteCarlo.percentile(results, p)
@@ -62,7 +62,9 @@ module PredictabilityEngine
       end
 
       def self.ensure_data_up_to_today(cfd_data, work_items)
-        return Cfd.calculate(work_items, end_date: Date.today) if cfd_data.empty? || cfd_data.last[:date] < Date.today
+        if cfd_data.empty? || cfd_data.last[:date] < Date.current
+          return Cfd.calculate(work_items, end_date: Date.current)
+        end
 
         cfd_data
       end

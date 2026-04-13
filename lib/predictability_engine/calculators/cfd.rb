@@ -14,7 +14,7 @@ module PredictabilityEngine
       end
 
       def self.collect_events(work_items)
-        arrival_data = work_items.map { |i| { date: i.start_date || i.end_date || Date.today, type: :arrived } }
+        arrival_data = work_items.map { |i| { date: i.start_date || i.end_date || Date.current, type: :arrived } }
         departure_data = work_items.select(&:completed?).map { |i| { date: i.end_date, type: :departed } }
         (arrival_data + departure_data).sort_by { |e| [e[:date], e[:type] == :arrived ? 0 : 1] }
       end
@@ -40,8 +40,12 @@ module PredictabilityEngine
             arrived = data_map[date][:arrived]
             departed = data_map[date][:departed]
           end
-          { date: date, arrived: arrived, departed: departed, wip: arrived - departed }
+          build_day_record(date, arrived, departed)
         end
+      end
+
+      def self.build_day_record(date, arrived, departed)
+        { date: date, arrived: arrived, departed: departed, wip: arrived - departed }
       end
 
       def self.process_events(events)
@@ -50,7 +54,7 @@ module PredictabilityEngine
         results = []
         events.group_by { |e| e[:date] }.each do |date, day_events|
           day_events.each { |e| e[:type] == :arrived ? arrived += 1 : departed += 1 }
-          results << { date: date, arrived: arrived, departed: departed, wip: arrived - departed }
+          results << build_day_record(date, arrived, departed)
         end
         results
       end
@@ -68,7 +72,7 @@ module PredictabilityEngine
           departed: cfd.map { |d| d[:departed] } }
       end
 
-      private_class_method :process_events, :fill_daily_gaps
+      private_class_method :process_events, :fill_daily_gaps, :build_day_record
     end
   end
 end
