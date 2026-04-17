@@ -21,3 +21,17 @@
 ## Cycle Time Scatter Plot
 
 Please modify the dotted lines so they can be distinguished not only via their color. Different style like dot-dash-dot, but also via their thickness. Additionally, consider using different line widths to further differentiate the lines.
+
+## Logging
+
+* Please add logging to the tool to control the console output and to a log file.
+* Please ensure that the logging level can be configured via command line options.
+* Please implement a mechanism to rotate log files to prevent them from growing indefinitely.
+* Please consider adding a feature to log only errors and warnings by default, and allow for more verbose logging when needed.
+* Please implement a logging format that includes timestamp, log level, and log message.
+* Any  console output should occur via the logging mechanism
+* The console output should be user-friendly and not too verbose by default
+* It format is specically tailored for the human eye
+* The file logging should be more verbose and include more information and be machine-readable
+
+
