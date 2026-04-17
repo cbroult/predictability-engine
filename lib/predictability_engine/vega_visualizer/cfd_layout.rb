@@ -8,12 +8,12 @@ module PredictabilityEngine
         res = []
         sorted_pcts = percentiles.sort
         data[:dates].each_with_index do |date, i|
-          res << { date: date.to_s, count: data[:arrivals][i], type: 'Arrivals', order: 0 }
+          res << { date: PredictabilityEngine.format_date(date), count: data[:arrivals][i], type: 'Arrivals', order: 0 }
           sorted_pcts.each_with_index do |p, pi|
-            res << { date: date.to_s, count: data[:forecasts][p][i], type: "#{p}% Confidence", order: pi + 1 }
+            res << { date: PredictabilityEngine.format_date(date), count: data[:forecasts][p][i], type: "#{p}% Confidence", order: pi + 1 }
           end
           if i < data[:departed].size
-            res << { date: date.to_s, count: data[:departed][i], type: 'Departures', order: sorted_pcts.size + 1 }
+            res << { date: PredictabilityEngine.format_date(date), count: data[:departed][i], type: 'Departures', order: sorted_pcts.size + 1 }
           end
         end
         res
@@ -84,34 +84,50 @@ module PredictabilityEngine
         sorted_pcts = percentiles.sort
         data_by_date = group_pcts_by_date(forecast, sorted_pcts)
 
-        data_by_date.keys.sort.map do |date_str|
-          p_list = data_by_date[date_str].sort
-          forecast_val = calculate_forecast_at(forecast, date_str, p_list.first)
+        data_by_date.sort_by { |date, _| date }.map do |date, p_list|
+          date_str = PredictabilityEngine.format_date(date)
+          # Align with the surface end (Arrivals line) as per requirement
+          forecast_val = calculate_arrivals_at(forecast, date_str)
 
-          { date: date_str, label: p_list.map { |p| "#{p}%" }.join(', '),
+          # Label should include date as per requirement
+          label = "#{p_list.sort.map { |p| "#{p}%" }.join(', ')} (#{date_str})"
+
+          { date: date_str, label: label,
             tooltip: p_list.map { |p| "#{p}% Confidence (#{date_str})" }.join("\n"),
             count: forecast_val }
         end
       end
 
       def self.group_pcts_by_date(forecast, sorted_pcts)
-        sorted_pcts.each_with_index.with_object({}) do |(p, i), h|
-          target_p = i < sorted_pcts.size - 1 ? sorted_pcts[i + 1] : p
-          days = forecast[:summary][:"p#{target_p}"]
+        groups = []
+        today = forecast[:summary][:today]
+
+        sorted_pcts.each do |p|
+          days = forecast[:summary][:"p#{p}"]
           next unless days
-          date_str = (forecast[:summary][:today] + days).to_s
-          h[date_str] ||= []
-          h[date_str] << p
+
+          date = today + days
+
+          # Collision avoidance: if date is close to an existing group, add to it
+          # Threshold: 2 days seems reasonable for collision avoidance
+          matched_group = groups.find { |g| (g[:date] - date).abs <= 2 }
+          if matched_group
+            matched_group[:pcts] << p
+          else
+            groups << { date: date, pcts: [p] }
+          end
         end
+
+        groups.each_with_object({}) { |g, h| h[PredictabilityEngine.format_date(g[:date])] = g[:pcts] }
       end
 
-      def self.calculate_forecast_at(forecast, date_str, percentile)
-        idx = forecast[:dates].index { |d| d.to_s == date_str }
-        idx ? forecast[:forecasts][percentile][idx] : forecast[:summary][:departed_so_far] + forecast[:summary][:wip]
+      def self.calculate_arrivals_at(forecast, date_str)
+        idx = forecast[:dates].index { |d| PredictabilityEngine.format_date(d) == date_str }
+        idx ? forecast[:arrivals][idx] : forecast[:summary][:total_items]
       end
 
       private_class_method :rule_layer, :text_layer, :tooltip_field,
-                           :group_pcts_by_date, :calculate_forecast_at, :base_layer, :vert_encoding
+                           :group_pcts_by_date, :calculate_arrivals_at, :base_layer, :vert_encoding
     end
   end
 end

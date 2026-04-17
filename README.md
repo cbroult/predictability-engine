@@ -122,6 +122,15 @@ When generating PNG, PDF, or PPTX reports, you can specify the resolution or pap
 ./bin/predictability-engine batch SOURCE --size=hd
 ```
 
+### Logging
+The engine provides a comprehensive logging system. By default, it logs to the console at the `info` level. You can configure the log level and output to a file:
+- **Options**: `--log-level` (debug, info, warn, error), `--log-file`
+- **File Format**: Machine-readable JSON with log rotation (daily).
+
+```bash
+./bin/predictability-engine report SOURCE html --log-level=debug --log-file=engine.log
+```
+
 ![Sample Dashboard](data/reports/sample_data_large/dashboard.png)
 
 ### Monte Carlo Forecasting

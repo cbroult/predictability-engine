@@ -80,12 +80,36 @@ Then(/^the HTML file "([^"]*)" should have confidence rules hit the forecast pla
   end
 end
 
+Then(/^the HTML file "([^"]*)" should have confidence rules hit the local surface$/) do |filename|
+  require 'json'
+  content = File.read(check_file_path(filename))
+  spec = find_cfd_spec(content)
+  vert_data = find_vert_data(spec)
+  main_data = spec['data']['values']
+
+  vert_data.each do |v|
+    date = v['date']
+    arrivals_at_date = main_data.find { |d| d['date'] == date && d['type'] == 'Arrivals' }
+    expect(arrivals_at_date).not_to be_nil, "No Arrivals data for #{date}"
+
+    # puts "Rule: #{v['label']}, Date: #{date}, Count: #{v['count']}, Arrivals: #{arrivals_at_date['count']}"
+
+    expect(v['count']).to be_within(0.001).of(arrivals_at_date['count']),
+                          "Rule for #{v['label']} hit #{v['count']} on #{date}, but Arrivals was #{arrivals_at_date['count']}"
+  end
+end
+
 def find_cfd_spec(content)
   specs = extract_vega_specs(content)
-  spec = specs.find { |s| cfd_forecast_spec?(s) }
-  raise 'Could not find Forecasted CFD spec' unless spec
+  specs.each do |s|
+    return s if cfd_forecast_spec?(s)
+    next unless s['vconcat']
 
-  spec
+    s['vconcat'].each do |sub|
+      return sub if cfd_forecast_spec?(sub)
+    end
+  end
+  raise 'Could not find Forecasted CFD spec'
 end
 
 def cfd_forecast_spec?(spec)
@@ -137,7 +161,7 @@ Then(/^the HTML file "([^"]*)" should have confidence rules aligned with the rig
   vert_data = find_vert_data(spec)
 
   vert_data.each_with_index do |v, _vi|
-    pcts_in_rule = v['label'].scan(/\d+/).map(&:to_i)
+    pcts_in_rule = v['label'].scan(/(\d+)%/).flatten.map(&:to_i)
     date = v['date']
     rule_total = v['count']
 
@@ -192,6 +216,22 @@ end
 Then(/^it is a valid PNG file$/) do
   content = File.binread(check_file_path("reports/sample_data/dashboard.png"))
   expect(content[0..7]).to eq("\x89PNG\r\n\x1a\n".b)
+end
+
+Then(/^the HTML file "([^"]*)" should have "([^"]*)" as the first chart panel$/) do |filename, title|
+  content = File.read(check_file_path(filename))
+  # First chart panel comes after summary panel
+  # Split by <div class='chart-panel'> and check the first one (index 1 because index 0 is everything before)
+  first_panel = content.split("<div class='chart-panel'>").at(1)
+  expect(first_panel).to include("<h2>#{title}</h2>")
+end
+
+Then(/^the HTML file "([^"]*)" should have CFD x-axis with minor ticks and long labeled ticks$/) do |filename|
+  content = File.read(check_file_path(filename))
+  expect(content).to include('"minorTicks":true')
+  expect(content).to include('"tickSize":8')
+  expect(content).to include('"minorTickSize":4')
+  expect(content).to match(/"x":\{.*?"axis":\{.*?"values":\[/m)
 end
 
 def check_file_path(filename)

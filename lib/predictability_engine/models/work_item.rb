@@ -20,8 +20,7 @@ module PredictabilityEngine
       end
 
       def age(date = PredictabilityEngine.today)
-        return nil if completed? || @start_date.nil?
-        return 0 if date < @start_date
+        return nil unless in_progress?(date)
 
         (date - @start_date).to_i + 1
       end

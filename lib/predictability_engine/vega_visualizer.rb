@@ -20,11 +20,13 @@ module PredictabilityEngine
     end
 
     def self.date_axis_base(title: 'Date')
-      { field: 'date', type: 'temporal', title: title, timeUnit: 'utc-yearmonthdate' }
+      { field: 'date', type: 'temporal', title: title, axis: { format: '%Y-%m-%d' } }
     end
 
-    def self.date_x_axis(title: 'Date')
-      date_axis_base(title: title).merge(axis: { labelAngle: -45 })
+    def self.date_x_axis(title: 'Date', **opts)
+      base = date_axis_base(title: title)
+      base[:axis] = base[:axis].merge(labelAngle: -45).merge(opts)
+      base
     end
 
     def self.quantitative_y_axis(...) = quantitative_axis(...)
@@ -37,9 +39,9 @@ module PredictabilityEngine
     end
     private_class_method :quantitative_axis
 
-    def self.cycle_time_scatter(items, pcts: PredictabilityEngine::DEFAULT_PERCENTILES,
+    def self.cycle_time_scatter(items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES,
                                 title: 'Cycle Time Scatter Plot', **)
-      BasicCharts.cycle_time_scatter(items, pcts, title: title)
+      BasicCharts.cycle_time_scatter(items, percentiles, title: title)
     end
 
     def self.throughput_histogram(items, title: 'Throughput Histogram', **)
@@ -47,8 +49,8 @@ module PredictabilityEngine
     end
 
     def self.aging_wip(items, title: 'Aging Work In Progress',
-                       pcts: PredictabilityEngine::DEFAULT_PERCENTILES, **)
-      AgingWipVisualizer.aging_wip(items, title: title, percentiles: pcts, **)
+                       percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, **)
+      AgingWipVisualizer.aging_wip(items, title: title, percentiles: percentiles, **)
     end
 
     def self.cfd(work_items, title: 'Cumulative Flow Diagram', **_opts)
@@ -82,14 +84,15 @@ module PredictabilityEngine
 
     def self.format_cfd_data(cfd)
       cfd.flat_map do |d|
-        [{ date: d[:date].to_s, count: d[:arrived], type: 'Arrivals', order: 0 },
-         { date: d[:date].to_s, count: d[:departed], type: 'Departures', order: 1 }]
+        [{ date: PredictabilityEngine.format_date(d[:date]), count: d[:arrived], type: 'Arrivals', order: 0 },
+         { date: PredictabilityEngine.format_date(d[:date]), count: d[:departed], type: 'Departures', order: 1 }]
       end
     end
 
     def self.dashboard(items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
-      charts = [aging_wip(items), forecasted_cfd(items, percentiles: percentiles),
-                cycle_time_scatter(items, percentiles: percentiles), throughput_histogram(items)]
+      charts = [aging_wip(items), cfd(items), forecasted_cfd(items, percentiles: percentiles),
+                cycle_time_scatter(items, percentiles: percentiles),
+                throughput_histogram(items)]
       Vega.lite.vconcat(charts.map { |c| c.spec.except('$schema') })
     end
   end

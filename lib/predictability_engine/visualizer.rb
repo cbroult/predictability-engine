@@ -8,7 +8,7 @@ module PredictabilityEngine
   HTML_HEADER = <<~HTML
     <head>
       <title>{{TITLE}}</title>
-      <script src="https://cdn.jsdelivr.net/npm/vega@6"></script>
+      <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
       <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
       <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
   HTML
@@ -25,7 +25,7 @@ module PredictabilityEngine
       .nav-links a { text-decoration: none; color: #3498db; font-size: 0.9rem; padding: 5px 12px; border-radius: 20px; border: 1.5px solid #3498db; font-weight: 600; transition: all 0.2s; }
       .nav-links a:hover { background: #3498db; color: white; }
       .nav-links a.active { background: #2c3e50; color: white; border-color: #2c3e50; cursor: default; }
-      .dashboard-container { display: grid; grid-template-columns: 260px 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 15px; flex-grow: 1; min-height: 0; min-width: 1050px; }
+      .dashboard-container { display: grid; grid-template-columns: 260px 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 15px; flex-grow: 1; min-height: 0; min-width: 1300px; }
       .summary-panel { grid-row: span 2; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-y: auto; border: 1px solid #e9ecef; }
       .summary-panel h2 { font-size: 1.25rem; margin-top: 0; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 8px; margin-bottom: 15px; }
       .summary-panel h3 { font-size: 1.1rem; color: #34495e; margin-top: 25px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
@@ -116,7 +116,7 @@ module PredictabilityEngine
 
       html = HTML_BASE.gsub('{{STYLE}}', style).gsub('{{BODY}}', body)
       html.gsub!('{{TITLE}}', title)
-      html.gsub!('{{DATE}}', Time.now.strftime('%Y-%m-%d %H:%M'))
+      html.gsub!('{{DATE}}', PredictabilityEngine.format_datetime(Time.now))
       html.gsub!('{{SUMMARY_CONTENT}}', summary)
       html.gsub!('{{NAV_BAR}}', nav_bar)
 

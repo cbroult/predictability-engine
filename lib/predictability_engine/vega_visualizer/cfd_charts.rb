@@ -33,9 +33,32 @@ module PredictabilityEngine
       end
 
       def self.base_cfd_chart(data, dom, range)
+        # Find last day to ensure it can be labeled
+        dates = data.map { |d| PredictabilityEngine.format_date(d[:date]) }.compact.uniq.sort
+        first_date = Date.parse(dates.first)
+        last_date = Date.parse(dates.last)
+
+        # Major ticks every week, starting from first_date, plus exactly last_date
+        major_ticks = []
+        curr = first_date
+        while curr < last_date
+          major_ticks << PredictabilityEngine.format_date(curr)
+          curr += 7
+        end
+        major_ticks << PredictabilityEngine.format_date(last_date)
+        major_ticks.uniq!
+
+        # Use axis options directly in date_x_axis to avoid hash merge overwrite
         Vega.lite.data(data)
             .encoding(
-              x: VegaVisualizer.date_x_axis,
+              x: VegaVisualizer.date_x_axis(
+                values: major_ticks,
+                labelFlush: true,
+                tickSize: 8,
+                minorTicks: true,
+                minorTickSize: 4,
+                labelOverlap: 'parity'
+              ),
               y: VegaVisualizer.quantitative_y_axis('count', title: 'Total Items'),
               color: { field: 'type', type: 'nominal', scale: { domain: dom, range: range } }
             )

@@ -9,7 +9,10 @@ require 'langchain'
 
 Dotenv.load
 
+require_relative 'predictability_engine/logger'
+
 loader = Zeitwerk::Loader.for_gem
+loader.ignore("#{__dir__}/predictability_engine/logger.rb") # Manual require
 loader.setup
 
 module PredictabilityEngine
@@ -55,6 +58,18 @@ module PredictabilityEngine
 
   def self.run_and_print_report(file, format, options, output: nil)
     opts = options.to_h.symbolize_keys.merge(output: output)
-    puts run_report(file, format, **opts)
+    logger.info run_report(file, format, **opts)
+  end
+
+  def self.format_date(date)
+    return nil unless date
+
+    date.to_date.to_s
+  end
+
+  def self.format_datetime(time)
+    return nil unless time
+
+    time.to_time.strftime('%Y-%m-%d %H:%M')
   end
 end

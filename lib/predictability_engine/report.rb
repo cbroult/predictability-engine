@@ -104,7 +104,7 @@ module PredictabilityEngine
       generate_chart_images(base_dir)
 
       deck = Powerpoint::Presentation.new
-      deck.add_intro(@title, "Generated on #{Time.now.strftime('%Y-%m-%d %H:%M')}")
+      deck.add_intro(@title, "Generated on #{PredictabilityEngine.format_datetime(Time.now)}")
 
       metrics = SummaryVisualizer.metrics_terminal(@items, color: false, percentiles: @percentiles)
       deck.add_textual_slide('Flow Metrics Summary', metrics.split("\n").map(&:strip).reject(&:empty?))

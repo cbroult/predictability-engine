@@ -90,3 +90,21 @@ Feature: Visualization command
     When I run `predictability-engine viz html_forecasted_cfd align_test.csv`
     Then the exit status should be 0
     And the HTML file "reports/align_test/forecasted_cfd.html" should have vertical rules for confidence levels
+
+  Scenario: Verifying Aging WIP position and CFD axis labeling in dashboard
+    Given the template CSV file "sample_data.csv" is adjusted to recent dates and saved as "sample_data.csv"
+    When I run `predictability-engine viz html_all sample_data.csv`
+    Then the exit status should be 0
+    And a file named "reports/sample_data/dashboard.html" should exist
+    And the HTML file "reports/sample_data/dashboard.html" should have "Aging Work In Progress" as the first chart panel
+    And the HTML file "reports/sample_data/dashboard.html" should have CFD x-axis with minor ticks and long labeled ticks
+
+  Scenario: Verifying CFD axis labeling for a long-term project
+    Given a file named "long_term.csv" with the following adjusted data:
+      | id | title | start_date | end_date |
+      | L1 | Item 1 | 2026-01-01 | 2026-01-02 |
+      | L2 | Item 2 | 2026-06-01 | 2026-06-02 |
+    When I run `predictability-engine viz html_cfd long_term.csv`
+    Then the exit status should be 0
+    And a file named "reports/long_term/cfd.html" should exist
+    And the HTML file "reports/long_term/cfd.html" should have CFD x-axis with minor ticks and long labeled ticks

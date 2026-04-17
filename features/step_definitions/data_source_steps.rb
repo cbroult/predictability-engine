@@ -123,8 +123,9 @@ def calculate_delta(rows)
   all_dates = rows.flat_map { |r| [r['start_date'], r['end_date'], r['created'], r['resolutiondate']] }
                   .compact_blank
                   .map { |d| Date.parse(d) }
-  max_date = all_dates.max || Date.current
-  (Date.current - max_date).to_i
+  today = PredictabilityEngine.today
+  max_date = all_dates.max || today
+  (today - max_date).to_i
 end
 
 def shift_row_dates(row, delta)

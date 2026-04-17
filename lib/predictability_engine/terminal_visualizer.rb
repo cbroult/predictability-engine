@@ -23,7 +23,7 @@ module PredictabilityEngine
       start = completed.first.end_date
       x = completed.map { |i| (i.end_date - start).to_i }
       plot = UnicodePlot.scatterplot(x, completed.map(&:cycle_time), title: title,
-                                                                     xlabel: "Days since #{start}",
+                                                                     xlabel: "Days since #{PredictabilityEngine.format_date(start)}",
                                                                      ylabel: 'Cycle Time (days)')
       PredictabilityEngine.mapped_percentiles(items, pcts).each do |p|
         UnicodePlot.lineplot!(plot, x.minmax, [p[:val], p[:val]], name: p[:label])
@@ -51,7 +51,7 @@ module PredictabilityEngine
       # Arrivals first for legend and top boundary
       plot = UnicodePlot.stairs(coords[:dates], coords[:arrived],
                                 title: title, name: 'Arrivals',
-                                xlabel: "Days since #{start}", ylabel: 'Total Items',
+                                xlabel: "Days since #{PredictabilityEngine.format_date(start)}", ylabel: 'Total Items',
                                 color: :blue, xlim: [0, max_x], ylim: [0, max_y])
       # Departures next
       UnicodePlot.stairs!(plot, coords[:dates], coords[:departed], name: 'Departures', color: :green)
@@ -66,7 +66,7 @@ module PredictabilityEngine
       params = build_forecast_params(data)
       plot = UnicodePlot.stairs(params[:x_coords], params[:arrivals],
                                 title: title, name: 'Arrivals', ylabel: 'Total Items',
-                                xlabel: "Days since #{params[:start]}", color: :blue,
+                                xlabel: "Days since #{PredictabilityEngine.format_date(params[:start])}", color: :blue,
                                 xlim: [0, params[:max_x]], ylim: [0, params[:total_items]])
 
       add_forecast_layers!(plot, data, params, percentiles)

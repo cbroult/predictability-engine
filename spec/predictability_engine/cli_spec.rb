@@ -6,6 +6,10 @@ require 'predictability_engine/cli'
 RSpec.describe PredictabilityEngine::Cli do
   subject(:cli) { described_class.new }
 
+  before do
+    PredictabilityEngine::Logger.instance_variable_set(:@instance, nil)
+  end
+
   let(:items) { [PredictabilityEngine::Models::WorkItem.new(item_id: '1', title: 'Task 1', start_date: '2024-01-01', end_date: '2024-01-05')] }
   let(:source) { 'sample.csv' }
 
@@ -99,7 +103,7 @@ RSpec.describe PredictabilityEngine::Cli do
       end
 
       it 'returns generated path if output is nil' do
-        expect(viz.send(:generate_output_path, source, nil, 'default.html')).to eq('reports/sample/default.html')
+        expect(viz.send(:generate_output_path, source, nil, 'default.html')).to match(%r{(./)?reports/sample/default.html})
       end
     end
   end

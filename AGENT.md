@@ -32,6 +32,8 @@ Testing is not a phase — it is woven into every stage of the development lifec
    - Implement **Alignment Verification** in both unit tests and BDD scenarios to ensure vertical rule integrity in Forecasted CFDs.
    - Enforce code style and quality with **RuboCop**. Always correct RuboCop errors without changing the RuboCop configuration.
    - Monitor and eliminate code duplication with **jscpd**. NEVER ignore jscpd findings and NEVER change the jscpd configuration.
+   - Prevent regressions in Forecasted CFD alignment by enforcing that vertical confidence rules hit the local Arrivals surface, as verified in `features/forecast_alignment.feature`. This scenario is PROTECTED and must not be modified without explicit authorization.
+   - Use ISO **YYYY-MM-DD** for all date labeling and never deviate from this format. Use `PredictabilityEngine.format_date` and `PredictabilityEngine.format_datetime` for consistent formatting.
 4. **Deploy & Release (Continuous Deployment & Release on Demand)**:
    - Automate the pipeline to ensure that every change that passes tests is potentially releasable.
    - Use **SimpleCov** to monitor test coverage (aim for 90%+).

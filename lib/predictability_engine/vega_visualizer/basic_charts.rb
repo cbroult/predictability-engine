@@ -3,29 +3,39 @@
 module PredictabilityEngine
   module VegaVisualizer
     module BasicCharts
-      def self.cycle_time_scatter(items, pcts, title: 'Cycle Time Scatter Plot')
+      def self.cycle_time_scatter(items, percentiles, title: 'Cycle Time Scatter Plot')
         completed = PredictabilityEngine.completed_items(items)
-        data = completed.map { |i| { date: i.end_date.to_s, cycle_time: i.cycle_time, id: i.id } }
-        pct_data = PredictabilityEngine.mapped_percentiles(items, pcts)
+        data = completed.map { |i| { date: PredictabilityEngine.format_date(i.end_date), cycle_time: i.cycle_time, id: i.id } }
+        pct_data = PredictabilityEngine.mapped_percentiles(items, percentiles)
         VegaVisualizer.apply_standard_dims(
-          Vega.lite.data(data + pct_data.map { |p| { type: p[:label], val: p[:val] } })
-              .layer([scatter_points_layer, scatter_rules_layer(pct_data.size)]),
+          Vega.lite.data(data + pct_data.map { |p| { type: p[:label], val: p[:val], p: p[:p] } })
+              .layer([scatter_points_layer, scatter_rules_layer(pct_data)]),
           title: title
         )
       end
 
       def self.scatter_points_layer
         { mark: { type: 'point', tooltip: true, opacity: 0.6, size: 20 },
-          encoding: { x: VegaVisualizer.date_x_axis(title: 'Completion Date'),
+          encoding: { x: VegaVisualizer.date_x_axis(title: 'Completion Date', minorTicks: true, tickCount: { interval: 'week' }),
                       y: VegaVisualizer.quantitative_y_axis('cycle_time', title: 'Cycle Time (days)'),
                       color: { value: '#4c78a8' } } }
       end
 
-      def self.scatter_rules_layer(count)
+      def self.scatter_rules_layer(pct_data)
+        count = pct_data.size
         palette = ['#72b7b2', '#e45756', '#b279a2', '#ff9da7', '#ad494a', '#8ca27a']
+        # More distinct dash styles and thicker lines
+        dash_map = { 50 => [], 75 => [8, 4], 85 => [4, 4], 95 => [2, 2], 98 => [1, 1] }
+        width_map = { 50 => 1.5, 75 => 2, 85 => 2.5, 95 => 3, 98 => 3.5 }
+
+        dash_condition = dash_map.map { |p, dash| { test: "datum.p == #{p}", value: dash } }
+        width_condition = width_map.map { |p, w| { test: "datum.p == #{p}", value: w } }
+
         { transform: [{ filter: 'datum.type != null' }],
-          mark: { type: 'rule', strokeDash: [4, 4] },
+          mark: { type: 'rule' },
           encoding: { y: VegaVisualizer.quantitative_y_axis('val'),
+                      strokeDash: { condition: dash_condition, value: [4, 4] },
+                      strokeWidth: { condition: width_condition, value: 1 },
                       color: { field: 'type', type: 'nominal', title: 'Percentiles',
                                scale: { range: palette.take(count) },
                                legend: { orient: 'bottom', columns: 3 } } } }
