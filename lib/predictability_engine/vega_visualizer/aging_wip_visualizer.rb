@@ -20,7 +20,7 @@ module PredictabilityEngine
         { mark: { type: 'bar', tooltip: true, stroke: 'white', strokeWidth: 0.2 },
           encoding: { x: { field: 'id', type: 'nominal', title: 'Work Item ID', sort: '-y',
                            axis: { labelAngle: -45, labelOverlap: 'parity' } },
-                      y: { field: 'age', type: 'quantitative', title: 'Age (days)' },
+                      y: VegaVisualizer.quantitative_y_axis('age', title: 'Age (days)'),
                       color: { field: 'age', type: 'quantitative', scale: { scheme: 'yelloworangered' },
                                legend: { orient: 'bottom', title: 'Age' } } } }
       end
@@ -29,7 +29,7 @@ module PredictabilityEngine
         mapped_pcts.map do |p|
           { data: { values: [{ val: p[:val] }] },
             mark: { type: 'rule', strokeDash: [4, 4] },
-            encoding: { y: { field: 'val', type: 'quantitative' }, color: { value: '#e45756' } } }
+            encoding: { y: VegaVisualizer.quantitative_y_axis('val'), color: { value: '#e45756' } } }
         end
       end
     end

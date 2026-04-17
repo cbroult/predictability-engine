@@ -19,6 +19,24 @@ module PredictabilityEngine
       )
     end
 
+    def self.date_axis_base(title: 'Date')
+      { field: 'date', type: 'temporal', title: title, timeUnit: 'utc-yearmonthdate' }
+    end
+
+    def self.date_x_axis(title: 'Date')
+      date_axis_base(title: title).merge(axis: { labelAngle: -45 })
+    end
+
+    def self.quantitative_y_axis(...) = quantitative_axis(...)
+    def self.quantitative_x_axis(...) = quantitative_axis(...)
+
+    def self.quantitative_axis(field, title: :auto, **opts)
+      res = { field: field.to_s, type: 'quantitative' }
+      res[:title] = title == :auto ? field.to_s.capitalize : title
+      res.merge(opts)
+    end
+    private_class_method :quantitative_axis
+
     def self.cycle_time_scatter(items, pcts: PredictabilityEngine::DEFAULT_PERCENTILES,
                                 title: 'Cycle Time Scatter Plot', **)
       BasicCharts.cycle_time_scatter(items, pcts, title: title)

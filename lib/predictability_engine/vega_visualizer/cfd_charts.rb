@@ -35,9 +35,8 @@ module PredictabilityEngine
       def self.base_cfd_chart(data, dom, range)
         Vega.lite.data(data)
             .encoding(
-              x: { field: 'date', type: 'temporal', title: 'Date', timeUnit: 'utc-yearmonthdate',
-                   axis: { labelAngle: -45 } },
-              y: { field: 'count', type: 'quantitative', title: 'Total Items' },
+              x: VegaVisualizer.date_x_axis,
+              y: VegaVisualizer.quantitative_y_axis('count', title: 'Total Items'),
               color: { field: 'type', type: 'nominal', scale: { domain: dom, range: range } }
             )
       end

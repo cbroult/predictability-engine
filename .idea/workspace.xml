@@ -5,44 +5,26 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a7b17def-a47b-4a63-b298-93819839f459" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/predictability-engine.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.jscpd.json" beforeDir="false" afterPath="$PROJECT_DIR$/.jscpd.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AGENT.md" beforeDir="false" afterPath="$PROJECT_DIR$/AGENT.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/features/extra_large_data.feature" beforeDir="false" afterPath="$PROJECT_DIR$/features/extra_large_data.feature" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Rakefile" beforeDir="false" afterPath="$PROJECT_DIR$/Rakefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/all_formats.feature" beforeDir="false" afterPath="$PROJECT_DIR$/features/all_formats.feature" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/features/reports.feature" beforeDir="false" afterPath="$PROJECT_DIR$/features/reports.feature" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/features/step_definitions/data_source_steps.rb" beforeDir="false" afterPath="$PROJECT_DIR$/features/step_definitions/data_source_steps.rb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/features/step_definitions/visualization_steps.rb" beforeDir="false" afterPath="$PROJECT_DIR$/features/step_definitions/visualization_steps.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/features/sub_reports.feature" beforeDir="false" afterPath="$PROJECT_DIR$/features/sub_reports.feature" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/features/visualizations.feature" beforeDir="false" afterPath="$PROJECT_DIR$/features/visualizations.feature" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/predictability_engine.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/calculators/cfd.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/calculators/cfd.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/calculators/cfd_forecaster.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/calculators/cfd_forecaster.rb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/predictability_engine/cli.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/cli.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/config.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/config.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/data_sources/jira.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/data_sources/jira.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/data_sources/jira_yaml.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/data_sources/jira_yaml.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/mermaid_visualizer.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/mermaid_visualizer.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/pdf_visualizer.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/pdf_visualizer.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/pdf_visualizer/primitives.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/pdf_visualizer/primitives.rb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/predictability_engine/report.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/report.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/summary_visualizer/renderer.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/summary_visualizer/renderer.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/terminal_visualizer.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/terminal_visualizer.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/report_generator.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/report_generator.rb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer.rb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer/aging_wip_visualizer.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer/aging_wip_visualizer.rb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer/basic_charts.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer/basic_charts.rb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer/cfd_charts.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer/cfd_charts.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/visualizer.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/visualizer.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/jira_seeder.rb" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/jira_seeder.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spec/predictability_engine/calculators/cfd_forecaster_spec.rb" beforeDir="false" afterPath="$PROJECT_DIR$/spec/predictability_engine/calculators/cfd_forecaster_spec.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spec/predictability_engine/calculators/throughput_spec.rb" beforeDir="false" afterPath="$PROJECT_DIR$/spec/predictability_engine/calculators/throughput_spec.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spec/predictability_engine/config_spec.rb" beforeDir="false" afterPath="$PROJECT_DIR$/spec/predictability_engine/config_spec.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spec/predictability_engine/data_sources/jira_spec.rb" beforeDir="false" afterPath="$PROJECT_DIR$/spec/predictability_engine/data_sources/jira_spec.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spec/predictability_engine/data_sources/jira_transparent_spec.rb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spec/predictability_engine/data_sources/jira_yaml_spec.rb" beforeDir="false" afterPath="$PROJECT_DIR$/spec/predictability_engine/data_sources/jira_yaml_spec.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spec/predictability_engine/report_spec.rb" beforeDir="false" afterPath="$PROJECT_DIR$/spec/predictability_engine/report_spec.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer/cfd_layout.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer/cfd_layout.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sample_data.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/sample_data_large.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wip_data.csv" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,66 +32,67 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="22" />
+    <option name="cachedIndexableFilesCount" value="366" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "cbroult"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;cbroult&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "git@github.com:cbroult/predictability-engine.git",
-    "accountId": "33aae288-b5c2-4cc8-b13e-44e8dac61f7c"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:cbroult/predictability-engine.git&quot;,
+    &quot;accountId&quot;: &quot;33aae288-b5c2-4cc8-b13e-44e8dac61f7c&quot;
   }
-}]]></component>
+}</component>
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 6,
-  "fromUser": false
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6,
+  &quot;fromUser&quot;: false
+}</component>
   <component name="ProjectId" id="3CAgMV3E3IRzxEUXpB5BIjPbCpJ" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.GPG_PINENTRY_CONFIGURATION_PROPOSAL": "true",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.ruby.rubocop.migration.global.runOnSaveToExternalFormatter": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "main",
-    "junie.onboarding.icon.badge.shown": "true",
-    "last_opened_file_path": "//wsl.localhost/Ubuntu/home/cbroult/work/ruby/predictability-engine",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "ruby.structure.view.model.defaults.configured": "true",
-    "settings.editor.selected.configurable": "vcs.Git",
-    "to.speed.mode.migration.done": "true",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.GPG_PINENTRY_CONFIGURATION_PROPOSAL&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ruby.rubocop.migration.global.runOnSaveToExternalFormatter&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;//wsl.localhost/Ubuntu/home/cbroult/work/ruby/predictability-engine&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;ruby.structure.view.model.defaults.configured&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;vcs.Git&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-RM-261.23567.30" />
+        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-RM-261.23567.68" />
       </set>
     </attachedChunks>
   </component>
@@ -121,6 +104,8 @@
       <option name="presentableId" value="Default" />
       <updated>1775833741689</updated>
       <workItem from="1775833742763" duration="37257000" />
+      <workItem from="1776098529840" duration="7570000" />
+      <workItem from="1776410368431" duration="5915000" />
     </task>
     <servers />
   </component>

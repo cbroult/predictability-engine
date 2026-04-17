@@ -140,7 +140,7 @@ Given(/^the template CSV file "([^"]*)" is adjusted to recent dates and saved as
   require 'csv'
   require 'date'
 
-  template_path = File.expand_path("../../#{template}", __dir__)
+  template_path = File.expand_path("../../data/#{template}", __dir__)
   rows = CSV.read(template_path, headers: true)
   shifted_rows = shift_dates_to_today(rows)
 

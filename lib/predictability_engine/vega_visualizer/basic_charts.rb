@@ -16,9 +16,8 @@ module PredictabilityEngine
 
       def self.scatter_points_layer
         { mark: { type: 'point', tooltip: true, opacity: 0.6, size: 20 },
-          encoding: { x: { field: 'date', type: 'temporal', title: 'Completion Date', timeUnit: 'utc-yearmonthdate',
-                           axis: { labelAngle: -45 } },
-                      y: { field: 'cycle_time', type: 'quantitative', title: 'Cycle Time (days)' },
+          encoding: { x: VegaVisualizer.date_x_axis(title: 'Completion Date'),
+                      y: VegaVisualizer.quantitative_y_axis('cycle_time', title: 'Cycle Time (days)'),
                       color: { value: '#4c78a8' } } }
       end
 
@@ -26,7 +25,7 @@ module PredictabilityEngine
         palette = ['#72b7b2', '#e45756', '#b279a2', '#ff9da7', '#ad494a', '#8ca27a']
         { transform: [{ filter: 'datum.type != null' }],
           mark: { type: 'rule', strokeDash: [4, 4] },
-          encoding: { y: { field: 'val', type: 'quantitative' },
+          encoding: { y: VegaVisualizer.quantitative_y_axis('val'),
                       color: { field: 'type', type: 'nominal', title: 'Percentiles',
                                scale: { range: palette.take(count) },
                                legend: { orient: 'bottom', columns: 3 } } } }
@@ -36,8 +35,8 @@ module PredictabilityEngine
         data = Calculators::Throughput.daily(items).values.map { |v| { throughput: v } }
         VegaVisualizer.apply_standard_dims(
           Vega.lite.data(data).mark(type: 'bar', tooltip: true)
-              .encoding(x: { field: 'throughput', type: 'quantitative', bin: true, title: 'Items per Day' },
-                        y: { aggregate: 'count', type: 'quantitative', title: 'Frequency' }),
+              .encoding(x: VegaVisualizer.quantitative_x_axis('throughput', bin: true, title: 'Items per Day'),
+                        y: VegaVisualizer.quantitative_y_axis('count', aggregate: 'count', title: 'Frequency')),
           title: title
         )
       end

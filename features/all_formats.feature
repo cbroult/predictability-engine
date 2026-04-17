@@ -12,12 +12,17 @@ Feature: All formats report generation
     And the output should contain "Aging Work In Progress"
     And the output should contain "Forecasted Cumulative Flow Diagram"
     And the output should not contain "Report generated at reports/sample_data/dashboard.terminal"
-    And a file named "reports/sample_data/dashboard.html" should exist
-    And a file named "reports/sample_data/dashboard.pdf" should exist
-    And a file named "reports/sample_data/dashboard.md" should exist
-    And a file named "reports/sample_data/dashboard.conf" should exist
-    And a file named "reports/sample_data/dashboard_a3.pdf" should exist
-    And a file named "reports/sample_data/dashboard.pptx" should exist
-    And the following files should not exist:
-      | reports/sample_data/dashboard.terminal |
-      | reports/sample_data/dashboard_a3_landscape.pdf |
+    And the following files should exist in "reports/sample_data":
+      | dashboard.html   |
+      | dashboard.pdf    |
+      | dashboard.png    |
+      | dashboard.md     |
+      | dashboard.conf   |
+      | dashboard_a3.pdf |
+      | dashboard.pptx   |
+
+  Scenario: Cleaning up old reports to prevent cruft
+    Given a file named "reports/sample_data/old_cruft.txt" with "old content"
+    When I run `predictability-engine viz all_formats sample_data.csv`
+    Then the following files should not exist in "reports/sample_data":
+      | old_cruft.txt |

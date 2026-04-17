@@ -41,6 +41,13 @@ Feature: Report generation in multiple formats
     And the HTML file "reports/forecast_data/dashboard.html" should have CFD areas with no stacking
     And the HTML file "reports/forecast_data/dashboard.html" should have confidence rules aligned with the rightmost part of forecast areas
 
+  Scenario: Generating a PNG report
+    When I run `predictability-engine viz png sample_data.csv`
+    Then the output should be visible on failure
+    And the exit status should be 0
+    And a file named "reports/sample_data/dashboard.png" should exist
+    And it is a valid PNG file
+
   Scenario Outline: Generating high-fidelity reports via viz
     When I run `predictability-engine viz <subcommand> sample_data.csv`
     Then the output should be visible on failure

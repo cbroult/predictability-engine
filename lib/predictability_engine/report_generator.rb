@@ -18,11 +18,11 @@ module PredictabilityEngine
 
     def self.generate_single_report(file, format, report, **opts)
       fmt = format.to_sym
-      generate_images_if_needed(file, fmt, report)
+      generate_images_if_needed(file, fmt, report, **opts)
 
       content = report.render(fmt, **opts)
       if opts[:output] || fmt != :terminal
-        write_report(file, format, content, opts[:output])
+        write_report(file, format, content, opts[:output], **opts)
       else
         content
       end
@@ -32,19 +32,19 @@ module PredictabilityEngine
       fmt = format.to_sym
       last_msg = ''
       reports.each do |type, report|
-        generate_images_if_needed(file, fmt, report)
+        generate_images_if_needed(file, fmt, report, **opts)
         links = build_nav_links(fmt, reports, type)
         content = report.render(fmt, sub_reports: links, **opts)
-        last_msg = write_report(file, format, content, opts[:output], type: type)
+        last_msg = write_report(file, format, content, opts[:output], type: type, **opts)
       end
       "#{reports.size} reports generated. #{last_msg}"
     end
 
-    def self.generate_images_if_needed(file, format, report)
+    def self.generate_images_if_needed(file, format, report, **opts)
       return unless %i[markdown md confluence conf].include?(format)
 
-      base = File.basename(file, '.*')
-      report.generate_chart_images("reports/#{base}")
+      dir = report_dir(file, **opts)
+      report.generate_chart_images(dir)
     end
 
     def self.build_nav_links(format, reports, current_type)
@@ -65,10 +65,9 @@ module PredictabilityEngine
       url
     end
 
-    def self.write_report(file, format, content, output, type: :all)
+    def self.write_report(file, format, content, output, type: :all, **opts)
       ext = format_to_ext(format.to_sym)
-      base = File.basename(file, '.*')
-      dir = "reports/#{base}"
+      dir = report_dir(file, **opts)
 
       if type == :all
         FileUtils.mkdir_p(dir) unless output || File.exist?(dir)
@@ -84,10 +83,27 @@ module PredictabilityEngine
       "Report generated at #{output}"
     end
 
+    def self.report_dir(file, **opts)
+      require 'pathname'
+      base_dir = if opts[:output_dir]
+                   opts[:output_dir]
+                 else
+                   input_dir = File.dirname(file)
+                   input_dir == '.' ? 'reports' : File.join(input_dir, 'reports')
+                 end
+      Pathname.new(File.join(base_dir, File.basename(file, '.*'))).cleanpath.to_s
+    end
+
+    def self.clean_report_dir(file, **opts)
+      dir = report_dir(file, **opts)
+      FileUtils.rm_rf(dir) if File.exist?(dir)
+    end
+
     def self.dashboard_filename(format, ext)
       case format
       when :html, :landscape, :dashboard then 'dashboard.html'
       when :a3_landscape then 'dashboard_a3.pdf'
+      when :png then 'dashboard.png'
       else "dashboard.#{ext}"
       end
     end
@@ -99,6 +115,7 @@ module PredictabilityEngine
       when :landscape, :dashboard then 'html'
       when :a3_landscape then 'pdf'
       when :ppt then 'pptx'
+      when :png then 'png'
       else format.to_s
       end
     end

@@ -60,15 +60,33 @@ module PredictabilityEngine
                                               sub_reports: sub_reports)
     end
 
+    def with_report_temp_html(layout: :landscape)
+      temp_html = "tmp/report_#{object_id}.html"
+      FileUtils.mkdir_p('tmp')
+      File.write(temp_html, render_html(layout: layout))
+      yield temp_html
+    ensure
+      FileUtils.rm_f(temp_html) if temp_html
+    end
+
     def playwright_bin
       root = File.expand_path('../..', __dir__)
-      ENV['PLAYWRIGHT_BROWSERS_PATH'] ||= File.expand_path('~/.cache/ms-playwright')
+      unless ENV['PLAYWRIGHT_BROWSERS_PATH']
+        require 'etc'
+        real_home = Etc.getpwuid.dir rescue Dir.home
+        ENV['PLAYWRIGHT_BROWSERS_PATH'] = File.expand_path('.cache/ms-playwright', real_home)
+      end
       File.exist?("#{root}/node_modules/.bin/playwright") ? "#{root}/node_modules/.bin/playwright" : 'npx playwright'
     end
 
     def pdf_viewport_size(format, landscape)
+      res = RESOLUTION_CONFIG[format.to_s.downcase]
+      if res
+        return landscape ? res : [res[1], res[0]]
+      end
+
       sizes = { 'A4' => [794, 1123], 'A3' => [1123, 1587] }
-      w, h = sizes[format] || [794, 1123]
+      w, h = sizes[format.to_s.upcase] || sizes[DEFAULT_SIZE.to_s.upcase]
       landscape ? [h, w] : [w, h]
     end
 
@@ -117,66 +135,84 @@ module PredictabilityEngine
     def render_landscape(layout: :landscape, **) = render_html(layout: layout, **)
     def render_a3_landscape(**) = render_pdf(**)
 
-    def render_ppt(**_opts)
-      require 'powerpoint'
-      require 'playwright'
+    def render_png(layout: :landscape, size: DEFAULT_SIZE, **)
+      res = RESOLUTION_CONFIG[size.to_s.downcase] || RESOLUTION_CONFIG[DEFAULT_SIZE]
+      with_report_temp_html(layout: layout) do |temp_html|
+        png_data = nil
+        with_playwright_page(temp_html, width: res[0], height: res[1]) do |page|
+          png_data = page.screenshot
+        end
+        png_data
+      end
+    end
 
-      temp_html = "tmp/report_#{object_id}.html"
+    def render_ppt(size: DEFAULT_SIZE, **_opts)
+      require 'powerpoint'
+      res = RESOLUTION_CONFIG[size.to_s.downcase] || RESOLUTION_CONFIG[DEFAULT_SIZE]
       temp_img = "tmp/dashboard_#{object_id}.png"
       ppt_file = "tmp/dashboard_#{object_id}.pptx"
-      FileUtils.mkdir_p('tmp')
-      File.write(temp_html, render_html(layout: :landscape))
 
-      capture_screenshot(temp_html, temp_img)
+      with_report_temp_html(layout: :landscape) do |temp_html|
+        capture_screenshot(temp_html, temp_img, width: res[0], height: res[1])
 
-      deck = Powerpoint::Presentation.new
-      deck.add_pictorial_slide(@title, temp_img)
-      deck.save(ppt_file)
-      File.binread(ppt_file)
+        deck = Powerpoint::Presentation.new
+        deck.add_pictorial_slide(@title, temp_img)
+        deck.save(ppt_file)
+        File.binread(ppt_file)
+      end
     rescue StandardError => e
       warn "High-fidelity PPT generation failed: #{e.message}. Falling back to multi-slide."
       render_ppt_multi_slide
     ensure
-      FileUtils.rm_f(temp_html) if temp_html
       FileUtils.rm_f(temp_img) if temp_img
       FileUtils.rm_f(ppt_file) if ppt_file
     end
 
-    def capture_screenshot(html_path, img_path)
-      with_playwright_page(html_path) do |page|
+    def capture_screenshot(html_path, img_path, width: 1280, height: 720)
+      with_playwright_page(html_path, width: width, height: height) do |page|
         page.screenshot(path: img_path, fullPage: true)
       end
     end
 
-    def render_pdf(layout: :landscape, high_fidelity: true, format: 'A4', landscape: true, **_opts)
-      high_fidelity ? render_pdf_playwright(layout: layout, format: format, landscape: landscape) : render_pdf_prawn
+    def render_pdf(layout: :landscape, high_fidelity: true, format: nil, size: DEFAULT_SIZE, landscape: true, **_opts)
+      fmt = format || size
+      high_fidelity ? render_pdf_playwright(layout: layout, format: fmt, landscape: landscape) : render_pdf_prawn
     rescue StandardError => e
       warn "High-fidelity PDF generation failed: #{e.message}. Falling back to Prawn."
       render_pdf_prawn
     end
 
-    def render_pdf_playwright(layout: :landscape, format: 'A4', landscape: true)
-      require 'playwright'
-      temp_html = "tmp/report_#{object_id}.html"
-      FileUtils.mkdir_p('tmp')
-      File.write(temp_html, render_html(layout: layout))
-      capture_pdf(temp_html, format, landscape)
-    ensure
-      FileUtils.rm_f(temp_html)
+    def render_pdf_playwright(layout: :landscape, format: DEFAULT_SIZE, landscape: true)
+      with_report_temp_html(layout: layout) do |temp_html|
+        capture_pdf(temp_html, format, landscape)
+      end
     end
 
     def capture_pdf(html_path, format, landscape)
       w, h = pdf_viewport_size(format, landscape)
       pdf_data = nil
       with_playwright_page(html_path, width: w, height: h) do |page|
-        pdf_data = page.pdf(format: format, landscape: landscape, printBackground: true,
-                            pageRanges: '1',
-                            margin: { top: '0', right: '0', bottom: '0', left: '0' })
+        pdf_opts = { landscape: landscape, printBackground: true,
+                     pageRanges: '1',
+                     margin: { top: '0', right: '0', bottom: '0', left: '0' } }
+
+        standard_formats = %w[Letter Legal Tabloid Ledger A0 A1 A2 A3 A4 A5 A6]
+        if standard_formats.include?(format.to_s.capitalize)
+          pdf_opts[:format] = format.to_s.capitalize
+        elsif standard_formats.include?(format.to_s.upcase)
+          pdf_opts[:format] = format.to_s.upcase
+        else
+          pdf_opts[:width] = "#{w}px"
+          pdf_opts[:height] = "#{h}px"
+        end
+
+        pdf_data = page.pdf(**pdf_opts)
       end
       pdf_data
     end
 
     def with_playwright_page(html_path, width: 1280, height: 720)
+      require 'playwright'
       Playwright.create(playwright_cli_executable_path: playwright_bin) do |p|
         p.chromium.launch do |browser|
           page = browser.new_page(viewport: { width: width, height: height })

@@ -31,14 +31,14 @@ module PredictabilityEngine
         cfg = { field: 'type', type: 'nominal' }
         cfg[:legend] = { title: 'Flow & Forecast', orient: 'bottom', columns: 3 } if legend && !pcts.empty?
         { mark: { type: 'area', tooltip: true },
-          encoding: { y: { field: 'count', type: 'quantitative', title: 'Total Items', stack: nil },
+          encoding: { y: VegaVisualizer.quantitative_y_axis('count', title: 'Total Items', stack: nil),
                       color: cfg,
                       order: { field: 'order', type: 'quantitative' } } }
       end
 
       def self.line_layer
         { mark: { type: 'line', tooltip: true },
-          encoding: { y: { field: 'count', type: 'quantitative' },
+          encoding: { y: VegaVisualizer.quantitative_y_axis('count'),
                       strokeDash: {
                         condition: { test: "datum.type == 'Arrivals' || datum.type == 'Departures'", value: [] },
                         value: [4, 4]
@@ -56,7 +56,7 @@ module PredictabilityEngine
       def self.rule_layer(data)
         base_layer(data).merge(
           mark: { type: 'rule', strokeDash: [4, 2], strokeWidth: 2, tooltip: true },
-          encoding: vert_encoding(y: { datum: 0 }, y2: quantitative_y)
+          encoding: vert_encoding(y: { datum: 0 }, y2: VegaVisualizer.quantitative_y_axis('count', title: nil))
         )
       end
 
@@ -64,24 +64,16 @@ module PredictabilityEngine
         base_layer(data).merge(
           mark: { type: 'text', align: 'left', baseline: 'middle',
                   fontWeight: 'bold', fontSize: 10, angle: -45, dx: 5, tooltip: true },
-          encoding: vert_encoding(y: quantitative_y, text: { field: 'label' })
+          encoding: vert_encoding(y: VegaVisualizer.quantitative_y_axis('count', title: nil), text: { field: 'label' })
         )
       end
 
       def self.vert_encoding(**opts)
-        { x: temporal_x, tooltip: tooltip_field, color: { value: '#e45756' } }.merge(opts)
+        { x: VegaVisualizer.date_axis_base, tooltip: tooltip_field, color: { value: '#e45756' } }.merge(opts)
       end
 
       def self.base_layer(data)
         { data: { values: data } }
-      end
-
-      def self.temporal_x
-        { field: 'date', type: 'temporal', timeUnit: 'utc-yearmonthdate' }
-      end
-
-      def self.quantitative_y
-        { field: 'count', type: 'quantitative' }
       end
 
       def self.tooltip_field
@@ -107,7 +99,6 @@ module PredictabilityEngine
           target_p = i < sorted_pcts.size - 1 ? sorted_pcts[i + 1] : p
           days = forecast[:summary][:"p#{target_p}"]
           next unless days
-
           date_str = (forecast[:summary][:today] + days).to_s
           h[date_str] ||= []
           h[date_str] << p
@@ -119,7 +110,7 @@ module PredictabilityEngine
         idx ? forecast[:forecasts][percentile][idx] : forecast[:summary][:departed_so_far] + forecast[:summary][:wip]
       end
 
-      private_class_method :rule_layer, :text_layer, :temporal_x, :quantitative_y, :tooltip_field,
+      private_class_method :rule_layer, :text_layer, :tooltip_field,
                            :group_pcts_by_date, :calculate_forecast_at, :base_layer, :vert_encoding
     end
   end

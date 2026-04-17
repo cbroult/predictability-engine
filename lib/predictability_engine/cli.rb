@@ -13,6 +13,8 @@ module PredictabilityEngine
     end
 
     class_option :color, type: :boolean, default: true, desc: 'Enable/disable color output for terminal charts'
+    class_option :output_dir, type: :string, desc: 'Output directory for reports'
+    class_option :size, type: :string, default: Report::Constants::DEFAULT_SIZE, desc: 'Image size for PNG reports (a0-a6, 5k, 4k, hd)'
 
     desc 'scatter SOURCE', 'Show Cycle Time scatter plot'
     def scatter(source)
@@ -134,9 +136,17 @@ module PredictabilityEngine
       confluence(source, output)
     end
 
+    desc 'png SOURCE [OUTPUT]', 'Generate a PNG report'
+    method_option :size, type: :string, desc: 'Image size (a0-a6, 5k, 4k, hd)'
+    def png(source, output = nil)
+      run_and_print_report(source, :png, output: output)
+    end
+
     desc 'all_formats SOURCE', 'Generate all report formats at once'
+    method_option :size, type: :string, desc: 'Image size for PNG reports (a0-a6, 5k, 4k, hd)'
     def all_formats(source)
-      %i[terminal html pdf md conf a3_landscape ppt].each do |fmt|
+      ReportGenerator.clean_report_dir(source, **options)
+      %i[terminal html pdf png md conf a3_landscape ppt].each do |fmt|
         PredictabilityEngine.run_and_print_report(source, fmt, options)
       rescue StandardError => e
         warn "Failed to generate #{fmt} report: #{e.message}"
@@ -161,7 +171,12 @@ module PredictabilityEngine
       return output if output
 
       base = File.basename(source, '.*')
-      File.join('reports', base, filename)
+      dir = if options[:output_dir]
+              File.join(options[:output_dir], base)
+            else
+              File.join(File.dirname(source), 'reports', base)
+            end
+      File.join(dir, filename)
     end
   end
 
@@ -169,6 +184,9 @@ module PredictabilityEngine
     def self.exit_on_failure?
       true
     end
+
+    class_option :output_dir, type: :string, desc: 'Output directory for reports'
+    class_option :size, type: :string, default: Report::Constants::DEFAULT_SIZE, desc: 'Image size for PNG reports (a0-a6, 5k, 4k, hd)'
 
     desc 'viz SUBCOMMAND ...ARGS', 'Visualization commands'
     subcommand 'viz', Viz
@@ -181,7 +199,11 @@ module PredictabilityEngine
 
     desc 'report SOURCE FORMAT [OUTPUT]', 'Generate a full report in various formats (terminal, html, pdf, md, conf)'
     method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
+    method_option :clean, type: :boolean, default: true, desc: 'Clean the report directory before generation'
     def report(input_source, format = 'terminal', output = nil)
+      if format.to_sym != :terminal && output.nil? && options[:clean]
+        ReportGenerator.clean_report_dir(input_source, **options)
+      end
       PredictabilityEngine.run_and_print_report(input_source, format, options, output: output)
     end
 
@@ -201,7 +223,7 @@ module PredictabilityEngine
         # filter_id: "12345"         # Optional: JIRA Filter ID
         # filter_name: "My Filter"   # Optional: JIRA Filter Name
         # query: "project = PROJ"    # Optional: Direct JQL query
-      YAML
+YAML
       File.write(filename, content)
       puts "Template created at #{filename}"
     end

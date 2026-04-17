@@ -54,7 +54,7 @@ module PredictabilityEngine
   end
 
   def self.run_and_print_report(file, format, options, output: nil)
-    puts run_report(file, format, output: output, color: options[:color],
-                                  layout: options[:layout])
+    opts = options.to_h.symbolize_keys.merge(output: output)
+    puts run_report(file, format, **opts)
   end
 end

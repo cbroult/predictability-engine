@@ -40,6 +40,18 @@ task :bench do
   sh 'ruby benchmarks/monte_carlo_benchmark.rb'
 end
 
+# Reports: generate all sample reports
+namespace :reports do
+  desc 'Generate all sample reports'
+  task :generate_samples do
+    samples = Dir.glob('data/*.csv')
+    samples.each do |sample|
+      puts "Generating reports for #{sample}..."
+      sh "./bin/predictability-engine batch #{sample}"
+    end
+  end
+end
+
 # Aggregation tasks
 desc 'Run rubocop + bundler-audit + jscpd'
 task lint: %i[rubocop audit jscpd]

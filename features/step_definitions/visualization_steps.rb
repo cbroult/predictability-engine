@@ -177,6 +177,23 @@ Then(/^a file named "([^"]*)" should be found in the directory$/) do |filename|
   expect(File.exist?(check_file_path(filename))).to be true
 end
 
+Then(/^the following files should (not )?exist in "([^"]*)":$/) do |negate, dir, table|
+  table.raw.flatten.each do |filename|
+    path = File.join(dir, filename)
+    file_path = File.join(aruba.config.working_directory, path)
+    if negate
+      expect(File.exist?(file_path)).to be false
+    else
+      expect(File.exist?(file_path)).to be true
+    end
+  end
+end
+
+Then(/^it is a valid PNG file$/) do
+  content = File.binread(check_file_path("reports/sample_data/dashboard.png"))
+  expect(content[0..7]).to eq("\x89PNG\r\n\x1a\n".b)
+end
+
 def check_file_path(filename)
   file_path = File.join(aruba.config.working_directory, filename)
   expect(File.exist?(file_path)).to be true
