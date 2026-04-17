@@ -5,26 +5,41 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a7b17def-a47b-4a63-b298-93819839f459" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Rakefile" beforeDir="false" afterPath="$PROJECT_DIR$/Rakefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/features/all_formats.feature" beforeDir="false" afterPath="$PROJECT_DIR$/features/all_formats.feature" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/features/reports.feature" beforeDir="false" afterPath="$PROJECT_DIR$/features/reports.feature" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/features/step_definitions/data_source_steps.rb" beforeDir="false" afterPath="$PROJECT_DIR$/features/step_definitions/data_source_steps.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/features/step_definitions/visualization_steps.rb" beforeDir="false" afterPath="$PROJECT_DIR$/features/step_definitions/visualization_steps.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/cli.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/cli.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/report.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/report.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/report_generator.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/report_generator.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/dashboard.conf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data/dashboard.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/dashboard.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/dashboard.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/dashboard.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/dashboard.pptx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/dashboard_a3.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/images/aging_wip.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/images/cycle_time_scatter.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/images/forecasted_cfd_plot.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/images/throughput_histogram.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/dashboard.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/dashboard.md" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/dashboard.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/dashboard.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/dashboard.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/dashboard.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/dashboard.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/images/aging_wip.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/images/aging_wip.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/images/cycle_time_scatter.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/images/cycle_time_scatter.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/images/forecasted_cfd_plot.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/images/forecasted_cfd_plot.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/images/throughput_histogram.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/images/throughput_histogram.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Bug.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Bug.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Bug.md" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Bug.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Bug.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Bug.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Bug.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Bug.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Improvement.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Improvement.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Improvement.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Improvement.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Improvement.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Improvement.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Story.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Story.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Story.md" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Story.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Story.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Story.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Story.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Story.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Task.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Task.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Task.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Task.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Task.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Task.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer/aging_wip_visualizer.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer/aging_wip_visualizer.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer/basic_charts.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer/basic_charts.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer/cfd_charts.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer/cfd_charts.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer/cfd_layout.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer/cfd_layout.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sample_data.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/sample_data_large.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/wip_data.csv" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -105,7 +120,7 @@
       <updated>1775833741689</updated>
       <workItem from="1775833742763" duration="37257000" />
       <workItem from="1776098529840" duration="7570000" />
-      <workItem from="1776410368431" duration="5915000" />
+      <workItem from="1776410368431" duration="9664000" />
     </task>
     <servers />
   </component>

@@ -226,6 +226,14 @@ Then(/^the HTML file "([^"]*)" should have "([^"]*)" as the first chart panel$/)
   expect(first_panel).to include("<h2>#{title}</h2>")
 end
 
+Then(/^the HTML file "([^"]*)" should have "([^"]*)" as the (\d+)(?:st|nd|rd|th) chart panel$/) do |filename, title, index|
+  content = File.read(check_file_path(filename))
+  # First chart panel comes after summary panel
+  # Split by <div class='chart-panel'> and check the one at given index
+  panel = content.split("<div class='chart-panel'>").at(index.to_i)
+  expect(panel).to include("<h2>#{title}</h2>")
+end
+
 Then(/^the HTML file "([^"]*)" should have CFD x-axis with minor ticks and long labeled ticks$/) do |filename|
   content = File.read(check_file_path(filename))
   expect(content).to include('"minorTicks":true')

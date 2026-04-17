@@ -97,6 +97,7 @@ Feature: Visualization command
     Then the exit status should be 0
     And a file named "reports/sample_data/dashboard.html" should exist
     And the HTML file "reports/sample_data/dashboard.html" should have "Aging Work In Progress" as the first chart panel
+    And the HTML file "reports/sample_data/dashboard.html" should have "Cumulative Flow Diagram" as the 3rd chart panel
     And the HTML file "reports/sample_data/dashboard.html" should have CFD x-axis with minor ticks and long labeled ticks
 
   Scenario: Verifying CFD axis labeling for a long-term project

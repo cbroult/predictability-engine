@@ -90,7 +90,7 @@ module PredictabilityEngine
     end
 
     def self.dashboard(items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
-      charts = [aging_wip(items), cfd(items), forecasted_cfd(items, percentiles: percentiles),
+      charts = [aging_wip(items), forecasted_cfd(items, percentiles: percentiles), cfd(items),
                 cycle_time_scatter(items, percentiles: percentiles),
                 throughput_histogram(items)]
       Vega.lite.vconcat(charts.map { |c| c.spec.except('$schema') })

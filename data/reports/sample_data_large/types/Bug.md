@@ -26,6 +26,9 @@
 ## Forecasted Cumulative Flow Diagram
 ![](images/forecasted_cfd_plot.png)
 
+## Cumulative Flow Diagram
+![](images/cfd_plot.png)
+
 ## Cycle Time Scatter Plot
 ![](images/cycle_time_scatter.png)
 
