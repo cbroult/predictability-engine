@@ -129,6 +129,7 @@ Ask natural language questions about your data:
 ### CSV Files
 The engine expects a standard CSV with the following headers:
 - `id`: Unique identifier for the item.
+- `type`: Work item type (e.g., Story, Bug, Task, Improvement). Required for sub-dashboard generation.
 - `title`: Short description.
 - `start_date`: When work began (YYYY-MM-DD).
 - `end_date`: When work finished (YYYY-MM-DD). Use an empty value for items in progress.
