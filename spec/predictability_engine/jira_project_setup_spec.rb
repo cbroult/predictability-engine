@@ -67,18 +67,18 @@ RSpec.describe JiraProjectSetup do
     let(:tbd_team) { teams.find { |t| t['abbrev'] == 'TBD' } }
 
     describe '#bucket_for (private)' do
-      let(:seeder) { described_class.new(nil, 'PEDEVTBD', tbd_team, count: 10) }
+      let(:seeder) { described_class.new(nil, 'PEDEVTBD', tbd_team, count: 40) }
 
-      it 'assigns :completed to the first 60%' do
-        (1..6).each { |i| expect(seeder.send(:bucket_for, i)).to eq(:completed) }
+      it 'assigns :completed to the first 60% (issues 1-24)' do
+        (1..24).each { |i| expect(seeder.send(:bucket_for, i)).to eq(:completed) }
       end
 
-      it 'assigns :in_progress to the next 30%' do
-        (7..9).each { |i| expect(seeder.send(:bucket_for, i)).to eq(:in_progress) }
+      it 'assigns :in_progress to the next 30% (issues 25-36)' do
+        (25..36).each { |i| expect(seeder.send(:bucket_for, i)).to eq(:in_progress) }
       end
 
-      it 'assigns :backlog to the last 10%' do
-        expect(seeder.send(:bucket_for, 10)).to eq(:backlog)
+      it 'assigns :backlog to the last 10% (issues 37-40)' do
+        (37..40).each { |i| expect(seeder.send(:bucket_for, i)).to eq(:backlog) }
       end
     end
 

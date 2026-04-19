@@ -6,6 +6,12 @@ require 'yaml'
 module JiraProjectSetup; end unless defined?(JiraProjectSetup)
 load File.expand_path('../../scripts/jira_project_setup.rb', __dir__)
 
+# cd to project root (../.. from Aruba's default tmp/aruba working dir)
+# so that `bundle exec ruby scripts/jira_project_setup.rb` resolves correctly
+Before('@jira_setup') do
+  cd('../..')
+end
+
 Given('the Jira project setup script is available') do
   expect(defined?(JiraProjectSetup)).to be_truthy
 end
@@ -46,6 +52,6 @@ Then('issues {int} through {int} are bucketed as in_progress') do |from, to|
   (from..to).each { |i| expect(@seeder.send(:bucket_for, i)).to eq(:in_progress) }
 end
 
-Then('issue {int} is bucketed as backlog') do |idx|
-  expect(@seeder.send(:bucket_for, idx)).to eq(:backlog)
+Then('issues {int} through {int} are bucketed as backlog') do |from, to|
+  (from..to).each { |i| expect(@seeder.send(:bucket_for, i)).to eq(:backlog) }
 end
