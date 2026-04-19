@@ -10,11 +10,14 @@ module PredictabilityEngine
   # Shared Thor configuration for Cli and Viz: common class_options plus
   # auto-wiring of PredictabilityEngine.setup_logging from --log-level/--log-file.
   module CliBase
+    VALID_SIZES = Report::Constants::RESOLUTION_CONFIG.keys.freeze
+    SIZE_DESC = "Image size for PNG/PPT reports (#{VALID_SIZES.join(', ')})".freeze
+
     def self.included(base)
       base.extend(ClassMethods)
       base.class_option :output_dir, type: :string, desc: 'Output directory for reports'
       base.class_option :size, type: :string, default: Report::Constants::DEFAULT_SIZE,
-                               desc: 'Image size for PNG reports (a0-a6, 5k, 4k, hd)'
+                               enum: VALID_SIZES, desc: SIZE_DESC
       base.class_option :log_level, type: :string, default: 'info',
                                     desc: 'Logging level (debug, info, warn, error)'
       base.class_option :log_file, type: :string, desc: 'Log file path'
@@ -46,7 +49,7 @@ module PredictabilityEngine
       desc "#{cmd} SOURCE", description
       define_method(cmd) do |source|
         items = PredictabilityEngine.load_items(source)
-        PredictabilityEngine.logger.info { Visualizer.send(viz_method, items, color: options[:color]) }
+        PredictabilityEngine.logger.info Visualizer.send(viz_method, items, color: options[:color])
       end
     end
 
@@ -145,13 +148,11 @@ module PredictabilityEngine
     end
 
     desc 'png SOURCE [OUTPUT]', 'Generate a PNG report'
-    method_option :size, type: :string, desc: 'Image size (a0-a6, 5k, 4k, hd)'
     def png(source, output = nil)
       run_and_print_report(source, :png, output: output)
     end
 
     desc 'all_formats SOURCE', 'Generate all report formats at once'
-    method_option :size, type: :string, desc: 'Image size for PNG reports (a0-a6, 5k, 4k, hd)'
     def all_formats(source)
       ReportGenerator.clean_report_dir(source, **options)
       %i[terminal html pdf png md conf a3_landscape ppt].each do |fmt|

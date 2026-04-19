@@ -79,6 +79,34 @@ RSpec.describe PredictabilityEngine::Cli do
     end
   end
 
+  describe PredictabilityEngine::CliBase do
+    describe 'VALID_SIZES' do
+      it 'is derived from RESOLUTION_CONFIG keys' do
+        expect(PredictabilityEngine::CliBase::VALID_SIZES).to eq(
+          PredictabilityEngine::Report::Constants::RESOLUTION_CONFIG.keys
+        )
+      end
+
+      it 'includes a4 as the default size' do
+        expect(PredictabilityEngine::CliBase::VALID_SIZES).to include(
+          PredictabilityEngine::Report::Constants::DEFAULT_SIZE
+        )
+      end
+
+      it 'includes all standard sizes' do
+        expect(PredictabilityEngine::CliBase::VALID_SIZES).to include('5k', '4k', 'hd', 'a0', 'a4', 'a6')
+      end
+    end
+
+    describe 'SIZE_DESC' do
+      it 'lists all valid sizes' do
+        PredictabilityEngine::CliBase::VALID_SIZES.each do |size|
+          expect(PredictabilityEngine::CliBase::SIZE_DESC).to include(size)
+        end
+      end
+    end
+  end
+
   describe PredictabilityEngine::Viz do
     subject(:viz) { described_class.new([], { color: true }) }
 
