@@ -1,11 +1,10 @@
 # jira-integration.yml — end-to-end validation against a live Jira instance.
 #
 # Pipeline:
-#   1. seed              run scripts/jira_seeder.rb to populate $JIRA_PROJECT
-#                        with a mixed-state issue set (uses --cleanup to start
-#                        from a clean slate)
+#   1. setup             run scripts/jira_project_setup.rb to provision the three
+#                        wp-environment Jira projects with realistic test data
 #   2. verify-reports    run predictability-engine summary/report/forecast
-#                        against the seeded project — confirms the live Jira
+#                        against one seeded project — confirms the live Jira
 #                        data source can feed the full report pipeline
 #   3. jira-cucumber     run the @real_jira BDD scenarios
 #   4. badge             always report
@@ -17,7 +16,7 @@
 #   jira_site             — Jira instance URL
 #   jira_email            — Jira account email
 #   jira_api_token        — Jira API token
-#   jira_project          — Jira project key to seed and verify against
+#   jira_profile_wp       — credentials profile name for wp environment
 #   badge_service_token   — Write token for badge.cbp-org.internal
 
 variables:
@@ -32,22 +31,21 @@ variables:
       from_secret: jira_email
     JIRA_API_TOKEN:
       from_secret: jira_api_token
-    JIRA_PROJECT:
-      from_secret: jira_project
+    JIRA_ENV: wp
 
 when:
   event: manual
   branch: main
 
 steps:
-  - name: seed
+  - name: setup
     image: ruby:4.0.2-alpine
     <<: *network_host
     environment: *jira_env
     commands:
       - apk add --no-cache build-base
       - bundle install --jobs 4 --retry 3
-      - bundle exec ruby scripts/jira_seeder.rb --cleanup --project "$JIRA_PROJECT" --count 25
+      - bundle exec ruby scripts/jira_project_setup.rb setup --env wp --count 25 --profile wp
 
   - name: verify-reports
     image: ruby:4.0.2-alpine
@@ -57,9 +55,9 @@ steps:
       - apk add --no-cache build-base nodejs npm
       - npm install playwright && npx playwright install chromium --with-deps
       - bundle install --jobs 4 --retry 3
-      - bundle exec ./bin/predictability-engine summary  "$JIRA_PROJECT"
-      - bundle exec ./bin/predictability-engine forecast "$JIRA_PROJECT" 10
-      - bundle exec ./bin/predictability-engine report   "$JIRA_PROJECT" html /tmp/jira.html
+      - bundle exec ./bin/predictability-engine summary  PEWPTBD
+      - bundle exec ./bin/predictability-engine forecast PEWPTBD 10
+      - bundle exec ./bin/predictability-engine report   PEWPTBD html /tmp/jira.html
       - test -s /tmp/jira.html
 
   - name: jira-cucumber
