@@ -19,32 +19,10 @@ When(/^I load the workflow from "([^"]*)"$/) do |path|
   @loaded_workflow = PredictabilityEngine::JiraWorkflow.load(File.join(expand_path('.'), path))
 end
 
-Then(/^the merged workflow file "([^"]*)" should include these statuses:$/) do |path, table|
-  raw = YAML.load_file(File.join(expand_path('.'), path))
-  expect(raw['statuses']).not_to be_nil
-  table.raw.each do |name, expected_role|
-    status = raw['statuses'].find { |s| s['name'] == name }
-    expect(status).not_to(be_nil, "No status named #{name.inspect}; got #{raw['statuses'].map { |s| s['name'] }}")
-    actual = status['role'].to_s
-    expect(actual).to eq(expected_role),
-                      "Expected #{name.inspect} role #{expected_role.inspect}, got #{actual.inspect}"
-  end
-end
-
-Then(/^the workflow file "([^"]*)" should not include a status named "([^"]*)"$/) do |path, name|
-  raw = YAML.load_file(File.join(expand_path('.'), path))
-  names = (raw['statuses'] || []).map { |s| s['name'] }
-  expect(names).not_to include(name)
-end
-
-Then(/^the workflow file "([^"]*)" should have arrival names:$/) do |path, table|
-  wf = PredictabilityEngine::JiraWorkflow.load(File.join(expand_path('.'), path))
-  expect(wf.arrival_names).to match_array(table.raw.flatten)
-end
-
-Then(/^the workflow file "([^"]*)" should have departure names:$/) do |path, table|
-  wf = PredictabilityEngine::JiraWorkflow.load(File.join(expand_path('.'), path))
-  expect(wf.departure_names).to match_array(table.raw.flatten)
+Then(/^the workflow file "([^"]*)" should contain exactly:$/) do |path, expected_content|
+  actual   = YAML.load_file(File.join(expand_path('.'), path))
+  expected = YAML.safe_load(expected_content)
+  expect(actual).to eq(expected)
 end
 
 Then(/^the workflow arrival names should be "([^"]*)" and "([^"]*)"$/) do |name1, name2|
