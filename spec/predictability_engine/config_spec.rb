@@ -8,28 +8,32 @@ RSpec.describe PredictabilityEngine::Config do
   after { FileUtils.rm_f(config_file) }
 
   describe '.jira' do
+    def clean_env
+      ENV.to_h.reject { |k, _| k.start_with?('JIRA_') }
+    end
+
     context 'without profile_name' do
       it 'handles environment and global fallbacks' do
         # 1. Environment variables
-        stub_const('ENV', ENV.to_h.merge('JIRA_SITE' => 'https://env.net'))
+        stub_const('ENV', clean_env.merge('JIRA_SITE' => 'https://env.net'))
         expect(described_class.jira[:site]).to eq('https://env.net')
 
         # 2. File fallback
         write_config({ 'jira' => { 'site' => 'https://file.net' } })
-        stub_const('ENV', ENV.to_h.reject { |k| k == 'JIRA_SITE' })
+        stub_const('ENV', clean_env)
         expect(described_class.jira[:site]).to eq('https://file.net')
 
         # 3. Profile from environment
         write_config({ 'jira' => { 'profiles' => { 'p' => { 'site' => 'https://p.net' } } } })
-        stub_const('ENV', ENV.to_h.merge('JIRA_PROFILE' => 'p'))
+        stub_const('ENV', clean_env.merge('JIRA_PROFILE' => 'p'))
         expect(described_class.jira[:site]).to eq('https://p.net')
       end
 
       it 'returns project key accurately' do
-        stub_const('ENV', ENV.to_h.merge('JIRA_PROJECT' => 'ENV-P'))
+        stub_const('ENV', clean_env.merge('JIRA_PROJECT' => 'ENV-P'))
         expect(described_class.jira[:project]).to eq('ENV-P')
 
-        stub_const('ENV', ENV.to_h.reject { |k| k == 'JIRA_PROJECT' })
+        stub_const('ENV', clean_env)
         write_config({ 'jira' => { 'project' => 'FILE-P' } })
         expect(described_class.jira[:project]).to eq('FILE-P')
       end

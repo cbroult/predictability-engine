@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+begin
+  require 'bundler/setup'
+rescue LoadError
+  # Bundler not available, hope for the best with system gems
+end
+
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
+load File.expand_path('jira_project_setup.rb', __dir__)
+JiraProjectSetup.run_cli

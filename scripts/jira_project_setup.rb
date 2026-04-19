@@ -4,9 +4,9 @@
 #
 # Usage:
 #   JIRA_SITE=https://acme.atlassian.net JIRA_EMAIL=you@acme.com JIRA_API_TOKEN=... \
-#     ruby scripts/jira_project_setup.rb setup   [--env dev] [--count 25] [--profile default]
-#     ruby scripts/jira_project_setup.rb teardown [--env dev] [--profile default]
-#     ruby scripts/jira_project_setup.rb status   [--env dev]
+#     scripts/jira-project-setup setup   [--env dev] [--count 25] [--profile default]
+#     scripts/jira-project-setup teardown [--env dev] [--profile default]
+#     scripts/jira-project-setup status   [--env dev]
 #
 # Project key convention: PE{ENV}{TEAM}, e.g. PEDEVTBD, PEWPTQW, PEGHATST
 #   ENV:  dev → DEV, wp → WP, gha → GHA   (JIRA_ENV env var, default: dev)
@@ -71,6 +71,8 @@ module JiraProjectSetup
   # Checks that each named PE workflow exists in Jira; creates it via API if missing.
   # Workflows are shared across environments (created once per Jira instance).
   class WorkflowProvisioner
+    CATEGORY_MAP = { 'to do' => 'TODO', 'in progress' => 'IN_PROGRESS', 'done' => 'DONE' }.freeze
+
     def initialize(api)
       @api = api
     end
@@ -82,7 +84,8 @@ module JiraProjectSetup
       end
 
       puts "  Creating workflow '#{workflow_name}'..."
-      result = @api.post('/rest/api/3/workflow', build_payload(workflow_name, statuses))
+      status_ids = ensure_statuses(statuses)
+      result = @api.post('/rest/api/3/workflow', build_payload(workflow_name, statuses, status_ids))
       puts "  Created workflow id=#{result['id']}"
       result['id']
     rescue StandardError => e
@@ -93,6 +96,25 @@ module JiraProjectSetup
 
     private
 
+    def ensure_statuses(statuses)
+      existing = fetch_existing_statuses
+      to_create = statuses.reject { |s| existing.key?(s['name'].downcase) }
+      if to_create.any?
+        payload = { statuses: to_create.map do |s|
+          { name: s['name'], statusCategory: CATEGORY_MAP.fetch(s['category'], 'TODO') }
+        end }
+        @api.post('/rest/api/3/statuses', payload).each { |s| existing[s['name'].downcase] = s['id'] }
+      end
+      statuses.to_h { |s| [s['name'], existing[s['name'].downcase]] }
+    end
+
+    def fetch_existing_statuses
+      result = @api.get('/rest/api/3/statuses/search?maxResults=200')
+      (result['values'] || []).to_h { |s| [s['name'].downcase, s['id']] }
+    rescue StandardError
+      {}
+    end
+
     def find_workflow(name)
       encoded = URI.encode_www_form_component(name)
       @api.get("/rest/api/3/workflow/search?workflowName=#{encoded}")['values']
@@ -101,25 +123,20 @@ module JiraProjectSetup
       nil
     end
 
-    def build_payload(name, statuses)
-      transitions = build_transitions(statuses)
+    def build_payload(name, statuses, status_ids)
       {
         name: name,
         description: "Predictability Engine shared test workflow — #{name}",
-        statuses: statuses.map { |s| { name: s['name'], statusCategory: category_key(s['category']) } },
-        transitions: transitions
+        statuses: statuses.map { |s| { id: status_ids[s['name']] } },
+        transitions: build_transitions(statuses, status_ids)
       }
     end
 
-    def build_transitions(statuses)
-      [{ name: 'Create', from: [], to: statuses.first['name'], type: 'initial' }] +
+    def build_transitions(statuses, status_ids)
+      [{ name: 'Create', to: status_ids[statuses.first['name']], type: 'initial' }] +
         statuses.each_cons(2).map do |from, to|
-          { name: "To #{to['name']}", from: [from['name']], to: to['name'], type: 'global' }
+          { name: "To #{to['name']}", from: [status_ids[from['name']]], to: status_ids[to['name']], type: 'global' }
         end
-    end
-
-    def category_key(category)
-      { 'to do' => 'TODO', 'in progress' => 'IN_PROGRESS', 'done' => 'DONE' }.fetch(category, 'TODO')
     end
   end
 
@@ -132,21 +149,23 @@ module JiraProjectSetup
     end
 
     def ensure_project(key, name, team_config)
+      account_id = @api.get('/rest/api/3/myself')['accountId']
+
       if project_exists?(key)
         puts "  Project #{key} already exists"
-        return key
+      else
+        puts "  Creating project #{key} — #{name}..."
+        @api.post('/rest/api/3/project', {
+                    key: key, name: name,
+                    projectTypeKey: 'software',
+                    projectTemplateKey: 'com.pyxis.greenhopper.jira:gh-scrum-template',
+                    leadAccountId: account_id,
+                    description: "Predictability Engine test project — #{team_config['name']}"
+                  })
+        puts "  Created project #{key}"
       end
 
-      puts "  Creating project #{key} — #{name}..."
-      account_id = @api.get('/rest/api/3/myself')['accountId']
-      @api.post('/rest/api/3/project', {
-                  key: key, name: name,
-                  projectTypeKey: 'software',
-                  projectTemplateKey: 'com.pyxis.greenhopper.jira:gh-scrum-template',
-                  leadAccountId: account_id,
-                  description: "Predictability Engine test project — #{team_config['name']}"
-                })
-      puts "  Created project #{key}"
+      grant_admin_role(key, account_id)
       key
     end
 
@@ -169,6 +188,18 @@ module JiraProjectSetup
       true
     rescue JIRA::HTTPError
       false
+    end
+
+    def grant_admin_role(project_key, account_id)
+      roles = @api.get("/rest/api/3/project/#{project_key}/role")
+      admin_url = roles.find { |name, _| name.match?(/admin/i) }&.last
+      return warn "  Warning: no Administrator role found for #{project_key}" unless admin_url
+
+      role_id = admin_url.split('/').last
+      @api.post("/rest/api/3/project/#{project_key}/role/#{role_id}", { user: [account_id] })
+      puts '  Granted Administrator role → delete permission enabled'
+    rescue StandardError => e
+      warn "  Warning: could not grant admin role for #{project_key}: #{e.message}"
     end
   end
 
@@ -221,6 +252,13 @@ module JiraProjectSetup
     private
 
     def create_issue(summary, type)
+      build_issue(summary, type)
+    rescue JIRA::HTTPError
+      warn "\n  Warning: issue type '#{type}' unavailable in #{@project_key}, falling back to 'Task'"
+      build_issue(summary, 'Task')
+    end
+
+    def build_issue(summary, type)
       issue = @client.Issue.build
       issue.save!('fields' => {
                     'project' => { 'key' => @project_key },
@@ -272,18 +310,19 @@ module JiraProjectSetup
       @count   = options[:count] || 25
       @profile = options[:profile] || ENV.fetch('JIRA_PROFILE', nil)
       @command = options[:command]
-      cfg = PredictabilityEngine::Config.jira(@profile)
-      @api    = ApiClient.new(cfg[:site], cfg[:email], cfg[:token])
-      @client = PredictabilityEngine::Config.jira_client(@profile)
-      @teams  = JiraProjectSetup.load_teams
+      @teams   = JiraProjectSetup.load_teams
     end
+
+    USAGE = 'Usage: jira-project-setup <setup|teardown|status> [options]'
 
     def run
       case @command
       when 'setup'    then setup
       when 'teardown' then teardown
       when 'status'   then status
-      else raise "Unknown command '#{@command}'. Use: setup | teardown | status"
+      else
+        label = @command.to_s.empty? ? 'No command specified' : "Unknown command '#{@command}'"
+        raise "#{label}. Use: setup | teardown | status\n#{USAGE}"
       end
     end
 
@@ -291,8 +330,8 @@ module JiraProjectSetup
 
     def setup
       puts "Setting up #{@teams.size} Jira projects for ENV=#{@env} (#{@count} issues each)..."
-      wf_provisioner = WorkflowProvisioner.new(@api)
-      pr_provisioner = ProjectProvisioner.new(@api, @client)
+      wf_provisioner = WorkflowProvisioner.new(api)
+      pr_provisioner = ProjectProvisioner.new(api, client)
 
       @teams.each do |team|
         key  = JiraProjectSetup.project_key(@env, team['abbrev'])
@@ -301,7 +340,7 @@ module JiraProjectSetup
         wf_provisioner.ensure_workflow(team['workflow'], team['statuses'])
         pr_provisioner.ensure_project(key, name, team)
         pr_provisioner.generate_workflow_config(key, team, @profile || 'default')
-        seeder = DataSeeder.new(@client, key, team, count: @count)
+        seeder = DataSeeder.new(client, key, team, count: @count)
         seeder.cleanup
         seeder.seed
       end
@@ -313,7 +352,7 @@ module JiraProjectSetup
       @teams.each do |team|
         key = JiraProjectSetup.project_key(@env, team['abbrev'])
         puts "\n#{key}"
-        DataSeeder.new(@client, key, team).cleanup
+        DataSeeder.new(client, key, team).cleanup
       end
       puts "\nTeardown complete."
     end
@@ -325,40 +364,50 @@ module JiraProjectSetup
       @teams.each do |team|
         key = JiraProjectSetup.project_key(@env, team['abbrev'])
         begin
-          project = @client.Project.find(key)
-          count   = DataSeeder.new(@client, key, team).count_issues
+          project = client.Project.find(key)
+          count   = DataSeeder.new(client, key, team).count_issues
           printf "%-15<key>s %-40<name>s %<count>d\n", key: key, name: project.name, count: count
         rescue StandardError
           printf "%-15<key>s %-40<name>s %<status>s\n", key: key, name: "(#{team['name']})", status: 'NOT FOUND'
         end
       end
     end
+
+    def api
+      @api ||= begin
+        cfg = PredictabilityEngine::Config.jira(@profile)
+        ApiClient.new(cfg[:site], cfg[:email], cfg[:token])
+      end
+    end
+
+    def client
+      @client ||= PredictabilityEngine::Config.jira_client(@profile)
+    end
   end
-end
 
-# ── CLI entry point ────────────────────────────────────────────────────────────
-if __FILE__ == $PROGRAM_NAME
-  options = {}
-  OptionParser.new do |opts|
-    opts.banner = 'Usage: jira_project_setup.rb <setup|teardown|status> [options]'
-    opts.on('--env ENV', "Environment: dev|wp|gha  (default: #{ENV.fetch('JIRA_ENV', 'dev')})") do |v|
-      options[:env] = v
-    end
-    opts.on('--count N', Integer, 'Issues per project (default: 25)') do |v|
-      options[:count] = v
-    end
-    opts.on('--profile P', 'Jira credentials profile') do |v|
-      options[:profile] = v
-    end
-  end.parse!
+  def self.run_cli(argv = ARGV)
+    options = {}
+    OptionParser.new do |opts|
+      opts.banner = 'Usage: jira-project-setup <setup|teardown|status> [options]'
+      opts.on('--env ENV', "Environment: dev|wp|gha  (default: #{ENV.fetch('JIRA_ENV', 'dev')})") do |v|
+        options[:env] = v
+      end
+      opts.on('--count N', Integer, 'Issues per project (default: 25)') do |v|
+        options[:count] = v
+      end
+      opts.on('--profile P', 'Jira credentials profile') do |v|
+        options[:profile] = v
+      end
+    end.parse!(argv)
 
-  options[:command] = ARGV.shift
+    options[:command] = argv.shift
 
-  begin
-    JiraProjectSetup::Runner.new(options).run
+    Runner.new(options).run
   rescue StandardError => e
     warn "Error: #{e.message}"
     warn e.backtrace.join("\n") if ENV['DEBUG']
     exit 1
   end
 end
+
+JiraProjectSetup.run_cli if __FILE__ == $PROGRAM_NAME

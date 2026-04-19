@@ -18,7 +18,7 @@ teams:
     issue_types:
       - Story
       - Bug
-      - Test Case
+      - Task
     statuses:
       - { name: "To Do",             category: "to do"       }
       - { name: "Ready for Testing", category: "in progress", role: arrival   }
@@ -30,9 +30,9 @@ teams:
     name: The Support Team
     workflow: PE Support Team Workflow
     issue_types:
-      - Incident
-      - Service Request
-      - Problem
+      - Bug
+      - Task
+      - Story
     statuses:
       - { name: "New",                  category: "to do"       }
       - { name: "Triaged",              category: "to do"       }

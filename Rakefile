@@ -16,7 +16,20 @@ RuboCop::RakeTask.new(:rubocop)
 RSpec::Core::RakeTask.new(:spec)
 
 Cucumber::Rake::Task.new(:features) do |t|
-  t.cucumber_opts = ['--publish-quiet', '--format', 'progress']
+  t.cucumber_opts = ['-p', 'default']
+end
+
+Cucumber::Rake::Task.new(:jira_integrated_tests_run) do |t|
+  t.cucumber_opts = ['-p', 'jira_live']
+end
+
+desc 'Run @jira_live scenarios (skipped when no Jira credentials are configured)'
+task :jira_integrated_tests do
+  if ENV['JIRA_PROFILE']
+    Rake::Task[:jira_integrated_tests_run].invoke
+  else
+    puts 'Skipping jira_integrated_tests: set JIRA_PROFILE to run @jira_live scenarios'
+  end
 end
 
 # Security audit
@@ -62,7 +75,7 @@ desc 'Run rubocop + bundler-audit + jscpd'
 task lint: %i[rubocop audit jscpd]
 
 desc 'Run spec + features + lint'
-task verify: %i[spec features lint]
+task verify: %i[spec features lint jira_integrated_tests]
 
 # Default is everything (including slow benchmarks and docs)
 task default: %i[verify docs bench]

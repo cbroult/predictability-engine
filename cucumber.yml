@@ -1,1 +1,2 @@
-default: --publish-quiet --format progress
+default: --publish-quiet --format progress --tags "not @jira_live"
+jira_live: --publish-quiet --format progress --tags "@jira_live"

@@ -29,3 +29,36 @@ Feature: Jira project setup script
     And issues 25 through 36 are bucketed as in_progress
     And issues 37 through 40 are bucketed as backlog
 
+  Scenario: running without a command exits with a descriptive error and usage
+    When I run `bundle exec ruby scripts/jira_project_setup.rb --count 160 --profile any-profile`
+    Then the exit status should not be 0
+    And the output should contain "No command specified. Use: setup | teardown | status"
+    And the output should contain "Usage: jira-project-setup <setup|teardown|status> [options]"
+
+  @jira_live
+  Scenario: setup provisions three projects and seeds issues
+    Given the JIRA_PROFILE environment variable is set
+    When I successfully run `bundle exec scripts/jira-project-setup setup --env dev --count 5`
+    Then the output should contain "Setup complete."
+    And the output should contain "PEDEVTBD"
+    And the output should contain "PEDEVTQW"
+    And the output should contain "PEDEVTST"
+
+  @jira_live
+  Scenario: status shows all three projects with issue counts
+    Given the JIRA_PROFILE environment variable is set
+    And I successfully run `bundle exec scripts/jira-project-setup setup --env dev --count 5`
+    When I successfully run `bundle exec scripts/jira-project-setup status --env dev`
+    Then the output should contain "PEDEVTBD"
+    And the output should contain "PEDEVTQW"
+    And the output should contain "PEDEVTST"
+    And the output should match /PEDEVTBD\s+.+\s+\d+/
+
+  @jira_live
+  Scenario: teardown removes seeded issues
+    Given the JIRA_PROFILE environment variable is set
+    And I successfully run `bundle exec scripts/jira-project-setup setup --env dev --count 5`
+    When I successfully run `bundle exec scripts/jira-project-setup teardown --env dev`
+    Then the output should contain "Teardown complete."
+    And the output should contain "PEDEVTBD"
+
