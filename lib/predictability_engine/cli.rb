@@ -34,13 +34,15 @@ module PredictabilityEngine
 
   class Viz < Thor
     include CliBase
+
     class_option :color, type: :boolean, default: true, desc: 'Enable/disable color output for terminal charts'
 
     { scatter: [:cycle_time_scatter, 'Show Cycle Time scatter plot'],
       throughput: [:throughput_histogram, 'Show Throughput histogram'],
       cfd: [:cfd_plot, 'Show Cumulative Flow Diagram'],
       aging_wip: [:aging_wip, 'Show Aging Work In Progress'],
-      forecasted_cfd: [:forecasted_cfd_plot, 'Show Forecasted Cumulative Flow Diagram'] }.each do |cmd, (viz_method, description)|
+      forecasted_cfd: [:forecasted_cfd_plot,
+                       'Show Forecasted Cumulative Flow Diagram'] }.each do |cmd, (viz_method, description)|
       desc "#{cmd} SOURCE", description
       define_method(cmd) do |source|
         items = PredictabilityEngine.load_items(source)
