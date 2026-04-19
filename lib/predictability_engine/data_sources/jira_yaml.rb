@@ -5,6 +5,8 @@ require 'yaml'
 module PredictabilityEngine
   module DataSources
     class JiraYaml
+      PROJECT_KEY_PATTERN = /\A[A-Z][A-Z0-9]+\z/
+
       attr_reader :path, :config
 
       def initialize(path)
@@ -25,9 +27,15 @@ module PredictabilityEngine
 
       def workflow_config_path
         raw = @config['workflow_config']
-        return nil unless raw && !raw.to_s.empty?
+        if raw && !raw.to_s.empty?
+          return Pathname.new(raw).absolute? ? raw : File.expand_path(raw, @path.dirname.to_s)
+        end
 
-        Pathname.new(raw).absolute? ? raw : File.expand_path(raw, @path.dirname.to_s)
+        name = middle_segment
+        return nil if name.nil? || name.empty?
+
+        candidate = File.expand_path("~/.config/jira/#{name}.workflow.yml")
+        candidate if File.exist?(candidate)
       end
 
       private
@@ -40,13 +48,20 @@ module PredictabilityEngine
         {}
       end
 
+      def middle_segment
+        if @path.basename.to_s.count('.') >= 2
+          @path.basename.to_s.split('.')[1...-1].join('.')
+        else
+          @path.basename.to_s.sub(@path.extname, '')
+        end
+      end
+
       def convention_query
-        name = if @path.basename.to_s.count('.') >= 2
-                 @path.basename.to_s.split('.')[1...-1].join('.')
-               else
-                 @path.basename.to_s.sub(@path.extname, '')
-               end
-        name.empty? ? nil : "filter = \"#{name}\""
+        name = middle_segment
+        return nil if name.nil? || name.empty?
+        return "(project = \"#{name}\" OR filter = \"#{name}\")" if name.match?(PROJECT_KEY_PATTERN)
+
+        "filter = \"#{name}\""
       end
 
       def project_query

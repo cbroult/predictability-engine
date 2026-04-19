@@ -5,8 +5,8 @@ require 'fileutils'
 module PredictabilityEngine
   # Logic for generating and writing reports.
   module ReportGenerator # rubocop:disable Metrics/ModuleLength
-    def self.run_report(file, format, **)
-      items = PredictabilityEngine.load_items(file)
+    def self.run_report(file, format, items: nil, **)
+      items ||= PredictabilityEngine.load_items(file)
       reports = Report.generate_all(items)
 
       if facet_total(reports).zero? || format.to_sym == :terminal

@@ -118,6 +118,23 @@ RSpec.describe PredictabilityEngine::DataSources::Jira do
     end
   end
 
+  describe '#fetch_issues' do
+    it 'requests changelog expansion and all required fields' do
+      client = double('client') # rubocop:disable RSpec/VerifiedDoubles
+      issue_resource = double('issue_resource') # rubocop:disable RSpec/VerifiedDoubles
+      allow(client).to receive(:Issue).and_return(issue_resource)
+      allow(issue_resource).to receive(:jql).and_return([])
+
+      instance.send(:fetch_issues, client, 'jql:project = PROJ')
+
+      expect(issue_resource).to have_received(:jql).with(
+        'project = PROJ',
+        expand: 'changelog',
+        fields: PredictabilityEngine::DataSources::Jira::FIELDS
+      )
+    end
+  end
+
   describe '#build_client' do
     it 'raises error when configuration is incomplete' do
       [

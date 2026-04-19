@@ -7,6 +7,7 @@ module PredictabilityEngine
   module DataSources
     class Jira < Base
       IN_PROGRESS_KEYWORDS = ['In Progress', 'Doing', 'Active', 'Development', 'Progress'].freeze
+      FIELDS = %w[summary issuetype created priority resolutiondate status].freeze
 
       def perform_load(spec)
         if ENV['MOCK_JIRA'] == 'true'
@@ -117,7 +118,7 @@ module PredictabilityEngine
 
       def fetch_issues(client, query)
         jql = query.start_with?('jira:') ? "filter = #{query.sub('jira:', '')}" : query.sub('jql:', '')
-        client.Issue.jql(jql, expand: 'changelog')
+        client.Issue.jql(jql, expand: 'changelog', fields: FIELDS)
       end
 
       def map_issue(issue)

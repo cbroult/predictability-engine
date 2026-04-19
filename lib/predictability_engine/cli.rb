@@ -155,8 +155,9 @@ module PredictabilityEngine
     desc 'all_formats SOURCE', 'Generate all report formats at once'
     def all_formats(source)
       ReportGenerator.clean_report_dir(source, **options)
+      items = PredictabilityEngine.load_items(source)
       %i[terminal html pdf png md conf a3_landscape ppt].each do |fmt|
-        PredictabilityEngine.run_and_print_report(source, fmt, options)
+        PredictabilityEngine.run_and_print_report(source, fmt, options, items: items)
       rescue StandardError => e
         PredictabilityEngine.logger.warn { "Failed to generate #{fmt} report: #{e.message}" }
       end

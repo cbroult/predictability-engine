@@ -70,9 +70,9 @@ module PredictabilityEngine
     ReportGenerator.write_report(input_file, format, content, output, type: type)
   end
 
-  def self.run_and_print_report(file, format, options, output: nil)
+  def self.run_and_print_report(file, format, options, output: nil, items: nil)
     opts = options.to_h.symbolize_keys.merge(output: output)
-    message = run_report(file, format, **opts)
+    message = run_report(file, format, items: items, **opts)
     logger.info { message }
   end
 
