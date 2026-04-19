@@ -79,27 +79,12 @@ end
 
 Given(/^an extra large CSV file named "([^"]*)" with (\d+) completed and (\d+) in progress items$/) \
   do |filename, comp, wip|
-  completed_count = comp.to_i
-  wip_count = wip.to_i
-  require 'csv'
-  require 'date'
-  current_date = Date.current
+  write_file(filename, PredictabilityEngine::DataGenerator.content(completed: comp.to_i, wip: wip.to_i))
+end
 
-  content = CSV.generate do |csv|
-    csv << %w[id title start_date end_date]
-    # Completed items
-    (1..completed_count).each do |i|
-      start_date = current_date - rand(200..400).days
-      end_date = start_date + rand(5..30).days
-      csv << ["PROJ-#{i}", "Task #{i}", start_date.iso8601, end_date.iso8601]
-    end
-    # WIP items
-    ((completed_count + 1)..(completed_count + wip_count)).each do |i|
-      start_date = current_date - rand(1..100).days
-      csv << ["PROJ-#{i}", "In Progress Task #{i}", start_date.iso8601, nil]
-    end
-  end
-  write_file(filename, content)
+Given(/^the sample file "([^"]*)" is copied into the working directory$/) do |name|
+  source = File.expand_path("../../data/samples/#{name}", __dir__)
+  write_file(name, File.read(source))
 end
 
 Given(/^adjusted data for "([^"]*)"$/) do |template|
@@ -141,7 +126,7 @@ Given(/^the template CSV file "([^"]*)" is adjusted to recent dates and saved as
   require 'csv'
   require 'date'
 
-  template_path = File.expand_path("../../data/#{template}", __dir__)
+  template_path = File.expand_path("../../data/samples/#{template}", __dir__)
   rows = CSV.read(template_path, headers: true)
   shifted_rows = shift_dates_to_today(rows)
 

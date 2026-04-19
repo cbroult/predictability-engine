@@ -1,27 +1,86 @@
-# JIRA Integration Pipeline
-# This pipeline runs scenarios against an actual JIRA instance.
-# It is triggered manually to avoid unnecessary issue creation and API usage.
+# jira-integration.yml — end-to-end validation against a live Jira instance.
+#
+# Pipeline:
+#   1. seed              run scripts/jira_seeder.rb to populate $JIRA_PROJECT
+#                        with a mixed-state issue set (uses --cleanup to start
+#                        from a clean slate)
+#   2. verify-reports    run predictability-engine summary/report/forecast
+#                        against the seeded project — confirms the live Jira
+#                        data source can feed the full report pipeline
+#   3. jira-cucumber     run the @real_jira BDD scenarios
+#   4. badge             always report
+#
+# Manual trigger only — Jira writes are side-effectful and we never want these
+# firing on every push.
+#
+# Required Woodpecker secrets (org-level cbp-org):
+#   jira_site             — Jira instance URL
+#   jira_email            — Jira account email
+#   jira_api_token        — Jira API token
+#   jira_project          — Jira project key to seed and verify against
+#   badge_service_token   — Write token for badge.cbp-org.internal
+
+variables:
+  - &network_host
+    backend_options:
+      docker:
+        network_mode: host
+  - &jira_env
+    JIRA_SITE:
+      from_secret: jira_site
+    JIRA_EMAIL:
+      from_secret: jira_email
+    JIRA_API_TOKEN:
+      from_secret: jira_api_token
+    JIRA_PROJECT:
+      from_secret: jira_project
 
 when:
   event: manual
   branch: main
 
 steps:
-  - name: jira-test
+  - name: seed
     image: ruby:4.0.2-alpine
-    backend_options:
-      docker:
-        network_mode: host
+    <<: *network_host
+    environment: *jira_env
+    commands:
+      - apk add --no-cache build-base
+      - bundle install --jobs 4 --retry 3
+      - bundle exec ruby scripts/jira_seeder.rb --cleanup --project "$JIRA_PROJECT" --count 25
+
+  - name: verify-reports
+    image: ruby:4.0.2-alpine
+    <<: *network_host
+    environment: *jira_env
+    commands:
+      - apk add --no-cache build-base nodejs npm
+      - npm install playwright && npx playwright install chromium --with-deps
+      - bundle install --jobs 4 --retry 3
+      - bundle exec ./bin/predictability-engine summary  "$JIRA_PROJECT"
+      - bundle exec ./bin/predictability-engine forecast "$JIRA_PROJECT" 10
+      - bundle exec ./bin/predictability-engine report   "$JIRA_PROJECT" html /tmp/jira.html
+      - test -s /tmp/jira.html
+
+  - name: jira-cucumber
+    image: ruby:4.0.2-alpine
+    <<: *network_host
     environment:
-      JIRA_SITE:
-        from_secret: jira_site
-      JIRA_EMAIL:
-        from_secret: jira_email
-      JIRA_API_TOKEN:
-        from_secret: jira_api_token
+      <<: *jira_env
       CUCUMBER_PUBLISH_QUIET: "true"
     commands:
       - apk add --no-cache build-base nodejs npm
       - npm install playwright && npx playwright install chromium --with-deps
       - bundle install --jobs 4 --retry 3
       - bundle exec cucumber features/jira_pipeline.feature --tags @real_jira
+
+  - name: badge
+    image: docker-registry.cbp-org.internal/badge-reporter:latest
+    when:
+      status: [success, failure]
+    <<: *network_host
+    environment:
+      BADGE_SECRET:
+        from_secret: badge_service_token
+    commands:
+      - badge report jira-integration

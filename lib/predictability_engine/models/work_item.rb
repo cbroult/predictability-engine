@@ -3,12 +3,13 @@
 module PredictabilityEngine
   module Models
     class WorkItem
-      attr_accessor :id, :title, :type, :start_date, :end_date
+      attr_accessor :id, :title, :type, :priority, :start_date, :end_date
 
-      def initialize(item_id:, title: nil, type: nil, start_date: nil, end_date: nil)
+      def initialize(item_id:, title: nil, type: nil, priority: nil, start_date: nil, end_date: nil) # rubocop:disable Metrics/ParameterLists
         @id = item_id
         @title = title
         @type = type
+        @priority = priority
         @start_date = start_date ? Date.parse(start_date.to_s) : nil
         @end_date = end_date ? Date.parse(end_date.to_s) : nil
       end

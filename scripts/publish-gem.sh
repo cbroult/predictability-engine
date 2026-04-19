@@ -14,35 +14,9 @@ set -eu
 CA_CERT_FILE=/tmp/cbp-ca.crt
 printf '%s' "$CBP_ORG_CA_CERT" | base64 -d > "$CA_CERT_FILE"
 
-# Pre-check: compare code version against the latest published version on geminabox.
-# Avoids a wasted gem build and produces a clear, early signal when no bump occurred.
-CURRENT_VERSION=$(ruby -e "require_relative 'lib/predictability_engine/version'; puts PredictabilityEngine::VERSION")
-PUBLISHED_VERSION=$(curl -sf --cacert "$CA_CERT_FILE" \
-  "https://gems.cbp-org.internal/specs.4.8.gz" | \
-  zcat | ruby -e "
-    specs = Marshal.load(\$stdin.read)
-    gem = specs.find { |name, _ver, _plat| name == 'predictability-engine' }
-    puts gem ? gem[1].to_s : 'none'
-  " 2>/dev/null || echo "unknown")
-
-print_bump_instructions() {
-  echo ""
-  echo "##############################################################"
-  echo "# ERROR: $1"
-  echo "#"
-  echo "# Bump the version before pushing:"
-  echo "#"
-  echo "#   bundle exec rake version:bump[patch]   # bug fix"
-  echo "#   bundle exec rake version:bump[minor]   # new feature"
-  echo "#   bundle exec rake version:bump[major]   # breaking change"
-  echo "##############################################################"
-  echo ""
-}
-
-if [ "$CURRENT_VERSION" = "$PUBLISHED_VERSION" ]; then
-  print_bump_instructions "version ${CURRENT_VERSION} is already published."
-  exit 1
-fi
+# The auto-bump step (scripts/auto-bump.sh) guarantees a new version before we
+# reach this script. HTTP 409 is kept as a defensive check in case that
+# invariant is ever violated (e.g. manual pipeline re-run of the same SHA).
 
 gem build predictability-engine.gemspec
 GEM_FILE=$(ls predictability-engine-*.gem | head -1)
@@ -59,7 +33,7 @@ case "$HTTP_STATUS" in
     echo "Published ${GEM_FILE} to gems.cbp-org.internal"
     ;;
   409)
-    print_bump_instructions "${GEM_FILE} is already published (HTTP 409)."
+    echo "ERROR: ${GEM_FILE} is already published (HTTP 409). auto-bump should have prevented this." >&2
     exit 1
     ;;
   *)

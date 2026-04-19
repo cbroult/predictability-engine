@@ -5,6 +5,8 @@ require 'date'
 module PredictabilityEngine
   module Calculators
     module CfdForecaster
+      DEFAULT_HISTORY_RANGE = '2m'
+
       def self.forecast_summary(work_items, trials: 10_000, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
         backlog = work_items.reject(&:completed?).size
         historical = Throughput.daily(work_items).values
@@ -17,21 +19,27 @@ module PredictabilityEngine
         build_summary(work_items, results, days_to_future, percentiles)
       end
 
-      def self.forecast_series(work_items, trials: 10_000, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
+      def self.forecast_series(work_items, trials: 10_000, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES,
+                               history_range: nil)
         cfd_data = ensure_data_up_to_today(Cfd.calculate(work_items), work_items)
         return nil if cfd_data.empty?
 
         summary = forecast_summary(work_items, trials: trials, percentiles: percentiles)
         return nil unless summary
 
-        today_index = cfd_data.index { |d| d[:date] == PredictabilityEngine.today } || (cfd_data.size - 1)
-        history = cfd_data[0..today_index].last(15)
-        future_data = cfd_data[(today_index + 1)..] || []
-        max_days = [percentiles.map { |p| summary[:"p#{p}"] }.max || 0, future_data.size].max
-
+        history, future_data, max_days = slice_series(cfd_data, summary, percentiles, history_range)
         { dates: build_dates(history, max_days), arrivals: build_arrivals(history, max_days, future_data),
           departed: history.map { |d| d[:departed] }, summary: summary, max_days: max_days,
           forecasts: build_forecast_map(history, summary, max_days, percentiles, future_data) }
+      end
+
+      def self.slice_series(cfd_data, summary, percentiles, history_range)
+        today_index = cfd_data.index { |d| d[:date] == PredictabilityEngine.today } || (cfd_data.size - 1)
+        history_days = Duration.parse(history_range || DEFAULT_HISTORY_RANGE)
+        history = cfd_data[0..today_index].last(history_days)
+        future_data = cfd_data[(today_index + 1)..] || []
+        max_days = [percentiles.map { |p| summary[:"p#{p}"] }.max || 0, future_data.size].max
+        [history, future_data, max_days]
       end
 
       def self.simulate_backlog(backlog, historical, trials)
@@ -97,7 +105,8 @@ module PredictabilityEngine
       end
 
       private_class_method :simulate_backlog, :days_to_last_scheduled_event, :build_summary,
-                           :ensure_data_up_to_today, :build_dates, :build_arrivals, :build_forecast_map
+                           :ensure_data_up_to_today, :build_dates, :build_arrivals, :build_forecast_map,
+                           :slice_series
     end
   end
 end

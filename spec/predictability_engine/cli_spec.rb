@@ -93,7 +93,10 @@ RSpec.describe PredictabilityEngine::Cli do
           StandardError, 'Oops'
         )
 
-        expect { viz.all_formats(source) }.to output(/Failed to generate terminal report: Oops/).to_stderr
+        expect(PredictabilityEngine.logger).to receive(:warn) do |_, &block|
+          expect(block.call).to match(/Failed to generate terminal report: Oops/)
+        end
+        viz.all_formats(source)
       end
     end
 
@@ -103,7 +106,8 @@ RSpec.describe PredictabilityEngine::Cli do
       end
 
       it 'returns generated path if output is nil' do
-        expect(viz.send(:generate_output_path, source, nil, 'default.html')).to match(%r{(./)?reports/sample/default.html})
+        expect(viz.send(:generate_output_path, source, nil,
+                        'default.html')).to match(%r{(./)?reports/sample/default.html})
       end
     end
   end

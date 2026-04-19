@@ -10,6 +10,8 @@ FROM ruby:4.0.2-alpine
 
 # CBP_ORG_CA_CERT_B64: base64-encoded cbp-org root CA certificate.
 ARG CBP_ORG_CA_CERT_B64
+# GEM_VERSION: optional pin for predictability-engine. Empty = install latest.
+ARG GEM_VERSION=""
 
 # Install CA cert into system trust store
 RUN apk add --no-cache ca-certificates && \
@@ -17,8 +19,14 @@ RUN apk add --no-cache ca-certificates && \
       > /usr/local/share/ca-certificates/cbp-org-root-ca.crt && \
     update-ca-certificates
 
-# Install predictability-engine
-RUN gem install predictability-engine --source https://gems.cbp-org.internal --no-document
+# Install predictability-engine (optionally pinned to ${GEM_VERSION})
+RUN if [ -n "${GEM_VERSION}" ]; then \
+      gem install predictability-engine --version "${GEM_VERSION}" \
+        --source https://gems.cbp-org.internal --no-document; \
+    else \
+      gem install predictability-engine \
+        --source https://gems.cbp-org.internal --no-document; \
+    fi
 
 # Entrypoint could be the engine itself
 ENTRYPOINT ["predictability-engine"]

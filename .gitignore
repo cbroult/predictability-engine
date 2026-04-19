@@ -1,6 +1,6 @@
 node_modules/
 reports/
-!data/reports/
+!data/samples/reports/
 tmp/
 coverage/
 .cache/
@@ -12,3 +12,4 @@ pkg/
 doc/
 report/
 .env
+.claude/scheduled_tasks.lock

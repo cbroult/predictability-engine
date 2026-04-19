@@ -6,6 +6,8 @@ require_relative 'jira_yaml'
 module PredictabilityEngine
   module DataSources
     class Jira < Base
+      IN_PROGRESS_KEYWORDS = ['In Progress', 'Doing', 'Active', 'Development', 'Progress'].freeze
+
       def perform_load(spec)
         if ENV['MOCK_JIRA'] == 'true'
           data = mock_data('JIRA_MOCK_DATA')
@@ -14,7 +16,7 @@ module PredictabilityEngine
           return build_work_items(data)
         end
 
-        profile, query = resolve_source(spec)
+        profile, query, @workflow = resolve_source(spec)
         client = build_client(profile)
         issues = fetch_issues(client, query)
 
@@ -72,7 +74,7 @@ module PredictabilityEngine
                         end
         return if has_changelog
 
-        warn "Warning: Issue #{key} is missing 'changelog' (expand=changelog failed?)"
+        PredictabilityEngine.logger.warn { "Issue #{key} is missing 'changelog' (expand=changelog failed?)" }
       end
 
       def get_field(issue, name, is_hash)
@@ -84,14 +86,20 @@ module PredictabilityEngine
         case spec
         when /\.ya?ml$/
           yaml = JiraYaml.new(spec)
-          [yaml.profile, yaml.query]
+          [yaml.profile, yaml.query, load_workflow(yaml.workflow_config_path, yaml.profile)]
         when 'jira'
-          [profile_name, query_from_config(profile_name)]
+          [profile_name, query_from_config(profile_name), load_workflow(nil, profile_name)]
         when /^[A-Z][A-Z0-9]+$/
-          [profile_name, "project = \"#{spec}\""]
+          [profile_name, "project = \"#{spec}\"", load_workflow(nil, profile_name)]
         else
-          [nil, spec]
+          [nil, spec, nil]
         end
+      end
+
+      def load_workflow(explicit_path, profile_name)
+        return JiraWorkflow.load(explicit_path) if explicit_path
+
+        profile_name && JiraWorkflow.load(JiraWorkflow.default_path(profile_name))
       end
 
       def query_from_config(profile_name)
@@ -117,23 +125,52 @@ module PredictabilityEngine
                   id: issue.key,
                   summary: issue.summary,
                   issuetype: issue.issuetype.name,
+                  priority: jira_priority_name(issue),
                   created: issue.created,
                   start_date: first_in_progress_date(issue),
-                  resolutiondate: issue.resolutiondate
+                  resolutiondate: last_departure_date(issue)
                 })
       end
 
+      def jira_priority_name(issue)
+        return nil unless issue.respond_to?(:priority) && issue.priority
+
+        issue.priority.respond_to?(:name) ? issue.priority.name : issue.priority.to_s
+      end
+
       def first_in_progress_date(issue)
+        names = @workflow&.arrival_names
+        return first_transition_matching(issue) { |t| names.any? { |n| t[:to].casecmp?(n) } } if names&.any?
+
+        warn_missing_workflow_once
+        first_transition_matching(issue) do |t|
+          IN_PROGRESS_KEYWORDS.any? { |kw| t[:to].downcase.include?(kw.downcase) }
+        end
+      end
+
+      def last_departure_date(issue)
+        names = @workflow&.departure_names
+        return issue.resolutiondate unless names&.any?
+
+        first_transition_matching(issue) { |t| names.any? { |n| t[:to].casecmp?(n) } } || issue.resolutiondate
+      end
+
+      def first_transition_matching(issue, &)
         return nil unless issue.respond_to?(:changelog) && issue.changelog
 
-        transitions = status_transitions(issue.changelog.fetch('histories', []))
-        in_progress_keywords = ['In Progress', 'Doing', 'Active', 'Development', 'Progress']
-
-        match = transitions.sort_by { |t| t[:date] }.find do |t|
-          in_progress_keywords.any? { |kw| t[:to].downcase.include?(kw.downcase) }
-        end
-
+        transitions = status_transitions(issue.changelog.fetch('histories', [])).sort_by { |t| t[:date] }
+        match = transitions.find(&)
         match ? match[:date] : nil
+      end
+
+      def warn_missing_workflow_once
+        return if @workflow_warning_emitted
+
+        @workflow_warning_emitted = true
+        PredictabilityEngine.logger.warn do
+          'No Jira workflow mapping found; falling back to in-progress keyword heuristic. ' \
+            'Run `./bin/predictability-engine jira_workflow <profile>` to generate an editable mapping.'
+        end
       end
 
       def status_transitions(histories)

@@ -81,22 +81,30 @@ Then(/^the HTML file "([^"]*)" should have confidence rules hit the forecast pla
 end
 
 Then(/^the HTML file "([^"]*)" should have confidence rules hit the local surface$/) do |filename|
+  # IMMUTABLE: see CLAUDE.md §"Forecast alignment invariant".
+  # The rule's count must equal the percentile-surface plateau (departed_so_far + wip),
+  # i.e. the top-right corner of the p% surface — not the live Arrivals line.
   require 'json'
   content = File.read(check_file_path(filename))
   spec = find_cfd_spec(content)
   vert_data = find_vert_data(spec)
   main_data = spec['data']['values']
 
+  plateau = compute_plateau(main_data)
+
   vert_data.each do |v|
-    date = v['date']
-    arrivals_at_date = main_data.find { |d| d['date'] == date && d['type'] == 'Arrivals' }
-    expect(arrivals_at_date).not_to be_nil, "No Arrivals data for #{date}"
-
-    # puts "Rule: #{v['label']}, Date: #{date}, Count: #{v['count']}, Arrivals: #{arrivals_at_date['count']}"
-
-    expect(v['count']).to be_within(0.001).of(arrivals_at_date['count']),
-                          "Rule for #{v['label']} hit #{v['count']} on #{date}, but Arrivals was #{arrivals_at_date['count']}"
+    expect(v['count']).to be_within(0.001).of(plateau),
+                          "Rule for #{v['label']} hit #{v['count']}, expected plateau #{plateau}"
   end
+end
+
+def compute_plateau(main_data)
+  # Plateau = max of any percentile surface's final count. All percentile surfaces
+  # flatten to the same value (departed_so_far + wip), so any percentile's max works.
+  pct_counts = main_data.select { |d| d['type'].to_s =~ /% Confidence$/ }.map { |d| d['count'] }
+  raise 'No percentile surface data found in CFD spec' if pct_counts.empty?
+
+  pct_counts.max
 end
 
 def find_cfd_spec(content)
@@ -214,7 +222,7 @@ Then(/^the following files should (not )?exist in "([^"]*)":$/) do |negate, dir,
 end
 
 Then(/^it is a valid PNG file$/) do
-  content = File.binread(check_file_path("reports/sample_data/dashboard.png"))
+  content = File.binread(check_file_path('reports/sample_data/dashboard.png'))
   expect(content[0..7]).to eq("\x89PNG\r\n\x1a\n".b)
 end
 
@@ -226,12 +234,32 @@ Then(/^the HTML file "([^"]*)" should have "([^"]*)" as the first chart panel$/)
   expect(first_panel).to include("<h2>#{title}</h2>")
 end
 
-Then(/^the HTML file "([^"]*)" should have "([^"]*)" as the (\d+)(?:st|nd|rd|th) chart panel$/) do |filename, title, index|
+Then(/^the HTML file "([^"]*)" should have "([^"]*)" as the (\d+)(?:st|nd|rd|th) chart panel$/) \
+  do |filename, title, index|
   content = File.read(check_file_path(filename))
   # First chart panel comes after summary panel
   # Split by <div class='chart-panel'> and check the one at given index
   panel = content.split("<div class='chart-panel'>").at(index.to_i)
   expect(panel).to include("<h2>#{title}</h2>")
+end
+
+Then(
+  /^the HTML file "([^"]*)" should have a date on the x-axis within (\d+) days? of "([^"]*)" as the first date$/
+) do |filename, tolerance, expected|
+  require 'json'
+  require 'date'
+  content = File.read(check_file_path(filename))
+  dates = extract_vega_specs(content).flat_map do |spec|
+    [spec, *(spec['vconcat'] || []), *(spec['layer'] || [])].flat_map do |node|
+      (node.dig('data', 'values') || []).map { |v| v['date'] }
+    end
+  end.compact.uniq.sort
+  raise "No date values found in #{filename}" if dates.empty?
+
+  actual = Date.parse(dates.first)
+  diff = (actual - Date.parse(expected)).to_i.abs
+  expect(diff).to be <= tolerance.to_i,
+                  "First date was #{actual}, expected within #{tolerance} day(s) of #{expected}"
 end
 
 Then(/^the HTML file "([^"]*)" should have CFD x-axis with minor ticks and long labeled ticks$/) do |filename|
@@ -242,8 +270,44 @@ Then(/^the HTML file "([^"]*)" should have CFD x-axis with minor ticks and long 
   expect(content).to match(/"x":\{.*?"axis":\{.*?"values":\[/m)
 end
 
+Then(/^the HTML file "([^"]*)" should have "([^"]*)" as a labeled x-axis tick$/) do |filename, date|
+  require 'json'
+  content = File.read(check_file_path(filename))
+  specs = extract_vega_specs(content)
+  all_values = specs.flat_map do |s|
+    [s, *(s['vconcat'] || []), *(s['layer'] || [])].flat_map do |n|
+      n.dig('encoding', 'x', 'axis', 'values') || []
+    end
+  end.uniq
+  expect(all_values).to include(date),
+                        "Labeled x-axis ticks did not include #{date}; values were: #{all_values}"
+end
+
 def check_file_path(filename)
   file_path = File.join(aruba.config.working_directory, filename)
   expect(File.exist?(file_path)).to be true
   file_path
+end
+
+Then(/^the HTML file "([^"]*)" should have (\d+)% and (\d+)% confidence on the same vertical rule$/) \
+  do |filename, pct1, pct2|
+  require 'json'
+  content = File.read(check_file_path(filename))
+  spec = find_cfd_spec(content)
+  vert_data = find_vert_data(spec)
+
+  combined = vert_data.find { |v| v['label'].include?("#{pct1}%") && v['label'].include?("#{pct2}%") }
+  labels = vert_data.map { |v| v['label'] }
+  expect(combined).not_to(be_nil,
+                          "Expected #{pct1}% and #{pct2}% on the same rule, rules were: #{labels}")
+end
+
+Then(/^the HTML file "([^"]*)" should have (\d+) distinct confidence rules$/) do |filename, count|
+  require 'json'
+  content = File.read(check_file_path(filename))
+  spec = find_cfd_spec(content)
+  vert_data = find_vert_data(spec)
+
+  expect(vert_data.size).to eq(count.to_i),
+                            "Expected #{count} rules, got #{vert_data.size}: #{vert_data.map { |v| v['label'] }}"
 end

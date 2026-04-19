@@ -1,7 +1,7 @@
 {
   "threshold": 0.8,
-  "minLines": 2,
-  "minTokens": 16,
+  "minLines": 3,
+  "minTokens": 30,
   "reporters": [
     "html",
     "console"
@@ -10,6 +10,7 @@
     "vendor/**",
     "report/**",
     "reports/**",
+    "**/reports/**",
     "tmp/**",
     "node_modules/**",
     "coverage/**",

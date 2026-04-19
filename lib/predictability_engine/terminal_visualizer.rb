@@ -22,8 +22,9 @@ module PredictabilityEngine
 
       start = completed.first.end_date
       x = completed.map { |i| (i.end_date - start).to_i }
+      xlabel = "Days since #{PredictabilityEngine.format_date(start)}"
       plot = UnicodePlot.scatterplot(x, completed.map(&:cycle_time), title: title,
-                                                                     xlabel: "Days since #{PredictabilityEngine.format_date(start)}",
+                                                                     xlabel: xlabel,
                                                                      ylabel: 'Cycle Time (days)')
       PredictabilityEngine.mapped_percentiles(items, pcts).each do |p|
         UnicodePlot.lineplot!(plot, x.minmax, [p[:val], p[:val]], name: p[:label])

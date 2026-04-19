@@ -16,10 +16,9 @@ steps:
     environment:
       CUCUMBER_PUBLISH_QUIET: "true"
     commands:
-      - apk add --no-cache build-base nodejs npm
-      - npm install playwright && npx playwright install chromium --with-deps
+      - apk add --no-cache build-base nodejs npm bash
       - mkdir -p /root/.local/share/ruby-advisory-db/gems
-      - bundle install --jobs 4 --retry 3
+      - ./bin/setup
       - bundle exec rake verify
 
   - name: badge

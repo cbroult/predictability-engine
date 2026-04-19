@@ -7,47 +7,45 @@ require_relative 'visualizer'
 require_relative 'summary_visualizer'
 
 module PredictabilityEngine
-  class Viz < Thor
-    def self.exit_on_failure?
-      true
+  # Shared Thor configuration for Cli and Viz: common class_options plus
+  # auto-wiring of PredictabilityEngine.setup_logging from --log-level/--log-file.
+  module CliBase
+    def self.included(base)
+      base.extend(ClassMethods)
+      base.class_option :output_dir, type: :string, desc: 'Output directory for reports'
+      base.class_option :size, type: :string, default: Report::Constants::DEFAULT_SIZE,
+                               desc: 'Image size for PNG reports (a0-a6, 5k, 4k, hd)'
+      base.class_option :log_level, type: :string, default: 'info',
+                                    desc: 'Logging level (debug, info, warn, error)'
+      base.class_option :log_file, type: :string, desc: 'Log file path'
     end
 
-    class_option :color, type: :boolean, default: true, desc: 'Enable/disable color output for terminal charts'
-    class_option :output_dir, type: :string, desc: 'Output directory for reports'
-    class_option :size, type: :string, default: Report::Constants::DEFAULT_SIZE, desc: 'Image size for PNG reports (a0-a6, 5k, 4k, hd)'
-    class_option :log_level, type: :string, default: 'info', desc: 'Logging level (debug, info, warn, error)'
-    class_option :log_file, type: :string, desc: 'Log file path'
+    module ClassMethods
+      def exit_on_failure?
+        true
+      end
+    end
 
     def initialize(*args)
       super
-      PredictabilityEngine.setup_logging(
-        level: options[:log_level],
-        log_file: options[:log_file]
-      )
+      PredictabilityEngine.setup_logging(level: options[:log_level], log_file: options[:log_file])
     end
+  end
 
-    desc 'scatter SOURCE', 'Show Cycle Time scatter plot'
-    def scatter(source)
-      items = PredictabilityEngine.load_items(source)
-      PredictabilityEngine.logger.info Visualizer.cycle_time_scatter(items, color: options[:color])
-    end
+  class Viz < Thor
+    include CliBase
+    class_option :color, type: :boolean, default: true, desc: 'Enable/disable color output for terminal charts'
 
-    desc 'throughput SOURCE', 'Show Throughput histogram'
-    def throughput(source)
-      items = PredictabilityEngine.load_items(source)
-      PredictabilityEngine.logger.info Visualizer.throughput_histogram(items, color: options[:color])
-    end
-
-    desc 'cfd SOURCE', 'Show Cumulative Flow Diagram'
-    def cfd(source)
-      items = PredictabilityEngine.load_items(source)
-      PredictabilityEngine.logger.info Visualizer.cfd_plot(items, color: options[:color])
-    end
-
-    desc 'aging_wip SOURCE', 'Show Aging Work In Progress'
-    def aging_wip(source)
-      items = PredictabilityEngine.load_items(source)
-      PredictabilityEngine.logger.info Visualizer.aging_wip(items, color: options[:color])
+    { scatter: [:cycle_time_scatter, 'Show Cycle Time scatter plot'],
+      throughput: [:throughput_histogram, 'Show Throughput histogram'],
+      cfd: [:cfd_plot, 'Show Cumulative Flow Diagram'],
+      aging_wip: [:aging_wip, 'Show Aging Work In Progress'],
+      forecasted_cfd: [:forecasted_cfd_plot, 'Show Forecasted Cumulative Flow Diagram'] }.each do |cmd, (viz_method, description)|
+      desc "#{cmd} SOURCE", description
+      define_method(cmd) do |source|
+        items = PredictabilityEngine.load_items(source)
+        PredictabilityEngine.logger.info { Visualizer.send(viz_method, items, color: options[:color]) }
+      end
     end
 
     desc 'html_scatter SOURCE [OUTPUT]', 'Generate Vega-Lite HTML scatter plot'
@@ -65,22 +63,20 @@ module PredictabilityEngine
     end
 
     desc 'html_cfd SOURCE [OUTPUT]', 'Generate Vega-Lite HTML CFD'
+    method_option :historical_cfd_history, type: :string,
+                                           desc: 'Historical CFD window (e.g. 1w, 2m, 30d; default: full range)'
     def html_cfd(source, output = nil)
       generate_html_chart(source, output, 'cfd') do |items|
-        Visualizer.vega_cfd(items)
+        Visualizer.vega_cfd(items, history_range: options[:historical_cfd_history])
       end
     end
 
-    desc 'forecasted_cfd SOURCE', 'Show Forecasted Cumulative Flow Diagram'
-    def forecasted_cfd(source)
-      items = PredictabilityEngine.load_items(source)
-      PredictabilityEngine.logger.info Visualizer.forecasted_cfd_plot(items, color: options[:color])
-    end
-
     desc 'html_forecasted_cfd SOURCE [OUTPUT]', 'Generate Vega-Lite HTML Forecasted CFD'
+    method_option :forecast_history, type: :string,
+                                     desc: 'Forecasted CFD history window (e.g. 1w, 2m, 30d; default: 2m)'
     def html_forecasted_cfd(source, output = nil)
       generate_html_chart(source, output, 'forecasted_cfd') do |items|
-        Visualizer.vega_forecasted_cfd(items)
+        Visualizer.vega_forecasted_cfd(items, history_range: options[:forecast_history])
       end
     end
 
@@ -159,7 +155,7 @@ module PredictabilityEngine
       %i[terminal html pdf png md conf a3_landscape ppt].each do |fmt|
         PredictabilityEngine.run_and_print_report(source, fmt, options)
       rescue StandardError => e
-        warn "Failed to generate #{fmt} report: #{e.message}"
+        PredictabilityEngine.logger.warn { "Failed to generate #{fmt} report: #{e.message}" }
       end
     end
 
@@ -174,7 +170,7 @@ module PredictabilityEngine
       path = generate_output_path(source, output, "#{type}.html")
       FileUtils.mkdir_p(File.dirname(path))
       File.write(path, Visualizer.to_full_html(yield(items), items))
-      PredictabilityEngine.logger.info "Chart generated at #{path}"
+      PredictabilityEngine.logger.info { "Chart generated at #{path}" }
     end
 
     def generate_output_path(source, output, filename)
@@ -191,22 +187,7 @@ module PredictabilityEngine
   end
 
   class Cli < Thor
-    def self.exit_on_failure?
-      true
-    end
-
-    class_option :output_dir, type: :string, desc: 'Output directory for reports'
-    class_option :size, type: :string, default: Report::Constants::DEFAULT_SIZE, desc: 'Image size for PNG reports (a0-a6, 5k, 4k, hd)'
-    class_option :log_level, type: :string, default: 'info', desc: 'Logging level (debug, info, warn, error)'
-    class_option :log_file, type: :string, desc: 'Log file path'
-
-    def initialize(*args)
-      super
-      PredictabilityEngine.setup_logging(
-        level: options[:log_level],
-        log_file: options[:log_file]
-      )
-    end
+    include CliBase
 
     desc 'viz SUBCOMMAND ...ARGS', 'Visualization commands'
     subcommand 'viz', Viz
@@ -214,7 +195,7 @@ module PredictabilityEngine
     method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
     def summary(source)
       items = PredictabilityEngine.load_items(source)
-      PredictabilityEngine.logger.info SummaryVisualizer.metrics_terminal(items, color: options[:color])
+      PredictabilityEngine.logger.info { SummaryVisualizer.metrics_terminal(items, color: options[:color]) }
     end
 
     desc 'report SOURCE FORMAT [OUTPUT]', 'Generate a full report in various formats (terminal, html, pdf, md, conf)'
@@ -243,9 +224,9 @@ module PredictabilityEngine
         # filter_id: "12345"         # Optional: JIRA Filter ID
         # filter_name: "My Filter"   # Optional: JIRA Filter Name
         # query: "project = PROJ"    # Optional: Direct JQL query
-YAML
+      YAML
       File.write(filename, content)
-      PredictabilityEngine.logger.info "Template created at #{filename}"
+      PredictabilityEngine.logger.info { "Template created at #{filename}" }
     end
 
     desc 'jira_config PROFILE', 'Generate/Update JIRA credentials in ~/.config/jira/jira_credentials.yml'
@@ -268,7 +249,36 @@ YAML
       }
 
       File.write(path, config.to_yaml)
-      PredictabilityEngine.logger.info "Jira credentials for profile '#{profile}' saved to #{path}"
+      PredictabilityEngine.logger.info { "Jira credentials for profile '#{profile}' saved to #{path}" }
+    end
+
+    desc 'jira_workflow PROFILE [OUTPUT]',
+         'Extract Jira workflow statuses for PROFILE into an editable YAML mapping ' \
+         '(default: ~/.config/jira/<profile>.workflow.yml). Re-running refreshes the ' \
+         'snapshot while preserving any roles you already set.'
+    def jira_workflow(profile, output = nil)
+      path = output || JiraWorkflow.default_path(profile)
+      fresh = JiraWorkflow.extract(profile)
+      workflow = File.exist?(path) ? JiraWorkflow.load(path).refresh(fresh) : fresh
+      workflow.write(path)
+      action = File.exist?(path) ? 'refreshed' : 'written'
+      PredictabilityEngine.logger.info { "Workflow for profile '#{profile}' #{action}: #{path}" }
+      PredictabilityEngine.logger.info { "Review #{path} and set role: arrival / departure / null per status." }
+    end
+
+    desc 'jira_workflow_merge OUTPUT SOURCE1 [SOURCE2 ...]',
+         'Merge multiple workflow configs into a shared config. Each SOURCE is ' \
+         'either a profile name (resolved to ~/.config/jira/<profile>.workflow.yml) ' \
+         'or an explicit path to a workflow YAML file.'
+    def jira_workflow_merge(output, *sources)
+      raise Error, 'Need at least one workflow source to merge' if sources.empty?
+
+      configs = sources.map do |src|
+        path = File.exist?(src) ? src : JiraWorkflow.default_path(src)
+        JiraWorkflow.load(path) || raise(Error, "Workflow not found for '#{src}' (tried #{path})")
+      end
+      JiraWorkflow.merge(configs).write(output)
+      PredictabilityEngine.logger.info { "Merged workflow from #{sources.join(', ')} written to #{output}" }
     end
 
     desc 'forecast SOURCE BACKLOG_COUNT', 'Run Monte Carlo simulation for BACKLOG_COUNT items'
@@ -281,18 +291,38 @@ YAML
       print_forecast_results(backlog_count, results)
     end
 
+    GENERATE_SIZE_DESC = "Preset volume: #{DataGenerator::PRESETS.map do |n, c|
+      "#{n} (#{c[:completed]}/#{c[:wip]})"
+    end.join(', ')}".freeze
+
+    desc 'generate OUTPUT', 'Generate a synthetic sample CSV for smoke tests and demos'
+    method_option :size, type: :string, default: 'medium',
+                         enum: DataGenerator::PRESETS.keys.map(&:to_s),
+                         desc: GENERATE_SIZE_DESC
+    method_option :completed, type: :numeric, desc: 'Override number of completed items'
+    method_option :wip, type: :numeric, desc: 'Override number of WIP items'
+    def generate(output)
+      path = DataGenerator.generate(
+        output: output,
+        size: options[:size].to_sym,
+        completed: options[:completed],
+        wip: options[:wip]
+      )
+      PredictabilityEngine.logger.info { "Synthetic #{options[:size]} dataset written to #{path}" }
+    end
+
     private
 
     def print_forecast_results(backlog_count, results)
-      PredictabilityEngine.logger.info 'Monte Carlo Simulation Results (When will it be done?)'
-      PredictabilityEngine.logger.info '------------------------------------------------------'
-      PredictabilityEngine.logger.info "Backlog size: #{backlog_count}"
-      PredictabilityEngine.logger.info "Number of trials: #{Simulators::MonteCarlo::DEFAULT_TRIALS}"
-      PredictabilityEngine.logger.info ''
-      PredictabilityEngine.logger.info 'Results:'
+      PredictabilityEngine.logger.info { 'Monte Carlo Simulation Results (When will it be done?)' }
+      PredictabilityEngine.logger.info { '------------------------------------------------------' }
+      PredictabilityEngine.logger.info { "Backlog size: #{backlog_count}" }
+      PredictabilityEngine.logger.info { "Number of trials: #{Simulators::MonteCarlo::DEFAULT_TRIALS}" }
+      PredictabilityEngine.logger.info { '' }
+      PredictabilityEngine.logger.info { 'Results:' }
       PredictabilityEngine::DEFAULT_PERCENTILES.each do |p|
         val = Simulators::MonteCarlo.percentile(results, p)
-        PredictabilityEngine.logger.info "  #{p}% confidence: Done in #{val} days"
+        PredictabilityEngine.logger.info { "  #{p}% confidence: Done in #{val} days" }
       end
     end
 
@@ -305,18 +335,18 @@ YAML
       manager.load(source)
 
       assistant = Agents::Assistant.new(manager)
-      PredictabilityEngine.logger.info 'AI Thinking...'
+      PredictabilityEngine.logger.info { 'AI Thinking...' }
       response = assistant.ask(question)
 
       # response is an array of messages or similar depending on langchain version
       # In recent langchainrb versions assistant.run returns the last message
-      PredictabilityEngine.logger.info 'AI Response:'
-      PredictabilityEngine.logger.info '------------'
+      PredictabilityEngine.logger.info { 'AI Response:' }
+      PredictabilityEngine.logger.info { '------------' }
       # Assuming response is a message object with .content
       if response.respond_to?(:content)
-        PredictabilityEngine.logger.info response.content
+        PredictabilityEngine.logger.info { response.content }
       else
-        PredictabilityEngine.logger.info response
+        PredictabilityEngine.logger.info { response }
       end
     end
   end

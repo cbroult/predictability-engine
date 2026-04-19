@@ -6,15 +6,25 @@ require_relative 'report/image_generator'
 require_relative 'report/text_renderer'
 
 module PredictabilityEngine
-  class Report
+  class Report # rubocop:disable Metrics/ClassLength
     include Constants
 
-    attr_reader :items, :title, :percentiles, :images_path, :type
+    PRIORITY_ORDER = %w[Highest High Medium Low Lowest].freeze
+
+    FACETS = [
+      { key: :priority, label: 'Priority', accessor: :priority, dirname: 'priorities',
+        sort: ->(values) { values.sort_by { |v| [PRIORITY_ORDER.index(v) || PRIORITY_ORDER.size, v] } } },
+      { key: :type, label: 'Type', accessor: :type, dirname: 'types',
+        sort: lambda(&:sort) }
+    ].freeze
+
+    attr_reader :items, :title, :percentiles, :images_path, :type, :priority
 
     def initialize(items, title: 'Predictability Report', percentiles: PredictabilityEngine::DEFAULT_PERCENTILES,
-                   type: nil)
+                   type: nil, priority: nil)
       @type = type
-      @items = type ? items.select { |i| (i.type || 'Unspecified') == type } : items
+      @priority = priority
+      @items = filter_by_facets(items)
       @title = title
       @percentiles = percentiles
       @images_path = nil
@@ -22,13 +32,20 @@ module PredictabilityEngine
 
     def self.generate_all(items)
       reports = { all: new(items, title: 'Full Predictability Dashboard') }
-      types = items.map { |i| i.type || 'Unspecified' }.uniq
-      if types.size > 1
-        types.each do |type|
-          reports[type] = new(items, title: "Dashboard: #{type}", type: type)
+      FACETS.each do |facet|
+        values = facet_values(items, facet)
+        next unless values.size > 1
+
+        reports[facet[:key]] = values.to_h do |val|
+          [val, new(items, title: "Dashboard: #{val}", facet[:key] => val)]
         end
       end
       reports
+    end
+
+    def self.facet_values(items, facet)
+      raw = items.map { |i| i.public_send(facet[:accessor]) || 'Unspecified' }.uniq
+      facet[:sort].call(raw)
     end
 
     def render(format, layout: nil, color: false, **extra_opts)
@@ -45,7 +62,7 @@ module PredictabilityEngine
     def generate_chart_images(base_dir)
       @images_path = ImageGenerator.generate(self, base_dir)
     rescue StandardError => e
-      warn "Chart image generation failed: #{e.message}. Falling back to Mermaid/ASCII."
+      PredictabilityEngine.logger.warn { "Chart image generation failed: #{e.message}. Falling back to Mermaid/ASCII." }
       @images_path = nil
     end
 
@@ -73,7 +90,11 @@ module PredictabilityEngine
       root = File.expand_path('../..', __dir__)
       unless ENV['PLAYWRIGHT_BROWSERS_PATH']
         require 'etc'
-        real_home = Etc.getpwuid.dir rescue Dir.home
+        real_home = begin
+          Etc.getpwuid.dir
+        rescue StandardError
+          Dir.home
+        end
         ENV['PLAYWRIGHT_BROWSERS_PATH'] = File.expand_path('.cache/ms-playwright', real_home)
       end
       File.exist?("#{root}/node_modules/.bin/playwright") ? "#{root}/node_modules/.bin/playwright" : 'npx playwright'
@@ -96,6 +117,15 @@ module PredictabilityEngine
     end
 
     private
+
+    def filter_by_facets(items)
+      FACETS.reduce(items) do |acc, facet|
+        filter_val = instance_variable_get("@#{facet[:key]}")
+        next acc unless filter_val
+
+        acc.select { |i| (i.public_send(facet[:accessor]) || 'Unspecified') == filter_val }
+      end
+    end
 
     def render_ppt_multi_slide
       require 'powerpoint'
@@ -161,7 +191,9 @@ module PredictabilityEngine
         File.binread(ppt_file)
       end
     rescue StandardError => e
-      warn "High-fidelity PPT generation failed: #{e.message}. Falling back to multi-slide."
+      PredictabilityEngine.logger.warn do
+        "High-fidelity PPT generation failed: #{e.message}. Falling back to multi-slide."
+      end
       render_ppt_multi_slide
     ensure
       FileUtils.rm_f(temp_img) if temp_img
@@ -174,11 +206,11 @@ module PredictabilityEngine
       end
     end
 
-    def render_pdf(layout: :landscape, high_fidelity: true, format: nil, size: DEFAULT_SIZE, landscape: true, **_opts)
+    def render_pdf(layout: :landscape, high_fidelity: true, format: nil, size: DEFAULT_SIZE, landscape: true, **_opts) # rubocop:disable Metrics/ParameterLists
       fmt = format || size
       high_fidelity ? render_pdf_playwright(layout: layout, format: fmt, landscape: landscape) : render_pdf_prawn
     rescue StandardError => e
-      warn "High-fidelity PDF generation failed: #{e.message}. Falling back to Prawn."
+      PredictabilityEngine.logger.warn { "High-fidelity PDF generation failed: #{e.message}. Falling back to Prawn." }
       render_pdf_prawn
     end
 

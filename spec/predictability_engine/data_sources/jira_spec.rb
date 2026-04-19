@@ -15,7 +15,7 @@ RSpec.describe PredictabilityEngine::DataSources::Jira do
       let(:histories) { [transition('2024-03-01', 'To Do'), transition('2024-03-02', 'In Progress')] }
 
       it 'returns the date of the first transition to "In Progress"' do
-        expect(instance.send(:first_in_progress_date, issue)).to eq('2024-03-02')
+        expect_in_progress_at(issue, '2024-03-02')
       end
     end
 
@@ -23,9 +23,51 @@ RSpec.describe PredictabilityEngine::DataSources::Jira do
       let(:histories) { [transition('2024-03-01', 'To Do')] }
 
       it 'returns nil' do
-        expect(instance.send(:first_in_progress_date, issue)).to be_nil
+        expect_in_progress_at(issue, nil)
       end
     end
+
+    context 'with a workflow mapping' do
+      let(:histories) do
+        [transition('2024-03-01', 'To Do'),
+         transition('2024-03-02', 'Ready for QA'),
+         transition('2024-03-05', 'In Progress')]
+      end
+
+      it 'matches on workflow-declared arrival statuses, not the keyword list' do
+        set_workflow('Ready for QA', 'arrival')
+        expect_in_progress_at(issue, '2024-03-02')
+      end
+    end
+  end
+
+  describe '#last_departure_date' do
+    let(:issue) { instance_double(JiraMocks::Issue, resolutiondate: '2024-03-10') }
+
+    it 'falls back to resolutiondate without a workflow mapping' do
+      disable_changelog(issue)
+      expect(instance.send(:last_departure_date, issue)).to eq('2024-03-10')
+    end
+
+    it 'uses the first transition into a departure status when the workflow defines one' do
+      setup_changelog(issue, { 'histories' => [transition('2024-03-08', 'Ready for QA')] })
+      set_workflow('Ready for QA', 'departure')
+      expect(instance.send(:last_departure_date, issue)).to eq('2024-03-08')
+    end
+  end
+
+  def set_workflow(name, role)
+    wf = PredictabilityEngine::JiraWorkflow.new(statuses: [{ 'name' => name, 'role' => role }])
+    instance.instance_variable_set(:@workflow, wf)
+  end
+
+  def expect_in_progress_at(issue, expected)
+    actual = instance.send(:first_in_progress_date, issue)
+    expected.nil? ? (expect(actual).to be_nil) : (expect(actual).to eq(expected))
+  end
+
+  def disable_changelog(issue)
+    allow(issue).to receive(:respond_to?).with(:changelog).and_return(false)
   end
 
   describe '#validate_issue_contract!' do
@@ -53,7 +95,8 @@ RSpec.describe PredictabilityEngine::DataSources::Jira do
     end
 
     before do
-      allow(issue).to receive(:respond_to?).with(:changelog).and_return(false)
+      disable_changelog(issue)
+      allow(issue).to receive(:respond_to?).with(:priority).and_return(false)
     end
 
     it 'maps issue fields correctly' do
@@ -61,8 +104,17 @@ RSpec.describe PredictabilityEngine::DataSources::Jira do
       expect(result[:id]).to eq('PROJ-1')
       expect(result[:title]).to eq('Test issue')
       expect(result[:type]).to eq('Story')
+      expect(result[:priority]).to be_nil
       expect(result[:start_date]).to eq(Date.parse('2024-01-01'))
       expect(result[:end_date]).to eq(Date.parse('2024-01-10'))
+    end
+
+    it 'extracts priority name when the issue has a priority' do
+      priority = instance_double(JiraMocks::Priority, name: 'High')
+      allow(issue).to receive_messages(priority: priority)
+      allow(issue).to receive(:respond_to?).with(:priority).and_return(true)
+      result = instance.send(:map_issue, issue)
+      expect(result[:priority]).to eq('High')
     end
   end
 

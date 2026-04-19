@@ -8,11 +8,16 @@ module JiraMocks
     def summary; end
     def created; end
     def issuetype; end
+    def priority; end
     def changelog; end
     def resolutiondate; end
   end
 
   class Issuetype
+    def name; end
+  end
+
+  class Priority
     def name; end
   end
 end

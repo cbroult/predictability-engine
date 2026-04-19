@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.homepage      = 'https://git.cbp-org.internal/cbp-org/predictability-engine'
   spec.license       = 'MIT'
 
-  spec.files         = Dir['lib/**/*.rb', 'bin/*']
+  spec.files         = Dir['lib/**/*.rb', 'bin/*', 'data/samples/*.csv']
   spec.bindir        = 'bin'
   spec.executables   = ['predictability-engine']
   spec.require_paths = ['lib']

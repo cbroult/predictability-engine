@@ -25,6 +25,7 @@ module PredictabilityEngine
       .nav-links a { text-decoration: none; color: #3498db; font-size: 0.9rem; padding: 5px 12px; border-radius: 20px; border: 1.5px solid #3498db; font-weight: 600; transition: all 0.2s; }
       .nav-links a:hover { background: #3498db; color: white; }
       .nav-links a.active { background: #2c3e50; color: white; border-color: #2c3e50; cursor: default; }
+      .nav-links li.nav-sep { color: #bbb; padding: 0 4px; user-select: none; }
       .dashboard-container { display: grid; grid-template-columns: 260px 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 15px; flex-grow: 1; min-height: 0; min-width: 1300px; }
       .summary-panel { grid-row: span 2; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-y: auto; border: 1px solid #e9ecef; }
       .summary-panel h2 { font-size: 1.25rem; margin-top: 0; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 8px; margin-bottom: 15px; }
@@ -100,7 +101,7 @@ module PredictabilityEngine
     end
 
     %i[cycle_time_scatter throughput_histogram cfd forecasted_cfd aging_wip dashboard].each do |m|
-      define_singleton_method("vega_#{m}") { |items| VegaVisualizer.send(m, items) }
+      define_singleton_method("vega_#{m}") { |items, **opts| VegaVisualizer.send(m, items, **opts) }
     end
 
     def self.to_full_html(content_or_chart, work_items = nil, **opts)
@@ -133,10 +134,14 @@ module PredictabilityEngine
     def self.build_nav_bar(sub_reports)
       return '' unless sub_reports&.any?
 
-      links = sub_reports.map do |r|
-        "<li><a href='#{r[:url]}' class='#{'active' if r[:active]}'>#{r[:label]}</a></li>"
-      end.join
+      links = sub_reports.map { |r| nav_item(r) }.join
       "<ul class='nav-links'><li><strong>View:</strong></li>#{links}</ul>"
+    end
+
+    def self.nav_item(entry)
+      return "<li class='nav-sep' aria-hidden='true'>|</li>" if entry[:separator]
+
+      "<li><a href='#{entry[:url]}' class='#{'active' if entry[:active]}'>#{entry[:label]}</a></li>"
     end
 
     def self.prepare_html_content(content_or_chart, layout, html)

@@ -53,13 +53,13 @@ module PredictabilityEngine
       AgingWipVisualizer.aging_wip(items, title: title, percentiles: percentiles, **)
     end
 
-    def self.cfd(work_items, title: 'Cumulative Flow Diagram', **_opts)
-      CfdCharts.cfd(work_items, title: title)
+    def self.cfd(work_items, title: 'Cumulative Flow Diagram', history_range: nil, **_opts)
+      CfdCharts.cfd(work_items, title: title, history_range: history_range)
     end
 
     def self.forecasted_cfd(work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES,
-                            title: 'Forecasted Cumulative Flow Diagram', **_opts)
-      CfdCharts.forecasted_cfd(work_items, percentiles, title)
+                            title: 'Forecasted Cumulative Flow Diagram', history_range: nil, **_opts)
+      CfdCharts.forecasted_cfd(work_items, percentiles, title, history_range: history_range)
     end
 
     def self.build_cfd_unified_data(data, percentiles)

@@ -23,6 +23,13 @@ module PredictabilityEngine
         @config['query'] || project_query || filter_query || convention_query
       end
 
+      def workflow_config_path
+        raw = @config['workflow_config']
+        return nil unless raw && !raw.to_s.empty?
+
+        Pathname.new(raw).absolute? ? raw : File.expand_path(raw, @path.dirname.to_s)
+      end
+
       private
 
       def load_config

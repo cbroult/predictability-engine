@@ -36,20 +36,29 @@ Get up and running in minutes:
 
 1.  **Install Dependencies**:
     ```bash
-    bundle install && npx playwright install
+    ./bin/setup
     ```
+    This runs `bundle install` and installs Playwright + Chromium (needed for PDF / PNG / PPTX rendering). Set `SKIP_PLAYWRIGHT=1` to skip the browser install on systems where Chromium is already provisioned.
 2.  **Setup AI (Optional)**:
     ```bash
     echo "OPENAI_API_KEY=your_key" > .env
     ```
 3.  **Run a Summary**:
     ```bash
-    ./bin/predictability-engine summary data/sample_data.csv
+    ./bin/predictability-engine summary data/samples/sample_data.csv
     ```
 4.  **Generate a Dashboard**:
     ```bash
-    ./bin/predictability-engine batch data/sample_data.csv
+    ./bin/predictability-engine batch data/samples/sample_data.csv
     ```
+
+---
+
+## 🖼️ Showcase
+
+A single `./bin/predictability-engine batch <source>` produces a full responsive dashboard with Aging WIP, Forecasted CFD, Cycle Time Scatter, Throughput, and per-type sub-dashboards — plus matching PDF, PNG, PPTX, Markdown, and Confluence outputs.
+
+![Sample Dashboard](data/samples/reports/sample_data_large/dashboard.png)
 
 ---
 
@@ -85,10 +94,10 @@ $ gem install predictability-engine
 ```
 
 ### 🎭 Playwright Setup
-For high-fidelity PDF and PPTX report generation, Playwright is required:
+High-fidelity PDF / PNG / PPTX rendering uses Playwright + Chromium. Running `./bin/setup` after a clone installs both automatically (also available via `bundle exec rake setup`). If you need to reinstall only the browser:
 
 ```bash
-npx playwright install
+npx playwright install chromium --with-deps
 ```
 
 ---
@@ -108,7 +117,7 @@ Run all report formats (Terminal, HTML, PDF, PNG, Markdown, Confluence, PPTX) at
 ```bash
 ./bin/predictability-engine batch SOURCE
 ```
-The reports will be saved in a `reports/` subdirectory relative to the `SOURCE` file (e.g., `data/reports/sample_data/`). The HTML dashboard is **responsive** and includes **sub-dashboards** automatically grouped by work item type (e.g., Story, Bug, Task).
+The reports will be saved in a `reports/` subdirectory relative to the `SOURCE` file (e.g., `data/samples/reports/sample_data/`). The HTML dashboard is **responsive** and includes **sub-dashboards** automatically grouped by work item type (e.g., Story, Bug, Task).
 
 ### Report Resolution & Sizes
 When generating PNG, PDF, or PPTX reports, you can specify the resolution or paper format using the `--size` option. 
@@ -130,8 +139,6 @@ The engine provides a comprehensive logging system. By default, it logs to the c
 ```bash
 ./bin/predictability-engine report SOURCE html --log-level=debug --log-file=engine.log
 ```
-
-![Sample Dashboard](data/reports/sample_data_large/dashboard.png)
 
 ### Monte Carlo Forecasting
 Run 10,000 simulations to predict completion for a backlog of X items:

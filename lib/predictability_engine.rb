@@ -10,10 +10,24 @@ require 'langchain'
 Dotenv.load
 
 require_relative 'predictability_engine/logger'
+require_relative 'predictability_engine/loggable'
 
 loader = Zeitwerk::Loader.for_gem
 loader.ignore("#{__dir__}/predictability_engine/logger.rb") # Manual require
+loader.ignore("#{__dir__}/predictability_engine/loggable.rb") # Manual require
 loader.setup
+
+# Auto-inject Loggable into every class/module defined under PredictabilityEngine::
+# so each gains `logger` / `self.logger` without polluting Object.
+TracePoint.new(:end) do |tp|
+  mod = tp.self
+  next unless mod.is_a?(Module)
+  next unless mod.name&.start_with?('PredictabilityEngine::')
+  next if mod == PredictabilityEngine::Loggable
+  next if mod.include?(PredictabilityEngine::Loggable)
+
+  mod.include(PredictabilityEngine::Loggable)
+end.enable
 
 module PredictabilityEngine
   class Error < StandardError; end
@@ -58,7 +72,8 @@ module PredictabilityEngine
 
   def self.run_and_print_report(file, format, options, output: nil)
     opts = options.to_h.symbolize_keys.merge(output: output)
-    logger.info run_report(file, format, **opts)
+    message = run_report(file, format, **opts)
+    logger.info { message }
   end
 
   def self.format_date(date)
@@ -71,5 +86,12 @@ module PredictabilityEngine
     return nil unless time
 
     time.to_time.strftime('%Y-%m-%d %H:%M')
+  end
+
+  def self.sample_data_path(name = 'sample_data.csv')
+    path = File.join(File.expand_path('..', __dir__), 'data', 'samples', name)
+    raise Error, "Sample data not found: #{path}" unless File.exist?(path)
+
+    path
   end
 end

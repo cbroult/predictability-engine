@@ -21,43 +21,32 @@ module PredictabilityEngine
       @level = parse_level(level)
       @log_file = log_file
       @console_logger.level = @level
-      if log_file
-        FileUtils.mkdir_p(File.dirname(log_file))
-        @file_logger = create_file_logger(log_file)
-        @file_logger.level = @level
+      return unless log_file
+
+      FileUtils.mkdir_p(File.dirname(log_file))
+      @file_logger = create_file_logger(log_file)
+      @file_logger.level = @level
+    end
+
+    LEVEL_MAP = {
+      'debug' => ::Logger::DEBUG,
+      'info' => ::Logger::INFO,
+      'warn' => ::Logger::WARN,
+      'error' => ::Logger::ERROR
+    }.freeze
+    private_constant :LEVEL_MAP
+
+    %i[info warn error debug].each do |level|
+      define_method(level) do |msg = nil, &block|
+        @console_logger.public_send(level, msg, &block)
+        @file_logger&.public_send(level, msg, &block)
       end
-    end
-
-    def info(msg)
-      @console_logger.info(msg)
-      @file_logger&.info(msg)
-    end
-
-    def warn(msg)
-      @console_logger.warn(msg)
-      @file_logger&.warn(msg)
-    end
-
-    def error(msg)
-      @console_logger.error(msg)
-      @file_logger&.error(msg)
-    end
-
-    def debug(msg)
-      @console_logger.debug(msg)
-      @file_logger&.debug(msg)
     end
 
     private
 
     def parse_level(level)
-      case level.to_s.downcase
-      when 'debug' then ::Logger::DEBUG
-      when 'info'  then ::Logger::INFO
-      when 'warn'  then ::Logger::WARN
-      when 'error' then ::Logger::ERROR
-      else ::Logger::INFO
-      end
+      LEVEL_MAP.fetch(level.to_s.downcase, ::Logger::INFO)
     end
 
     def create_console_logger
@@ -79,11 +68,7 @@ module PredictabilityEngine
       logger.formatter = proc do |severity, datetime, _progname, msg|
         # Strip ANSI colors for machine-readable file log
         clean_msg = msg.to_s.gsub(/\e\[([;\d]+)?m/, '')
-        {
-          timestamp: datetime.iso8601,
-          level: severity,
-          message: clean_msg
-        }.to_json + "\n"
+        "#{{ timestamp: datetime.iso8601, level: severity, message: clean_msg }.to_json}\n"
       end
       logger
     end

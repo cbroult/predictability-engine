@@ -5,7 +5,9 @@ module PredictabilityEngine
     module BasicCharts
       def self.cycle_time_scatter(items, percentiles, title: 'Cycle Time Scatter Plot')
         completed = PredictabilityEngine.completed_items(items)
-        data = completed.map { |i| { date: PredictabilityEngine.format_date(i.end_date), cycle_time: i.cycle_time, id: i.id } }
+        data = completed.map do |i|
+          { date: PredictabilityEngine.format_date(i.end_date), cycle_time: i.cycle_time, id: i.id }
+        end
         pct_data = PredictabilityEngine.mapped_percentiles(items, percentiles)
         VegaVisualizer.apply_standard_dims(
           Vega.lite.data(data + pct_data.map { |p| { type: p[:label], val: p[:val], p: p[:p] } })
@@ -15,8 +17,11 @@ module PredictabilityEngine
       end
 
       def self.scatter_points_layer
+        x_axis = VegaVisualizer.date_x_axis(title: 'Completion Date',
+                                            minorTicks: true,
+                                            tickCount: { interval: 'week' })
         { mark: { type: 'point', tooltip: true, opacity: 0.6, size: 20 },
-          encoding: { x: VegaVisualizer.date_x_axis(title: 'Completion Date', minorTicks: true, tickCount: { interval: 'week' }),
+          encoding: { x: x_axis,
                       y: VegaVisualizer.quantitative_y_axis('cycle_time', title: 'Cycle Time (days)'),
                       color: { value: '#4c78a8' } } }
       end

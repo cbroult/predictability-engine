@@ -101,14 +101,27 @@ RSpec.describe PredictabilityEngine::Report do
   end
 
   describe '.generate_all' do
-    it 'generates sub-reports by type if multiple types exist' do
-      items << PredictabilityEngine::Models::WorkItem.new(item_id: 'PROJ-2', title: 'Task 2', type: 'Bug')
-      items[0].instance_variable_set(:@type, 'Story') # Ensure first item has a type
+    it 'generates sub-reports grouped by facet when multiple values exist' do
+      items << PredictabilityEngine::Models::WorkItem.new(item_id: 'PROJ-2', title: 'Task 2',
+                                                          type: 'Bug', priority: 'Low')
+      items[0].instance_variable_set(:@type, 'Story')
+      items[0].instance_variable_set(:@priority, 'High')
 
       reports = described_class.generate_all(items)
-      expect(reports).to have_key('Story')
-      expect(reports).to have_key('Bug')
+
       expect(reports).to have_key(:all)
+      expect(reports[:type].keys).to contain_exactly('Story', 'Bug')
+      expect(reports[:priority].keys).to contain_exactly('High', 'Low')
+    end
+
+    it 'omits a facet whose values are all identical' do
+      items << PredictabilityEngine::Models::WorkItem.new(item_id: 'PROJ-2', title: 'Task 2', type: 'Bug')
+      items[0].instance_variable_set(:@type, 'Story')
+
+      reports = described_class.generate_all(items)
+
+      expect(reports[:type].keys).to contain_exactly('Story', 'Bug')
+      expect(reports).not_to have_key(:priority)
     end
   end
 

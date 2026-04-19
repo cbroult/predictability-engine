@@ -10,10 +10,12 @@ module PredictabilityEngine
         data[:dates].each_with_index do |date, i|
           res << { date: PredictabilityEngine.format_date(date), count: data[:arrivals][i], type: 'Arrivals', order: 0 }
           sorted_pcts.each_with_index do |p, pi|
-            res << { date: PredictabilityEngine.format_date(date), count: data[:forecasts][p][i], type: "#{p}% Confidence", order: pi + 1 }
+            res << { date: PredictabilityEngine.format_date(date), count: data[:forecasts][p][i],
+                     type: "#{p}% Confidence", order: pi + 1 }
           end
           if i < data[:departed].size
-            res << { date: PredictabilityEngine.format_date(date), count: data[:departed][i], type: 'Departures', order: sorted_pcts.size + 1 }
+            res << { date: PredictabilityEngine.format_date(date), count: data[:departed][i], type: 'Departures',
+                     order: sorted_pcts.size + 1 }
           end
         end
         res
@@ -84,17 +86,18 @@ module PredictabilityEngine
         sorted_pcts = percentiles.sort
         data_by_date = group_pcts_by_date(forecast, sorted_pcts)
 
+        # IMMUTABLE invariant — see CLAUDE.md §"Forecast alignment invariant".
+        # Rule height = percentile-surface plateau (departed_so_far + wip), so each
+        # vertical rule hits the top-right corner of its p% surface exactly.
+        plateau = forecast[:summary][:departed_so_far] + forecast[:summary][:wip]
+
         data_by_date.sort_by { |date, _| date }.map do |date, p_list|
           date_str = PredictabilityEngine.format_date(date)
-          # Align with the surface end (Arrivals line) as per requirement
-          forecast_val = calculate_arrivals_at(forecast, date_str)
-
-          # Label should include date as per requirement
           label = "#{p_list.sort.map { |p| "#{p}%" }.join(', ')} (#{date_str})"
 
           { date: date_str, label: label,
             tooltip: p_list.map { |p| "#{p}% Confidence (#{date_str})" }.join("\n"),
-            count: forecast_val }
+            count: plateau }
         end
       end
 
@@ -118,16 +121,11 @@ module PredictabilityEngine
           end
         end
 
-        groups.each_with_object({}) { |g, h| h[PredictabilityEngine.format_date(g[:date])] = g[:pcts] }
-      end
-
-      def self.calculate_arrivals_at(forecast, date_str)
-        idx = forecast[:dates].index { |d| PredictabilityEngine.format_date(d) == date_str }
-        idx ? forecast[:arrivals][idx] : forecast[:summary][:total_items]
+        groups.to_h { |g| [PredictabilityEngine.format_date(g[:date]), g[:pcts]] }
       end
 
       private_class_method :rule_layer, :text_layer, :tooltip_field,
-                           :group_pcts_by_date, :calculate_arrivals_at, :base_layer, :vert_encoding
+                           :group_pcts_by_date, :base_layer, :vert_encoding
     end
   end
 end

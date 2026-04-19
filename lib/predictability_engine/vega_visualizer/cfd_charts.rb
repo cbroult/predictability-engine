@@ -3,14 +3,16 @@
 module PredictabilityEngine
   module VegaVisualizer
     module CfdCharts
-      def self.cfd(work_items, title: 'Cumulative Flow Diagram')
+      def self.cfd(work_items, title: 'Cumulative Flow Diagram', history_range: nil)
         data = Calculators::Cfd.calculate(work_items)
+        days = Duration.parse(history_range)
+        data = data.last(days) if days
         formatted = VegaVisualizer.format_cfd_data(data)
         render_cfd(formatted, [], title)
       end
 
-      def self.forecasted_cfd(work_items, percentiles, title)
-        data = Calculators::Cfd.forecast_series(work_items, percentiles: percentiles)
+      def self.forecasted_cfd(work_items, percentiles, title, history_range: nil)
+        data = Calculators::Cfd.forecast_series(work_items, percentiles: percentiles, history_range: history_range)
         return cfd(work_items, title: title) unless data
 
         unified = VegaVisualizer.build_cfd_unified_data(data, percentiles)
@@ -21,7 +23,16 @@ module PredictabilityEngine
         dom, range = VegaVisualizer.cfd_color_scale(percentiles)
         chart = base_cfd_chart(data, dom, range)
                 .layer(cfd_layers(percentiles, forecast))
-        VegaVisualizer.apply_standard_dims(chart, title: title)
+        resolved_title = forecast ? forecast_title(title) : title
+        VegaVisualizer.apply_standard_dims(chart, title: resolved_title)
+      end
+
+      def self.forecast_title(text)
+        { text: text,
+          subtitle: [
+            'Each X% Confidence surface = forecast of cumulative departures if backlog completes at that confidence',
+            '(Monte Carlo on historical throughput; NOT cycle-time percentile bands)'
+          ] }
       end
 
       def self.cfd_layers(percentiles, forecast)
@@ -64,7 +75,7 @@ module PredictabilityEngine
             )
       end
 
-      private_class_method :base_cfd_chart
+      private_class_method :base_cfd_chart, :forecast_title
     end
   end
 end

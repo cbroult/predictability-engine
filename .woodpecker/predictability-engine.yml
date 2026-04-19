@@ -1,17 +1,21 @@
-# predictability-engine.yml — build and push the predictability-engine CI image
+# predictability-engine.yml — manual-only fallback for rebuilding the
+# predictability-engine Docker image outside the normal publish pipeline.
 #
-# The predictability-engine image pre-installs predictability-engine + cbp-org CA cert.
+# The normal path is `.woodpecker/publish.yml`, which rebuilds the image at
+# :v<version> + :latest after every gem publish. This pipeline exists so that
+# operators can force an image rebuild (e.g. after a CA cert rotation or base
+# image CVE) without cutting a new gem release.
 #
 # Triggers:
-#   - push to main that changes Dockerfile.predictability-engine
-#   - manual
+#   - manual only
+#
+# Required Woodpecker secrets (org-level cbp-org):
+#   cbp_org_ca_cert       — Base64-encoded cbp-org root CA certificate
+#   nexus_deploy_key      — SSH private key for root@nexus.cbp-org.internal
+#   badge_service_token   — Write token for badge.cbp-org.internal
 
 when:
-  - event: push
-    branch: main
-    path: Dockerfile.predictability-engine
   - event: manual
-    branch: main
 
 clone:
   git:
@@ -20,7 +24,7 @@ clone:
       skip_verify: true
 
 steps:
-  - name: build-and-push-predictability-engine
+  - name: rebuild-image
     image: ruby:4.0.2-alpine
     environment:
       CBP_ORG_CA_CERT:
@@ -29,24 +33,7 @@ steps:
         from_secret: nexus_deploy_key
     commands:
       - apk add --no-cache openssh-client
-      - mkdir -p ~/.ssh && chmod 700 ~/.ssh
-      - printf '%s\n' "${NEXUS_DEPLOY_KEY}" | sed 's/\\n/\n/g' | tr -d '\r' > ~/.ssh/ci_deploy
-      - chmod 600 ~/.ssh/ci_deploy
-      - echo "[nexus.cbp-org.internal]:32523 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPaRph2p4g/e4VpJHSn6mL5Qe32tPciyNCYsM5iEcuBB" >> ~/.ssh/known_hosts
-      - printf '%s' "${CBP_ORG_CA_CERT}" > /tmp/cbp-ca.b64
-      - REMOTE_TMPDIR=$(ssh -i ~/.ssh/ci_deploy -p 32523 -o StrictHostKeyChecking=yes -o BatchMode=yes root@nexus.cbp-org.internal 'mktemp -d')
-      - scp -O -i ~/.ssh/ci_deploy -P 32523 -o StrictHostKeyChecking=yes Dockerfile.predictability-engine /tmp/cbp-ca.b64 root@nexus.cbp-org.internal:${REMOTE_TMPDIR}/
-      - >-
-        ssh -i ~/.ssh/ci_deploy -p 32523 -o StrictHostKeyChecking=yes -o BatchMode=yes
-        root@nexus.cbp-org.internal
-        "docker build
-         --build-arg CBP_ORG_CA_CERT_B64=\"\$(cat ${REMOTE_TMPDIR}/cbp-ca.b64)\"
-         -f ${REMOTE_TMPDIR}/Dockerfile.predictability-engine
-         -t docker-registry.cbp-org.internal/predictability-engine:latest
-         ${REMOTE_TMPDIR}
-         && docker push docker-registry.cbp-org.internal/predictability-engine:latest
-         && rm -rf ${REMOTE_TMPDIR}
-         && echo 'predictability-engine:latest pushed to docker-registry.cbp-org.internal'"
+      - sh scripts/build-engine-image.sh
 
   - name: badge
     image: docker-registry.cbp-org.internal/badge-reporter:latest

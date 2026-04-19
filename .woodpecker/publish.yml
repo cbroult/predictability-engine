@@ -1,14 +1,28 @@
-# publish.yml — build and publish predictability-engine gem to gems.cbp-org.internal
+# publish.yml — build → test → publish → rebuild image → verify on clean install.
+#
+# Chained pipeline (mirrors multi-mail-archiver/.woodpecker/publish.yml):
+#   1. test                    bundle exec rake verify (the release gate)
+#   2. auto-bump               patch-bump version, commit+tag+push (unless [skip bump] / [skip ci])
+#   3. build-gem               gem build predictability-engine.gemspec
+#   4. publish-gem             push to gems.cbp-org.internal
+#   5. rebuild-image           rebuild docker-registry.cbp-org.internal/predictability-engine
+#                              at :v<new-version> and :latest
+#   6. verify-fresh-install    gem install predictability-engine on a clean image,
+#                              run `batch` + smoke matrix on shipped samples + XL synth
+#   7. badge                   always report
 #
 # Triggers:
-#   - push to main (auto-publish on every merge)
-#   - manual (ad-hoc publish on demand)
+#   - push to main (every merge auto-bumps patch if needed)
+#   - tag push refs/tags/v*   (re-release, no bump)
+#   - manual
 #
 # Required Woodpecker secrets (org-level cbp-org):
-#   gem_user            — Geminabox username
-#   gem_password        — Geminabox password
-#   badge_service_token — Write token for badge.cbp-org.internal
-#   cbp_org_ca_cert     — Base64-encoded cbp-org root CA certificate
+#   gem_user              — Geminabox username
+#   gem_password          — Geminabox password
+#   cbp_org_ca_cert       — Base64-encoded cbp-org root CA certificate
+#   badge_service_token   — Write token for badge.cbp-org.internal
+#   forgejo_push_token    — Forgejo PAT with write on this repo (for auto-bump)
+#   nexus_deploy_key      — SSH private key for root@nexus.cbp-org.internal
 
 variables:
   - &network_host
@@ -17,10 +31,45 @@ variables:
         network_mode: host
 
 when:
-  event: [push, manual]
-  branch: main
+  - event: push
+    branch: main
+  - event: tag
+    ref: refs/tags/v*
+  - event: manual
 
 steps:
+  - name: test
+    image: ruby:4.0.2-alpine
+    <<: *network_host
+    environment:
+      CUCUMBER_PUBLISH_QUIET: "true"
+    commands:
+      - apk add --no-cache build-base nodejs npm git
+      - npm install playwright && npx playwright install chromium --with-deps
+      - mkdir -p /root/.local/share/ruby-advisory-db/gems
+      - bundle install --jobs 4 --retry 3
+      - bundle exec rake verify
+
+  - name: auto-bump
+    image: ruby:4.0.2-alpine
+    when:
+      event: push
+      branch: main
+    environment:
+      FORGEJO_PUSH_TOKEN:
+        from_secret: forgejo_push_token
+      CBP_ORG_CA_CERT:
+        from_secret: cbp_org_ca_cert
+    commands:
+      - apk add --no-cache build-base curl git
+      - sh scripts/auto-bump.sh
+
+  - name: build-gem
+    image: ruby:4.0.2-alpine
+    commands:
+      - apk add --no-cache build-base
+      - gem build predictability-engine.gemspec
+
   - name: publish-gem
     image: ruby:4.0.2-alpine
     environment:
@@ -31,8 +80,36 @@ steps:
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert
     commands:
-      - apk add --no-cache build-base curl
+      - apk add --no-cache curl
       - sh scripts/publish-gem.sh
+
+  - name: rebuild-image
+    image: ruby:4.0.2-alpine
+    environment:
+      CBP_ORG_CA_CERT:
+        from_secret: cbp_org_ca_cert
+      NEXUS_DEPLOY_KEY:
+        from_secret: nexus_deploy_key
+    commands:
+      - apk add --no-cache openssh-client
+      - export GEM_VERSION=$(ruby -e "load 'lib/predictability_engine/version.rb'; puts PredictabilityEngine::VERSION")
+      - export IMAGE_TAG=v$GEM_VERSION
+      - sh scripts/build-engine-image.sh
+
+  - name: verify-fresh-install
+    image: ruby:4.0.2-alpine
+    <<: *network_host
+    environment:
+      CBP_ORG_CA_CERT:
+        from_secret: cbp_org_ca_cert
+    commands:
+      - apk add --no-cache build-base ca-certificates curl nodejs npm
+      - printf '%s' "$CBP_ORG_CA_CERT" | base64 -d > /usr/local/share/ca-certificates/cbp-org.crt
+      - update-ca-certificates
+      - export GEM_VERSION=$(ruby -e "load 'lib/predictability_engine/version.rb'; puts PredictabilityEngine::VERSION")
+      - gem install predictability-engine --version "$GEM_VERSION" --source https://gems.cbp-org.internal --no-document
+      - npm install playwright && npx playwright install chromium --with-deps
+      - sh scripts/verify-fresh-install.sh
 
   - name: badge
     image: docker-registry.cbp-org.internal/badge-reporter:latest

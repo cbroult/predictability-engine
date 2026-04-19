@@ -5,6 +5,11 @@ require 'cucumber/rake/task'
 require 'rubocop/rake_task'
 require 'yard'
 
+desc 'Bootstrap Ruby deps + Playwright Chromium (idempotent)'
+task :setup do
+  sh './bin/setup'
+end
+
 # Core tasks
 RuboCop::RakeTask.new(:rubocop)
 
@@ -44,7 +49,7 @@ end
 namespace :reports do
   desc 'Generate all sample reports'
   task :generate_samples do
-    samples = Dir.glob('data/*.csv')
+    samples = Dir.glob('data/samples/*.csv')
     samples.each do |sample|
       puts "Generating reports for #{sample}..."
       sh "./bin/predictability-engine batch #{sample}"
