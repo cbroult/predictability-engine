@@ -227,8 +227,10 @@ module JiraProjectSetup
       puts "  Seeding #{@count} issues into #{@project_key}..."
       @count.times.with_index(1) do |_, idx|
         type = @team_config['issue_types'].rotate(idx - 1).first
-        issue = create_issue("PE Test: #{type} #{idx} [#{Time.now.strftime('%H%M%S')}]", type)
-        apply_workflow(issue, bucket_for(idx))
+        bucket = bucket_for(idx)
+        summary = "PE Test: #{type} #{idx} [#{Time.now.strftime('%H%M%S')}]"
+        issue = create_issue(summary, type, priority_for(bucket, idx))
+        apply_workflow(issue, bucket)
         print '.'
         $stdout.flush
       end
@@ -251,19 +253,28 @@ module JiraProjectSetup
 
     private
 
-    def create_issue(summary, type)
-      build_issue(summary, type)
-    rescue JIRA::HTTPError
-      warn "\n  Warning: issue type '#{type}' unavailable in #{@project_key}, falling back to 'Task'"
-      build_issue(summary, 'Task')
+    def priority_for(bucket, idx)
+      case bucket
+      when :completed then idx <= (@count * 0.3).ceil ? 'High' : 'Medium'
+      when :in_progress then 'Medium'
+      else 'Low'
+      end
     end
 
-    def build_issue(summary, type)
+    def create_issue(summary, type, priority)
+      build_issue(summary, type, priority)
+    rescue JIRA::HTTPError
+      warn "\n  Warning: issue type '#{type}' unavailable in #{@project_key}, falling back to 'Task'"
+      build_issue(summary, 'Task', priority)
+    end
+
+    def build_issue(summary, type, priority)
       issue = @client.Issue.build
       issue.save!('fields' => {
                     'project' => { 'key' => @project_key },
                     'summary' => summary,
-                    'issuetype' => { 'name' => type }
+                    'issuetype' => { 'name' => type },
+                    'priority' => { 'name' => priority }
                   })
       issue
     end

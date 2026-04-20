@@ -18,12 +18,29 @@ module PredictabilityEngine
       end
 
       def self.shared_metrics(work_items, metrics)
-        {
+        result = {
           'Total Items': work_items.size,
           'Completed Items': metrics[:completed].size,
           'Average Throughput': "#{metrics[:tp_avg].round(2)} items/day"
         }
+        breakdown = priority_breakdown(metrics[:completed])
+        result[:'Priority Breakdown'] = breakdown if breakdown
+        result
       end
+
+      PRIORITY_ORDER = %w[Highest High Medium Low Lowest].freeze
+      private_constant :PRIORITY_ORDER
+
+      def self.priority_breakdown(completed_items)
+        counts = completed_items.filter_map(&:priority).tally
+        return nil if counts.empty?
+
+        ordered = PRIORITY_ORDER.filter_map { |p| "#{p} #{counts[p]}" if counts[p] }
+        others  = (counts.keys - PRIORITY_ORDER).sort.map { |p| "#{p} #{counts[p]}" }
+        (ordered + others).join(', ')
+      end
+
+      private_class_method :priority_breakdown
 
       def self.terminal_colors(color)
         color ? ["\e[1m", "\e[36m", "\e[0m"] : ['', '', '']
