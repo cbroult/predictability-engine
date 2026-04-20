@@ -1,5 +1,17 @@
 # frozen_string_literal: true
 
+# Runs bin/setup with SKIP_PLAYWRIGHT=1 so no real npm/Chromium download
+# occurs in CI. The scenario verifies that bundle install is executed *before*
+# the predictability-engine CLI is invoked — the bug this guards against is
+# calling `bundle exec predictability-engine` before `bundle install` on a
+# fresh clone, which produces "command not found: predictability-engine".
+When('I run {command} with SKIP_PLAYWRIGHT set') do |cmd|
+  project_root = File.expand_path('../..', __dir__)
+  script = File.join(project_root, cmd.to_s)
+  set_environment_variable('SKIP_PLAYWRIGHT', '1')
+  run_command_and_stop("bash #{script}", exit_timeout: 120)
+end
+
 Given('the PATH does not include npm') do
   # Replace PATH with a version that has no npm, keeping everything else
   # so the predictability-engine binary itself is still found.

@@ -9,6 +9,17 @@ Feature: predictability-engine setup command
   # The setup command runs `bundle install` first so Ruby gems are always
   # current. Use --skip-bundle when gems are already in place (e.g. after a
   # fast CI cache restore) to save time.
+  #
+  # bin/setup (the Linux/macOS/CI shim) must run `bundle install` *before*
+  # delegating to `predictability-engine setup --skip-bundle`. If that order
+  # is reversed, the CLI executable does not yet exist and the command fails
+  # with "bundler: command not found: predictability-engine".
+
+  Scenario: bin/setup runs bundle install before invoking the CLI
+    When I run `bin/setup` with SKIP_PLAYWRIGHT set
+    Then the exit status should be 0
+    And the output should contain "Installing Ruby dependencies"
+    And the output should contain "Setup complete"
 
   Scenario: setup with --skip-bundle --skip-playwright exits successfully
     When I successfully run `predictability-engine setup --skip-bundle --skip-playwright`
