@@ -52,4 +52,23 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'yard'
 
   spec.metadata['rubygems_mfa_required'] = 'true'
+
+  spec.post_install_message = <<~MSG
+    ─────────────────────────────────────────────────────────────────
+    predictability-engine installed.
+
+    Run the one-time setup to install Playwright + Chromium (required
+    for PDF, PNG, and PPTX report generation):
+
+      predictability-engine setup
+
+    On Linux/macOS you can also use the bundled script:
+
+      ./bin/setup
+
+    To skip Playwright (e.g. headless CI where Chromium is pre-baked):
+
+      predictability-engine setup --skip-playwright
+    ─────────────────────────────────────────────────────────────────
+  MSG
 end

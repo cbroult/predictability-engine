@@ -1,33 +1,23 @@
 #!/usr/bin/env bash
-# bin/setup — idempotent bootstrap for the predictability-engine dev environment.
+# bin/setup — Linux/macOS/CI bootstrap shim.
 #
-#   ./bin/setup                       # full setup (Ruby deps + Playwright + Chromium)
-#   SKIP_PLAYWRIGHT=1 ./bin/setup     # CI shortcut when Chromium is already baked in
+# Bootstraps bundler (needed before the CLI is available), then delegates to
+# the cross-platform `predictability-engine setup` command which handles
+# Playwright/Chromium. On Windows, run the equivalent directly:
 #
-# This script is also invokable via `bundle exec rake setup`.
+#   gem install bundler && bundle install
+#   bundle exec predictability-engine setup
+#
+# Environment variables:
+#   SKIP_PLAYWRIGHT=1  — pass --skip-playwright to the PE command
 
 set -euo pipefail
+cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$ROOT"
+echo "==> Bootstrapping Bundler"
+gem install bundler --conservative
 
-echo "==> Installing Ruby dependencies via Bundler"
-bundle install --jobs 4 --retry 3
+playwright_flag=()
+[ -n "${SKIP_PLAYWRIGHT:-}" ] && playwright_flag=(--skip-playwright)
 
-if [ -n "${SKIP_PLAYWRIGHT:-}" ]; then
-  echo "==> SKIP_PLAYWRIGHT set — skipping Chromium install"
-else
-  if ! command -v npm >/dev/null 2>&1; then
-    echo "❌ npm is required for Playwright but was not found on PATH." >&2
-    echo "   Install Node.js (e.g. via nvm or your package manager) and re-run." >&2
-    exit 1
-  fi
-  echo "==> Installing / updating Playwright + Chromium (needed for PDF / PNG / PPTX)"
-  npm install
-  npm update playwright
-  npx playwright install chromium --with-deps
-fi
-
-echo ""
-echo "✅ Setup complete. Try:"
-echo "   ./bin/predictability-engine summary data/samples/sample_data.csv"
+bundle exec predictability-engine setup "${playwright_flag[@]}"
