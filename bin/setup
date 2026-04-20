@@ -22,8 +22,9 @@ else
     echo "   Install Node.js (e.g. via nvm or your package manager) and re-run." >&2
     exit 1
   fi
-  echo "==> Installing Playwright + Chromium (needed for PDF / PNG / PPTX)"
-  npm install playwright
+  echo "==> Installing / updating Playwright + Chromium (needed for PDF / PNG / PPTX)"
+  npm install
+  npm update playwright
   npx playwright install chromium --with-deps
 fi
 

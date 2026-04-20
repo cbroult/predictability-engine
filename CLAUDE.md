@@ -12,6 +12,7 @@ Ruby version pinned in `.ruby-version` (currently 4.0.2). Thor-based CLI entry p
 
 Aggregated via Rake (see `Rakefile`):
 
+- `bundle exec rake setup` — **one-stop bootstrap**: installs Ruby gems, updates Playwright to the latest compatible version, and installs/updates the Chromium browser. Re-running is safe and keeps everything current. Equivalent: `./bin/setup`.
 - `bundle exec rake verify` — runs `spec features lint` (what CI runs in `.woodpecker/verify.yml`).
 - `bundle exec rake` (default) — `verify` + `docs` (YARD) + `bench`; slow.
 - `bundle exec rake lint` — rubocop + bundler-audit + jscpd.
@@ -24,12 +25,6 @@ Individual suites:
 - `npx jscpd .` — duplicate detection (threshold 0.8%, configured in `.jscpd.json`). **Never ignore findings or change the config**; extract or refactor instead.
 - `bundle exec rake bench` — `benchmarks/monte_carlo_benchmark.rb`.
 - `bundle exec rake audit` — bundler-audit CVE scan.
-
-Playwright is required for high-fidelity PDF/PNG/PPTX:
-
-```bash
-npm install playwright && npx playwright install chromium --with-deps
-```
 
 Running the CLI against sample data:
 
