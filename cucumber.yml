@@ -1,2 +1,3 @@
-default: --publish-quiet --format progress --tags "not @jira_live"
+default: --publish-quiet --format progress --tags "not @jira_live and not @npm_required"
 jira_live: --publish-quiet --format progress --tags "@jira_live"
+npm: --publish-quiet --format progress --tags "@npm_required"

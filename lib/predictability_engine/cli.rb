@@ -219,15 +219,16 @@ module PredictabilityEngine
     end
 
     desc 'setup', 'Install/update all dependencies (Ruby gems + Playwright + Chromium)'
-    method_option :skip_playwright, type: :boolean, default: false,
-                                    desc: 'Skip Playwright/Chromium install (e.g. in CI where browser is pre-baked)'
+    method_option :skip_playwright, type: :boolean, default: false, desc: 'Skip Playwright/Chromium install'
+    method_option :skip_bundle, type: :boolean, default: false, desc: 'Skip bundle install'
     def setup
-      PredictabilityEngine.logger.info { '==> Installing Ruby dependencies' }
-      Bundler.with_unbundled_env do
-        system('bundle', 'install', '--jobs', '4', '--retry', '3') || abort('bundle install failed')
+      unless options[:skip_bundle]
+        PredictabilityEngine.logger.info { '==> Installing Ruby dependencies' }
+        Bundler.with_unbundled_env do
+          system('bundle', 'install', '--jobs', '4', '--retry', '3') || abort('bundle install failed')
+        end
       end
       install_playwright unless options[:skip_playwright]
-      PredictabilityEngine.logger.info { '' }
       PredictabilityEngine.logger.info { 'Setup complete. Try:' }
       PredictabilityEngine.logger.info { '  predictability-engine summary data/samples/sample_data.csv' }
     end
