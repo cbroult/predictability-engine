@@ -295,6 +295,27 @@ module PredictabilityEngine
       print_forecast_results(backlog_count, results)
     end
 
+    desc 'calibrate SOURCE', 'Validate Monte Carlo simulation accuracy via hindcast calibration'
+    method_option :validation_trials, type: :numeric, default: 200,
+                                      desc: 'Number of historical as-of dates to sample'
+    method_option :primary_trials, type: :numeric, default: 10_000,
+                                   desc: 'Monte Carlo trials per hindcast point'
+    def calibrate(source)
+      items = PredictabilityEngine.load_items(source)
+      result = Simulators::MonteCarloValidator.calibration(
+        items,
+        validation_trials: options[:validation_trials],
+        primary_trials: options[:primary_trials]
+      )
+      if result.nil?
+        PredictabilityEngine.logger.info do
+          'Insufficient data for hindcast calibration (need 10+ completed items with historical WIP).'
+        end
+        return
+      end
+      print_calibration_results(result)
+    end
+
     GENERATE_SIZE_DESC = "Preset volume: #{DataGenerator::PRESETS.map do |n, c|
       "#{n} (#{c[:completed]}/#{c[:wip]})"
     end.join(', ')}".freeze
@@ -316,6 +337,25 @@ module PredictabilityEngine
     end
 
     private
+
+    def print_calibration_results(result)
+      PredictabilityEngine.logger.info { 'Monte Carlo Hindcast Calibration' }
+      PredictabilityEngine.logger.info { '---------------------------------' }
+      PredictabilityEngine.logger.info { "Trials run: #{result[:trials_run]} / Skipped: #{result[:trials_skipped]}" }
+      PredictabilityEngine.logger.info { '' }
+      PredictabilityEngine::DEFAULT_PERCENTILES.each do |p|
+        coverage = result[p]
+        next unless coverage
+
+        actual_pct = (coverage * 100).round(1)
+        delta = (coverage - (p / 100.0)) * 100
+        label = if delta > 2 then 'conservative'
+                elsif delta < -2 then 'optimistic'
+                else 'well-calibrated'
+                end
+        PredictabilityEngine.logger.info { "  p#{p}: #{actual_pct}% actual coverage  (#{label})" }
+      end
+    end
 
     def print_forecast_results(backlog_count, results)
       PredictabilityEngine.logger.info { 'Monte Carlo Simulation Results (When will it be done?)' }

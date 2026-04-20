@@ -30,7 +30,8 @@ RSpec.describe PredictabilityEngine::DataSources::JiraYaml do
         ['filter_name is specified', "filter_name: 'My Filter'\n", 'filter = "My Filter"', 'q4.yml'],
         ['empty YAML', '', 'filter = "my-team"', 'my-team.yml'],
         ['convention filename with filter', '', 'filter = "my-team"', 'client-x.my-team.yml'],
-        ['convention filename with project key', '', '(project = "PEDEVTQW" OR filter = "PEDEVTQW")', 'client-x.PEDEVTQW.yml']
+        ['convention filename with project key', '', '(project = "PEDEVTQW" OR filter = "PEDEVTQW")',
+         'client-x.PEDEVTQW.yml']
       ]
     }.each do |method, scenarios|
       scenarios.each do |desc, content_str, expected, file_name|
