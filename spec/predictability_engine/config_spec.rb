@@ -3,6 +3,8 @@
 require 'spec_helper'
 
 RSpec.describe PredictabilityEngine::Config do
+  include_context 'with isolated home'
+
   let(:config_file) { described_class::CONFIG_FILE }
 
   after { FileUtils.rm_f(config_file) }

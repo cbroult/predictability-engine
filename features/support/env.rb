@@ -22,4 +22,8 @@ Before do
   project_root = File.expand_path('../..', __dir__)
   # We use set_environment_variable which is the Aruba way
   set_environment_variable('RUBYOPT', "-I#{project_root}/spec -rsimplecov_helper #{ENV.fetch('RUBYOPT', nil)}")
+
+  # Redirect ~ to a temp dir inside the Aruba working directory so no CLI subprocess
+  # reads or writes the developer's real ~/.config/jira/ directory.
+  set_environment_variable('HOME', expand_path('home'))
 end

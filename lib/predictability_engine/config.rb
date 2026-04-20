@@ -6,7 +6,6 @@ module PredictabilityEngine
   # Configuration management for the predictability engine.
   class Config
     CONFIG_FILE = '.predictability_engine.yml'
-    JIRA_CREDENTIALS_FILE = File.expand_path('~/.config/jira/jira_credentials.yml')
 
     def self.jira(profile_name = nil)
       load_jira_config(profile_name)
@@ -59,8 +58,12 @@ module PredictabilityEngine
       ENV.fetch("JIRA_#{name}", nil) || local[key] || global[key]
     end
 
+    def self.jira_credentials_file
+      File.expand_path('~/.config/jira/jira_credentials.yml')
+    end
+
     def self.load_global_jira_config
-      load_jira_file(JIRA_CREDENTIALS_FILE, global: true)
+      load_jira_file(jira_credentials_file, global: true)
     end
 
     def self.load_local_jira_config
@@ -87,7 +90,8 @@ module PredictabilityEngine
       }
     end
 
-    private_class_method :load_jira_config, :load_global_jira_config, :load_local_jira_config,
-                         :load_profile, :default_profile_name, :fallback_config, :load_jira_file, :jira_val
+    private_class_method :load_jira_config, :load_global_jira_config,
+                         :load_local_jira_config, :load_profile, :default_profile_name,
+                         :fallback_config, :load_jira_file, :jira_val
   end
 end

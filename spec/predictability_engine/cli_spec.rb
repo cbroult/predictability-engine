@@ -6,9 +6,7 @@ require 'predictability_engine/cli'
 RSpec.describe PredictabilityEngine::Cli do
   subject(:cli) { described_class.new }
 
-  before do
-    PredictabilityEngine::Logger.instance_variable_set(:@instance, nil)
-  end
+  include_context 'with captured logger'
 
   let(:items) { [PredictabilityEngine::Models::WorkItem.new(item_id: '1', title: 'Task 1', start_date: '2024-01-01', end_date: '2024-01-05')] }
   let(:source) { 'sample.csv' }
@@ -16,36 +14,35 @@ RSpec.describe PredictabilityEngine::Cli do
   describe '#init' do
     it 'appends .yml if missing' do
       allow(File).to receive(:write)
-      expect { cli.init('test') }.to output(/Template created at test.yml/).to_stdout
+      cli.init('test')
+      expect(log_output.string).to match(/Template created at test.yml/)
     end
 
     it 'does not append .yml if already present' do
       allow(File).to receive(:write)
-      expect { cli.init('test.yml') }.to output(/Template created at test.yml/).to_stdout
+      cli.init('test.yml')
+      expect(log_output.string).to match(/Template created at test.yml/)
     end
   end
 
   describe '#jira_config' do
+    include_context 'with isolated home'
+
     let(:profile) { 'test-profile' }
-    let(:credentials_path) { 'tmp/jira_credentials_spec.yml' }
+    let(:credentials_path) { PredictabilityEngine::Config.jira_credentials_file }
 
     before do
-      stub_const('PredictabilityEngine::Config::JIRA_CREDENTIALS_FILE', credentials_path)
-      # Use a real instance or avoid stubbing subject methods
       allow_any_instance_of(described_class).to receive(:ask).and_return('value')
-      FileUtils.rm_f(credentials_path)
-    end
-
-    after do
-      FileUtils.rm_f(credentials_path)
     end
 
     it 'creates new file if it does not exist' do
-      expect { cli.jira_config(profile) }.to output(/Jira credentials for profile 'test-profile' saved/).to_stdout
+      cli.jira_config(profile)
+      expect(log_output.string).to match(/Jira credentials for profile 'test-profile' saved/)
       expect(File.exist?(credentials_path)).to be true
     end
 
     it 'updates existing file if it exists' do
+      FileUtils.mkdir_p(File.dirname(credentials_path))
       File.write(credentials_path, { 'profiles' => { 'other' => {} } }.to_yaml)
       cli.jira_config(profile)
       config = YAML.load_file(credentials_path)
@@ -64,18 +61,19 @@ RSpec.describe PredictabilityEngine::Cli do
     end
 
     it 'outputs content if response responds to :content' do
-      # Use a plain object or instance_double if the class was available
       response = Object.new
       def response.content = 'AI Answer'
       allow(assistant).to receive(:ask).and_return(response)
 
-      expect { cli.ask_ai(source, 'question') }.to output(/AI Answer/).to_stdout
+      cli.ask_ai(source, 'question')
+      expect(log_output.string).to match(/AI Answer/)
     end
 
     it 'outputs response directly if it does not respond to :content' do
       allow(assistant).to receive(:ask).and_return('AI Raw Answer')
 
-      expect { cli.ask_ai(source, 'question') }.to output(/AI Raw Answer/).to_stdout
+      cli.ask_ai(source, 'question')
+      expect(log_output.string).to match(/AI Raw Answer/)
     end
   end
 

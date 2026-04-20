@@ -5,41 +5,78 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a7b17def-a47b-4a63-b298-93819839f459" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/features/jira_journey.feature" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/features/step_definitions/jira_journey_steps.rb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/spec/support/home_isolation.rb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/dashboard.conf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data/dashboard.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/dashboard.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/dashboard.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/dashboard.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/dashboard.pptx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/dashboard_a3.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/images/aging_wip.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/images/cycle_time_scatter.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/images/forecasted_cfd_plot.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data/images/throughput_histogram.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/dashboard.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/dashboard.md" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/dashboard.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/dashboard.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/dashboard.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/dashboard.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/dashboard.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/images/aging_wip.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/images/aging_wip.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/images/cycle_time_scatter.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/images/cycle_time_scatter.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/images/forecasted_cfd_plot.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/images/forecasted_cfd_plot.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/images/throughput_histogram.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/images/throughput_histogram.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Bug.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Bug.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Bug.md" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Bug.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Bug.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Bug.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Bug.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Bug.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Improvement.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Improvement.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Improvement.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Improvement.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Improvement.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Improvement.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Story.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Story.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Story.md" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Story.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Story.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Story.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Story.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Story.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Task.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Task.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Task.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Task.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/reports/sample_data_large/types/Task.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/reports/sample_data_large/types/Task.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/vega_visualizer.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TODO.md" beforeDir="false" afterPath="$PROJECT_DIR$/TODO.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data/dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data/dashboard.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data/dashboard.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data/dashboard.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data/dashboard.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data/dashboard.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data/dashboard.pptx" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data/dashboard.pptx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data/dashboard_a3.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data/dashboard_a3.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/dashboard.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/dashboard.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/dashboard.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/dashboard.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/dashboard.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/dashboard.pptx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/dashboard_a3.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/images/aging_wip.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/images/aging_wip.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/images/cfd_plot.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/images/cfd_plot.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/images/cycle_time_scatter.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/images/cycle_time_scatter.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/images/forecasted_cfd_plot.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/images/forecasted_cfd_plot.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/images/throughput_histogram.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/images/throughput_histogram.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/High.conf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/High.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/High.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/High.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/High.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/High.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/High.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/High.pptx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Highest.conf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Highest.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Highest.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Highest.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Highest.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Highest.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Highest.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Highest.pptx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Low.conf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Low.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Low.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Low.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Low.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Low.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Low.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Low.pptx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Lowest.conf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Lowest.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Lowest.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Lowest.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Lowest.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Lowest.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Lowest.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Lowest.pptx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Medium.conf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Medium.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Medium.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Medium.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Medium.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Medium.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Medium.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/priorities/Medium.pptx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Bug.conf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Bug.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Bug.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Bug.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Bug.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Bug.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Bug.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Bug.pptx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Improvement.conf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Improvement.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Improvement.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Improvement.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Improvement.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Improvement.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Improvement.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Improvement.pptx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Story.conf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Story.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Story.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Story.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Story.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Story.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Story.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Story.pptx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Task.conf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Task.html" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Task.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Task.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Task.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Task.png" beforeDir="false" afterPath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Task.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/samples/reports/sample_data_large/types/Task.pptx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/support/env.rb" beforeDir="false" afterPath="$PROJECT_DIR$/features/support/env.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/cli.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/cli.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/predictability_engine/config.rb" beforeDir="false" afterPath="$PROJECT_DIR$/lib/predictability_engine/config.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spec/predictability_engine/cli_spec.rb" beforeDir="false" afterPath="$PROJECT_DIR$/spec/predictability_engine/cli_spec.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spec/predictability_engine/config_spec.rb" beforeDir="false" afterPath="$PROJECT_DIR$/spec/predictability_engine/config_spec.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spec/predictability_engine/data_sources/jira_yaml_spec.rb" beforeDir="false" afterPath="$PROJECT_DIR$/spec/predictability_engine/data_sources/jira_yaml_spec.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spec/support/shared_contexts.rb" beforeDir="false" afterPath="$PROJECT_DIR$/spec/support/shared_contexts.rb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,7 +84,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="366" />
+    <option name="cachedIndexableFilesCount" value="456" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
@@ -99,7 +136,7 @@
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;ruby.structure.view.model.defaults.configured&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;vcs.Git&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.editor&quot;,
     &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
@@ -120,7 +157,8 @@
       <updated>1775833741689</updated>
       <workItem from="1775833742763" duration="37257000" />
       <workItem from="1776098529840" duration="7570000" />
-      <workItem from="1776410368431" duration="9664000" />
+      <workItem from="1776410368431" duration="13926000" />
+      <workItem from="1776439986882" duration="34915000" />
     </task>
     <servers />
   </component>

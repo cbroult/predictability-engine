@@ -7,6 +7,8 @@ require 'fileutils'
 RSpec.describe PredictabilityEngine::DataSources::JiraYaml do
   subject(:jira_yaml) { described_class.new(file_path) }
 
+  include_context 'with isolated home'
+
   let(:temp_dir) { Dir.mktmpdir }
   let(:file_path) { File.join(temp_dir, filename) }
   let(:filename) { 'test.yml' }
@@ -50,19 +52,16 @@ RSpec.describe PredictabilityEngine::DataSources::JiraYaml do
     end
 
     it 'auto-discovers workflow config by middle segment convention' do
-      workflow_file = File.join(temp_dir, 'PEDEVTQW.workflow.yml')
-      File.write(workflow_file, '')
+      # Plant the workflow file in the isolated fake home (~ points to Dir.mktmpdir via shared context)
+      workflow_dir = File.expand_path('~/.config/jira')
+      FileUtils.mkdir_p(workflow_dir)
+      candidate = File.join(workflow_dir, 'PEDEVTQW.workflow.yml')
+      FileUtils.touch(candidate)
+
       spec_path = File.join(temp_dir, 'cbroult-atlassian.PEDEVTQW.yml')
       File.write(spec_path, '')
 
-      jira_yaml = described_class.new(spec_path)
-      allow(jira_yaml).to receive(:workflow_config_path).and_call_original
-      # Stub File.exist? for the candidate path to use our temp dir
-      candidate = File.expand_path('~/.config/jira/PEDEVTQW.workflow.yml')
-      original_exist = File.method(:exist?)
-      allow(File).to receive(:exist?) { |p| p == candidate ? true : original_exist.call(p) }
-
-      expect(jira_yaml.workflow_config_path).to eq(candidate)
+      expect(described_class.new(spec_path).workflow_config_path).to eq(candidate)
     end
 
     it 'returns nil when no workflow config exists' do

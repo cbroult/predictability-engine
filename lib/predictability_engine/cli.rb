@@ -237,10 +237,9 @@ module PredictabilityEngine
     def jira_config(profile)
       site = ask('Jira site (e.g., https://your-domain.atlassian.net):')
       email = ask('Jira email:')
-      token = ask('Jira API token:', echo: false)
-      puts '' # newline after hidden token input
+      token = ask_secret('Jira API token:')
 
-      path = Config::JIRA_CREDENTIALS_FILE
+      path = Config.jira_credentials_file
       FileUtils.mkdir_p(File.dirname(path))
 
       config = File.exist?(path) ? YAML.load_file(path) : {}
@@ -337,6 +336,16 @@ module PredictabilityEngine
     end
 
     private
+
+    def ask_secret(prompt)
+      if $stdin.isatty
+        result = ask(prompt, echo: false)
+        puts ''
+        result
+      else
+        ask(prompt)
+      end
+    end
 
     def print_calibration_results(result)
       PredictabilityEngine.logger.info { 'Monte Carlo Hindcast Calibration' }
