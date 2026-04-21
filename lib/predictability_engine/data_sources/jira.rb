@@ -10,6 +10,8 @@ module PredictabilityEngine
       FIELDS = %w[summary issuetype created priority resolutiondate status].freeze
 
       def perform_load(spec)
+        @priority_aliases = yaml_priority_aliases(spec)
+
         if ENV['MOCK_JIRA'] == 'true'
           data = mock_data('JIRA_MOCK_DATA')
           # Even when mocked, we can validate the contract if requested
@@ -80,6 +82,12 @@ module PredictabilityEngine
 
       def get_field(issue, name, is_hash)
         is_hash ? issue[name] || issue[name.to_s] : issue.send(name)
+      end
+
+      def yaml_priority_aliases(spec)
+        return {} unless spec.is_a?(String) && spec.match?(/\.ya?ml$/)
+
+        JiraYaml.new(spec).priority_aliases
       end
 
       def resolve_source(spec)

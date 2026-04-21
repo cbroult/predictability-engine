@@ -6,11 +6,11 @@ require 'stringio'
 module PredictabilityEngine
   module TerminalVisualizer
     def self.aging_wip(items, color: false, pcts: DEFAULT_PERCENTILES, **)
-      data = Calculators::Aging.item_age_data(items)
-      return 'No items currently in progress.' if data.empty?
+      age_data = Calculators::Aging.item_age_data(items)
+      return 'No items currently in progress.' if age_data.empty?
 
       PredictabilityEngine.mapped_percentiles(items, pcts)
-      plot = UnicodePlot.barplot(data.map { |d| d[:id].to_s }, data.map { |d| d[:age] },
+      plot = UnicodePlot.barplot(age_data.map { |d| d[:id].to_s }, age_data.map { |d| d[:age] },
                                  title: 'Aging Work In Progress (Days)', color: color ? :blue : nil)
       render_to_string(plot, color: color)
     end

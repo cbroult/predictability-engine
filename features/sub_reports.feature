@@ -39,3 +39,22 @@ Feature: Sub-report Navigation
       | reports/mixed_types/dashboard.html           | dashboard.html    | true  | types/Story.html   | false   | types/Bug.html   | false | types/Task.html   | false  | priorities/High.html   | false  | priorities/Low.html    | false |
       | reports/mixed_types/types/Story.html         | ../dashboard.html | false | Story.html         | true    | Bug.html         | false | Task.html         | false  | ../priorities/High.html| false  | ../priorities/Low.html | false |
       | reports/mixed_types/priorities/High.html     | ../dashboard.html | false | ../types/Story.html| false   | ../types/Bug.html| false | ../types/Task.html| false  | High.html              | true   | Low.html               | false |
+
+  Scenario: priority_aliases in YAML config normalizes custom priority names
+    Given Jira is mocked for filter "MYTEAM" with items:
+      | key    | summary      | issuetype | priority | start_date | end_date   |
+      | ITEM-1 | First task   | Story     | P0       | 2024-03-01 | 2024-03-05 |
+      | ITEM-2 | Second task  | Story     | P1       | 2024-03-02 | 2024-03-06 |
+      | ITEM-3 | Third task   | Story     | P2       | 2024-03-03 | 2024-03-07 |
+    And a file named "alias_config.yml" with:
+      """
+      priority_aliases:
+        P0: Highest
+        P1: High
+        P2: Medium
+      """
+    When I run `predictability-engine report alias_config.yml html`
+    Then the following files should exist:
+      | reports/alias_config/priorities/Highest.html |
+      | reports/alias_config/priorities/High.html    |
+      | reports/alias_config/priorities/Medium.html  |

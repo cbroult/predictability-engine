@@ -45,22 +45,20 @@ module PredictabilityEngine
     end
 
     def self.draw_forecasted_cfd(pdf, work_items, percentiles: PredictabilityEngine::DEFAULT_PERCENTILES)
-      data = Calculators::Cfd.forecast_series(work_items, percentiles: percentiles)
-      return draw_cfd(pdf, work_items) unless data
+      forecast = Calculators::Cfd.forecast_series(work_items, percentiles: percentiles)
+      return draw_cfd(pdf, work_items) unless forecast
 
       series = [
-        { label: 'Arrivals', values: data[:arrivals], color: '0000FF' },
-        { label: 'Departures', values: data[:departed], color: '00FF00' }
+        { label: 'Arrivals', values: forecast[:arrivals], color: '0000FF' },
+        { label: 'Departures', values: forecast[:departed], color: '00FF00' }
       ]
 
       f_colors = %w[E6B800 CC0000 800080 008080 333333] # Darker versions of yellow, red, magenta, cyan, gray
       percentiles.sort.each_with_index do |p, i|
-        # Slice for PDF as well if possible, though draw_line_chart might expect full series
-        # For now, let's at least fix colors.
-        series << { label: "#{p}% Conf.", values: data[:forecasts][p], color: f_colors[i % f_colors.size] }
+        series << { label: "#{p}% Conf.", values: forecast[:forecasts][p], color: f_colors[i % f_colors.size] }
       end
 
-      Primitives.draw_line_chart(pdf, data[:dates].map(&:to_s), series)
+      Primitives.draw_line_chart(pdf, forecast[:dates].map(&:to_s), series)
     end
   end
 end

@@ -67,8 +67,7 @@ module PredictabilityEngine
     end
 
     def write(path)
-      FileUtils.mkdir_p(File.dirname(path))
-      File.write(path, to_hash.to_yaml)
+      PredictabilityEngine.write_file(path, to_hash.to_yaml)
       path
     end
 

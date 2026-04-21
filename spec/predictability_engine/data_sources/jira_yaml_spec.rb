@@ -44,6 +44,49 @@ RSpec.describe PredictabilityEngine::DataSources::JiraYaml do
     end
   end
 
+  def write_profile_priorities(profile, content)
+    dir = File.expand_path('~/.config/jira')
+    FileUtils.mkdir_p(dir)
+    File.write(File.join(dir, "#{profile}.priorities.yml"), content)
+  end
+
+  def new_yaml_for(filename, content = '')
+    path = File.join(temp_dir, filename)
+    File.write(path, content)
+    described_class.new(path)
+  end
+
+  describe '#priority_aliases' do
+    it 'returns empty hash when not configured' do
+      expect(jira_yaml.priority_aliases).to eq({})
+    end
+
+    it 'returns string-keyed alias map' do
+      expect(new_yaml_for('aliases.yml', "priority_aliases:\n  P0: Highest\n  P1: High\n").priority_aliases)
+        .to eq('P0' => 'Highest', 'P1' => 'High')
+    end
+
+    it 'coerces keys and values to strings' do
+      expect(new_yaml_for('aliases2.yml', "priority_aliases:\n  1: Highest\n").priority_aliases)
+        .to eq('1' => 'Highest')
+    end
+
+    it 'returns empty hash when priority_aliases is not a hash' do
+      expect(new_yaml_for('aliases3.yml', "priority_aliases: nonsense\n").priority_aliases).to eq({})
+    end
+
+    it 'loads aliases from profile-level ~/.config/jira/<profile>.priorities.yml' do
+      write_profile_priorities('myteam', "P0: Highest\nP1: High\n")
+      expect(new_yaml_for('myteam.PROJ.yml').priority_aliases).to eq('P0' => 'Highest', 'P1' => 'High')
+    end
+
+    it 'inline priority_aliases overrides profile-level aliases' do
+      write_profile_priorities('myteam', "P0: Highest\nP1: High\n")
+      expect(new_yaml_for('myteam.PROJ.yml', "priority_aliases:\n  P1: Medium\n  P2: Low\n").priority_aliases)
+        .to eq('P0' => 'Highest', 'P1' => 'Medium', 'P2' => 'Low')
+    end
+  end
+
   describe '#workflow_config_path' do
     it 'returns explicit path from YAML when set' do
       path = File.join(temp_dir, 'myspec.yml')

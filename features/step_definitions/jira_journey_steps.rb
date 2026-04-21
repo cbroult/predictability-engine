@@ -10,9 +10,12 @@ When('I run {command} interactively with input {string}') do |cmd, input|
   stop_all_commands
 end
 
+def expand_path_template(template)
+  template.gsub('$HOME', Dir.home).gsub('$JIRA_PROFILE', ENV.fetch('JIRA_PROFILE', ''))
+end
+
 Then('a credentials file should exist at {string}') do |path_template|
-  expanded = path_template.gsub('$HOME', Dir.home)
-  expect(File.exist?(expanded)).to be true
+  expect(File.exist?(expand_path_template(path_template))).to be true
 end
 
 Then('the credentials file should contain profile {string}') do |profile|
@@ -22,20 +25,21 @@ Then('the credentials file should contain profile {string}') do |profile|
   expect(content.dig('profiles', profile)).not_to be_nil
 end
 
+def jira_yaml_for(filename)
+  PredictabilityEngine::DataSources::JiraYaml.new(expand_path(filename))
+end
+
 Then('the Jira profile for {string} is {string}') do |filename, expected_profile|
-  path = expand_path(filename)
-  expect(PredictabilityEngine::DataSources::JiraYaml.new(path).profile).to eq(expected_profile)
+  expect(jira_yaml_for(filename).profile).to eq(expected_profile)
 end
 
 Then('the Jira query for {string} matches both project and filter {string}') do |filename, key|
-  path = expand_path(filename)
-  query = PredictabilityEngine::DataSources::JiraYaml.new(path).query
+  query = jira_yaml_for(filename).query
   expect(query).to include(%(project = "#{key}")).and include(%(filter = "#{key}"))
 end
 
 Then('the Jira query for {string} is {string}') do |filename, expected|
-  path = expand_path(filename)
-  expect(PredictabilityEngine::DataSources::JiraYaml.new(path).query).to eq(expected)
+  expect(jira_yaml_for(filename).query).to eq(expected)
 end
 
 Given('a Jira YAML config {string} exists with the current profile') do |filename|
@@ -44,8 +48,5 @@ Given('a Jira YAML config {string} exists with the current profile') do |filenam
 end
 
 Then('a workflow file should exist at {string}') do |path_template|
-  expanded = path_template
-             .gsub('$HOME', Dir.home)
-             .gsub('$JIRA_PROFILE', ENV.fetch('JIRA_PROFILE', ''))
-  expect(File.exist?(File.expand_path(expanded))).to be true
+  expect(File.exist?(File.expand_path(expand_path_template(path_template)))).to be true
 end

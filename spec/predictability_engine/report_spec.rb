@@ -16,47 +16,36 @@ RSpec.describe PredictabilityEngine::Report do
   let(:report) { described_class.new(items) }
 
   describe '#render' do
-    context 'when terminal format is requested' do
-      it 'renders ASCII charts even if images are available' do
-        # Mock images_path and File.exist? to simulate available images
+    context 'when images are available' do
+      before do
         allow(report).to receive(:images_path).and_return('some/path')
         allow(File).to receive(:exist?).and_return(true)
+      end
 
+      it 'renders ASCII charts for terminal even when images exist' do
         content = report.render(:terminal)
-
         expect(content).not_to include('![](images/')
         expect(content).to include('Aging Work In Progress')
       end
-    end
 
-    context 'when markdown format is requested' do
-      it 'renders image links if images are available' do
-        allow(report).to receive(:images_path).and_return('some/path')
-        allow(File).to receive(:exist?).with('some/path/aging_wip.png').and_return(true)
-        allow(File).to receive(:exist?).with(/.*\.png$/).and_return(true)
-
-        content = report.render(:markdown)
-
-        expect(content).to include('![](images/')
-      end
-
-      it 'renders mermaid if no images are available' do
-        allow(report).to receive(:images_path).and_return(nil)
-        content = report.render(:markdown)
-        expect(content).to include('```mermaid')
+      it 'renders image links for markdown' do
+        expect(report.render(:markdown)).to include('![](images/')
       end
 
       it 'renders confluence image links' do
-        allow(report).to receive(:images_path).and_return('some/path')
-        allow(File).to receive(:exist?).and_return(true)
-        content = report.render(:confluence)
-        expect(content).to include('!images/')
+        expect(report.render(:confluence)).to include('!images/')
+      end
+    end
+
+    context 'when no images are available' do
+      before { allow(report).to receive(:images_path).and_return(nil) }
+
+      it 'renders mermaid for markdown' do
+        expect(report.render(:markdown)).to include('```mermaid')
       end
 
       it 'renders confluence mermaid' do
-        allow(report).to receive(:images_path).and_return(nil)
-        content = report.render(:confluence)
-        expect(content).to include('{mermaid}')
+        expect(report.render(:confluence)).to include('{mermaid}')
       end
     end
 
@@ -101,13 +90,13 @@ RSpec.describe PredictabilityEngine::Report do
   end
 
   describe '.generate_all' do
+    let(:reports) { described_class.generate_all(items) }
+
     it 'generates sub-reports grouped by facet when multiple values exist' do
       items << PredictabilityEngine::Models::WorkItem.new(item_id: 'PROJ-2', title: 'Task 2',
                                                           type: 'Bug', priority: 'Low')
       items[0].instance_variable_set(:@type, 'Story')
       items[0].instance_variable_set(:@priority, 'High')
-
-      reports = described_class.generate_all(items)
 
       expect(reports).to have_key(:all)
       expect(reports[:type].keys).to contain_exactly('Story', 'Bug')
@@ -118,9 +107,6 @@ RSpec.describe PredictabilityEngine::Report do
       items << PredictabilityEngine::Models::WorkItem.new(item_id: 'PROJ-2', title: 'Task 2', type: 'Bug')
       items[0].instance_variable_set(:@type, 'Story')
 
-      reports = described_class.generate_all(items)
-
-      expect(reports[:type].keys).to contain_exactly('Story', 'Bug')
       expect(reports).not_to have_key(:priority)
     end
   end

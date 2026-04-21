@@ -17,7 +17,7 @@ end
 renderer = MermaidRenderer.new
 html_content = Redcarpet::Markdown.new(renderer, fenced_code_blocks: true, tables: true).render(markdown)
 
-full_html = <<~HTML
+full_html = <<~PAGE
   <!DOCTYPE html>
   <html>
   <head>
@@ -39,7 +39,7 @@ full_html = <<~HTML
     #{html_content}
   </body>
   </html>
-HTML
+PAGE
 
 File.write('reports/sample_data/md_verify.html', full_html)
 puts 'MD verification file updated at reports/sample_data/md_verify.html'

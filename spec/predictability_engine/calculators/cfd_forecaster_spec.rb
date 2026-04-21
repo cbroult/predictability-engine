@@ -39,9 +39,9 @@ RSpec.describe PredictabilityEngine::Calculators::CfdForecaster do
       let(:items) { [create_item(1, -10, -5), create_item(2, -2, 10), create_item(3, -2)] }
 
       it 'aligns the forecast based on the maximum of simulation and scheduled dates' do
-        data = described_class.forecast_series(items, percentiles: [50])
-        expect(data[:summary][:p50]).to be >= 10
-        verify_deadline(data, 50)
+        forecast = described_class.forecast_series(items, percentiles: [50])
+        expect(forecast[:summary][:p50]).to be >= 10
+        verify_deadline(forecast, 50)
       end
     end
   end

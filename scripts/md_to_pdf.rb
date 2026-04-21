@@ -88,12 +88,12 @@ class MdToPdf
     playwright_bin = ENV['PLAYWRIGHT_CLI_EXECUTABLE_PATH'] || `which playwright`.strip
     playwright_bin = nil if playwright_bin.empty?
 
-    Playwright.create(playwright_cli_executable_path: playwright_bin) do |p|
-      p.chromium.launch do |browser|
-        page = browser.new_page(viewport: { width: 1280, height: 720 })
-        page.goto("file://#{File.expand_path(@temp_html)}")
+    Playwright.create(playwright_cli_executable_path: playwright_bin) do |playwright|
+      playwright.chromium.launch do |chrome|
+        pg = chrome.new_page(viewport: { width: 1280, height: 720 })
+        pg.goto("file://#{File.expand_path(@temp_html)}")
         sleep 2 # Wait for mermaid to render
-        page.pdf(path: @pdf_path, format: 'A4', landscape: true, printBackground: true)
+        pg.pdf(path: @pdf_path, format: 'A4', landscape: true, printBackground: true)
       end
     end
   end

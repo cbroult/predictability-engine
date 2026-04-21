@@ -5,13 +5,23 @@
 * **Total Items:** 200
 * **Completed Items:** 150
 * **Average Throughput:** 0.97 items/day
-* **Priority Breakdown:** Highest 6, High 35, Medium 68, Low 31, Lowest 10
+* **Priority Breakdown:** 
+  Highest 6
+  High 35
+  Medium 68
+  Low 31
+  Lowest 10
+* **Type Breakdown:** 
+  Improvement 39
+  Story 37
+  Bug 37
+  Task 37
 
 ### Aging WIP Summary
 
 * **Active WIP:** 50 items
-* **Average WIP Age:** 32.6 days
-* **Oldest Item Age:** 53 days
+* **Average WIP Age:** 33.6 days
+* **Oldest Item Age:** 54 days
 
 ### Cycle Time Percentiles
 

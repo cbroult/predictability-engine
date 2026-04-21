@@ -13,18 +13,18 @@ RSpec.describe PredictabilityEngine::VegaVisualizer do
     ]
   end
 
-  around do |example|
-    old_mock_today = ENV.fetch('MOCK_TODAY', nil)
-    ENV['MOCK_TODAY'] = today.to_s
-    example.run
-    ENV['MOCK_TODAY'] = old_mock_today
+  include_context 'with mocked today'
+
+  def find_layer(spec, mark_type)
+    spec['layer'].find { |l| l['mark'] && (l['mark'] == mark_type || l['mark']['type'] == mark_type) }
   end
 
   describe '.cycle_time_scatter' do
+    let(:scatter_spec) { described_class.cycle_time_scatter(items).spec.deep_stringify_keys }
+    let(:cycle_axis) { find_layer(scatter_spec, 'point')['encoding']['x']['axis'] }
+
     it 'generates a spec with correct percentile line styles' do
-      chart = described_class.cycle_time_scatter(items)
-      spec = chart.spec.deep_stringify_keys
-      rules_layer = spec['layer'].find { |l| l['mark'] && (l['mark'] == 'rule' || l['mark']['type'] == 'rule') }
+      rules_layer = find_layer(scatter_spec, 'rule')
 
       expect(rules_layer).not_to be_nil
       expect(rules_layer['encoding']['strokeDash']).to have_key('condition')
@@ -39,36 +39,28 @@ RSpec.describe PredictabilityEngine::VegaVisualizer do
     end
 
     it 'includes daily markers on the x-axis' do
-      chart = described_class.cycle_time_scatter(items)
-      spec = chart.spec.deep_stringify_keys
-      points_layer = spec['layer'].find { |l| l['mark'] && (l['mark'] == 'point' || l['mark']['type'] == 'point') }
-      axis = points_layer['encoding']['x']['axis']
-
-      expect(axis['minorTicks']).to be true
-      expect(axis['tickCount']).to eq({ 'interval' => 'week' })
+      expect(cycle_axis['minorTicks']).to be true
+      expect(cycle_axis['tickCount']).to eq({ 'interval' => 'week' })
     end
   end
 
   describe '.forecasted_cfd' do
-    it 'generates a spec with daily markers and minor ticks on x-axis' do
-      chart = described_class.forecasted_cfd(items)
-      spec = chart.spec.deep_stringify_keys
-      axis = spec['encoding']['x']['axis']
+    let(:cfd_spec) { described_class.forecasted_cfd(items).spec.deep_stringify_keys }
+    let(:cfd_axis) { cfd_spec['encoding']['x']['axis'] }
 
-      expect(axis['minorTicks']).to be true
-      expect(axis['minorTickSize']).to eq(4)
+    it 'generates a spec with daily markers and minor ticks on x-axis' do
+      expect(cfd_axis['minorTicks']).to be true
+      expect(cfd_axis['minorTickSize']).to eq(4)
       # In base_cfd_chart, tickCount is not explicitly set, but values are provided
-      expect(axis['values']).not_to be_empty
+      expect(cfd_axis['values']).not_to be_empty
     end
 
     it 'includes vertical forecast layers with date-enhanced labels' do
-      chart = described_class.forecasted_cfd(items)
-      spec = chart.spec.deep_stringify_keys
-      text_layer = spec['layer'].find { |l| l['mark'] && (l['mark'] == 'text' || l['mark']['type'] == 'text') }
+      text_layer = find_layer(cfd_spec, 'text')
 
       expect(text_layer).not_to be_nil
       # We need to find the data in the layer itself or at the top level
-      data_values = text_layer['data'] ? text_layer['data']['values'] : spec['data']['values']
+      data_values = text_layer['data'] ? text_layer['data']['values'] : cfd_spec['data']['values']
       expect(data_values).not_to be_nil
 
       label_data = data_values.find { |v| v['label']&.include?('%') }

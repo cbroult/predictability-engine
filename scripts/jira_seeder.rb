@@ -23,33 +23,29 @@ class JiraSeeder
   end
 
   def run
-    puts "Seeding Jira project #{@project_key} with #{@count} issues..."
+    puts "Seeding Jira project #{@project_key} with #{@count} tickets..."
 
     # 1. Verify project exists
     project = @client.Project.find(@project_key)
     puts "Found project: #{project.name}"
 
-    # 2. Create issues
+    # 2. Create tickets
     @count.times do |i|
       summary = "Test Issue #{Time.now.to_i} - #{i}"
-      issue = @client.Issue.build
-      issue.save({
-                   'fields' => {
-                     'project' => { 'key' => @project_key },
-                     'summary' => summary,
-                     'issuetype' => { 'name' => 'Story' }
-                   }
-                 })
-      puts "Created issue: #{issue.key}"
+      ticket = @client.Issue.build
+      ticket.save({ 'fields' => { 'project' => { 'key' => @project_key },
+                                  'summary' => summary,
+                                  'issuetype' => { 'name' => 'Story' } } })
+      puts "Created ticket: #{ticket.key}"
 
-      # 3. Transition some issues to simulate workflow
+      # 3. Transition some tickets to simulate workflow
       # 60% in progress, 20% done, 20% to do
       case i % 5
       when 0, 1, 2
-        transition_to(issue, 'In Progress')
+        transition_to(ticket, 'In Progress')
       when 3
-        transition_to(issue, 'In Progress')
-        transition_to(issue, 'Done')
+        transition_to(ticket, 'In Progress')
+        transition_to(ticket, 'Done')
       end
     end
 
@@ -57,11 +53,11 @@ class JiraSeeder
   end
 
   def cleanup
-    puts "Cleaning up issues in project #{@project_key}..."
-    issues = @client.Issue.jql("project = #{@project_key}")
-    issues.each do |issue|
-      puts "  Deleting #{issue.key}"
-      issue.delete
+    puts "Cleaning up tickets in project #{@project_key}..."
+    tickets = @client.Issue.jql("project = #{@project_key}")
+    tickets.each do |ticket|
+      puts "  Deleting #{ticket.key}"
+      ticket.delete
     end
     puts 'Cleanup completed.'
   end
@@ -72,16 +68,16 @@ class JiraSeeder
     PredictabilityEngine::Config.jira_client(ENV.fetch('JIRA_PROFILE', nil))
   end
 
-  def transition_to(issue, status_name)
-    transitions = @client.Transition.all(issue: issue)
+  def transition_to(ticket, status_name)
+    transitions = @client.Transition.all(issue: ticket)
     target = transitions.find { |t| t.name.downcase.include?(status_name.downcase) }
 
     if target
-      transition = issue.transitions.build
+      transition = ticket.transitions.build
       transition.save!('transition' => { 'id' => target.id })
-      puts "  Transitioned #{issue.key} to #{status_name}"
+      puts "  Transitioned #{ticket.key} to #{status_name}"
     else
-      puts "  Warning: Could not find transition to '#{status_name}' for #{issue.key}"
+      puts "  Warning: Could not find transition to '#{status_name}' for #{ticket.key}"
     end
   end
 end
@@ -90,8 +86,8 @@ options = {}
 OptionParser.new do |opts|
   opts.banner = 'Usage: jira_seeder.rb [options]'
   opts.on('-p', '--project KEY', 'Jira project key') { |v| options[:project] = v }
-  opts.on('-c', '--count N', Integer, 'Number of issues to create') { |v| options[:count] = v }
-  opts.on('--cleanup', 'Delete all issues in the project before seeding') { options[:cleanup] = true }
+  opts.on('-c', '--count N', Integer, 'Number of tickets to create') { |v| options[:count] = v }
+  opts.on('--cleanup', 'Delete all tickets in the project before seeding') { options[:cleanup] = true }
 end.parse!
 
 if options[:project].nil?

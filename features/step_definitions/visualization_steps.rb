@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'json'
+require 'date'
+
 Then(/^the HTML file "([^"]*)" should be valid and visible in a browser$/) do |filename|
   content = File.read(check_file_path(filename))
   expect(content).to include('<html', 'vega')
@@ -51,8 +54,6 @@ Then(/^the HTML file "([^"]*)" should have rotated X-axis labels$/) do |filename
 end
 
 Then(/^the HTML file "([^"]*)" should have a confidence rule for (\d+)% at a date >= Today$/) do |filename, pct|
-  require 'json'
-  require 'date'
   content = File.read(check_file_path(filename))
   spec = find_cfd_spec(content)
   vert_data = find_vert_data(spec)
@@ -246,8 +247,6 @@ end
 Then(
   /^the HTML file "([^"]*)" should have a date on the x-axis within (\d+) days? of "([^"]*)" as the first date$/
 ) do |filename, tolerance, expected|
-  require 'json'
-  require 'date'
   content = File.read(check_file_path(filename))
   dates = extract_vega_specs(content).flat_map do |spec|
     [spec, *(spec['vconcat'] || []), *(spec['layer'] || [])].flat_map do |node|
@@ -289,12 +288,14 @@ def check_file_path(filename)
   file_path
 end
 
+def read_cfd_vert_data(filename)
+  content = File.read(check_file_path(filename))
+  find_vert_data(find_cfd_spec(content))
+end
+
 Then(/^the HTML file "([^"]*)" should have (\d+)% and (\d+)% confidence on the same vertical rule$/) \
   do |filename, pct1, pct2|
-  require 'json'
-  content = File.read(check_file_path(filename))
-  spec = find_cfd_spec(content)
-  vert_data = find_vert_data(spec)
+  vert_data = read_cfd_vert_data(filename)
 
   combined = vert_data.find { |v| v['label'].include?("#{pct1}%") && v['label'].include?("#{pct2}%") }
   labels = vert_data.map { |v| v['label'] }
@@ -303,10 +304,7 @@ Then(/^the HTML file "([^"]*)" should have (\d+)% and (\d+)% confidence on the s
 end
 
 Then(/^the HTML file "([^"]*)" should have (\d+) distinct confidence rules$/) do |filename, count|
-  require 'json'
-  content = File.read(check_file_path(filename))
-  spec = find_cfd_spec(content)
-  vert_data = find_vert_data(spec)
+  vert_data = read_cfd_vert_data(filename)
 
   expect(vert_data.size).to eq(count.to_i),
                             "Expected #{count} rules, got #{vert_data.size}: #{vert_data.map { |v| v['label'] }}"

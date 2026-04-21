@@ -9,11 +9,13 @@ module PredictabilityEngine
   class Report # rubocop:disable Metrics/ClassLength
     include Constants
 
-    PRIORITY_ORDER = %w[Highest High Medium Low Lowest].freeze
+    PRIORITY_SORT = lambda do |values|
+      values.sort_by { |v| [Constants::PRIORITY_ORDER.index(v) || Constants::PRIORITY_ORDER.size, v] }
+    end
 
     FACETS = [
       { key: :priority, label: 'Priority', accessor: :priority, dirname: 'priorities',
-        sort: ->(values) { values.sort_by { |v| [PRIORITY_ORDER.index(v) || PRIORITY_ORDER.size, v] } } },
+        sort: PRIORITY_SORT },
       { key: :type, label: 'Type', accessor: :type, dirname: 'types',
         sort: lambda(&:sort) }
     ].freeze

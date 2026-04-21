@@ -172,8 +172,7 @@ module PredictabilityEngine
     def generate_html_chart(source, output, type)
       items = PredictabilityEngine.load_items(source)
       path = generate_output_path(source, output, "#{type}.html")
-      FileUtils.mkdir_p(File.dirname(path))
-      File.write(path, Visualizer.to_full_html(yield(items), items))
+      PredictabilityEngine.write_file(path, Visualizer.to_full_html(yield(items), items))
       PredictabilityEngine.logger.info { "Chart generated at #{path}" }
     end
 

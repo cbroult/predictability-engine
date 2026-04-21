@@ -88,6 +88,11 @@ module PredictabilityEngine
     time.to_time.strftime('%Y-%m-%d %H:%M')
   end
 
+  def self.write_file(path, content)
+    FileUtils.mkdir_p(File.dirname(path))
+    File.write(path, content)
+  end
+
   def self.sample_data_path(name = 'sample_data.csv')
     path = File.join(File.expand_path('..', __dir__), 'data', 'samples', name)
     raise Error, "Sample data not found: #{path}" unless File.exist?(path)

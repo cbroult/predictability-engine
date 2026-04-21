@@ -25,6 +25,10 @@ module PredictabilityEngine
         @config['query'] || project_query || filter_query || convention_query
       end
 
+      def priority_aliases
+        profile_priority_aliases.merge(inline_priority_aliases)
+      end
+
       def workflow_config_path
         raw = @config['workflow_config']
         if raw && !raw.to_s.empty?
@@ -40,12 +44,30 @@ module PredictabilityEngine
 
       private
 
+      def inline_priority_aliases
+        raw = @config['priority_aliases']
+        stringify_hash(raw)
+      end
+
+      def profile_priority_aliases
+        return {} unless profile
+
+        path = File.expand_path("~/.config/jira/#{profile}.priorities.yml")
+        return {} unless File.exist?(path)
+
+        stringify_hash(YAML.load_file(path))
+      end
+
+      def stringify_hash(raw)
+        return {} unless raw.is_a?(Hash)
+
+        raw.transform_keys(&:to_s).transform_values(&:to_s)
+      end
+
       def load_config
         return {} unless @path.exist?
 
         YAML.load_file(@path) || {}
-      rescue StandardError
-        {}
       end
 
       def middle_segment

@@ -23,24 +23,31 @@ module PredictabilityEngine
           'Completed Items': metrics[:completed].size,
           'Average Throughput': "#{metrics[:tp_avg].round(2)} items/day"
         }
-        breakdown = priority_breakdown(metrics[:completed])
-        result[:'Priority Breakdown'] = breakdown if breakdown
+        Report::FACETS.each do |facet|
+          breakdown = facet_breakdown(metrics[:completed], facet)
+          result[:"#{facet[:label]} Breakdown"] = breakdown if breakdown
+        end
         result
       end
 
-      PRIORITY_ORDER = %w[Highest High Medium Low Lowest].freeze
-      private_constant :PRIORITY_ORDER
-
-      def self.priority_breakdown(completed_items)
-        counts = completed_items.filter_map(&:priority).tally
+      def self.facet_breakdown(completed_items, facet)
+        counts = completed_items.filter_map { |i| i.public_send(facet[:accessor]) }.tally
         return nil if counts.empty?
+        return nil if counts.size <= 1
 
-        ordered = PRIORITY_ORDER.filter_map { |p| "#{p} #{counts[p]}" if counts[p] }
-        others  = (counts.keys - PRIORITY_ORDER).sort.map { |p| "#{p} #{counts[p]}" }
-        (ordered + others).join(', ')
+        entries = if facet[:key] == :priority
+                    priority_order = Report::Constants::PRIORITY_ORDER
+                    ordered = priority_order.filter_map { |p| "#{p} #{counts[p]}" if counts[p] }
+                    others  = (counts.keys - priority_order).sort.map { |p| "#{p} #{counts[p]}" }
+                    ordered + others
+                  else
+                    counts.sort_by { |_, v| -v }.map { |k, v| "#{k} #{v}" }
+                  end
+
+        "\n" + entries.map { |entry| "  #{entry}" }.join("\n")
       end
 
-      private_class_method :priority_breakdown
+      private_class_method :facet_breakdown
 
       def self.terminal_colors(color)
         color ? ["\e[1m", "\e[36m", "\e[0m"] : ['', '', '']

@@ -8,6 +8,15 @@
 # Usage:
 #   include_context 'with captured logger'
 #   it { expect(log_output).to include('saved') }
+RSpec.shared_context 'with mocked today' do
+  around do |example|
+    old_mock_today = ENV.fetch('MOCK_TODAY', nil)
+    ENV['MOCK_TODAY'] = today.to_s
+    example.run
+    ENV['MOCK_TODAY'] = old_mock_today
+  end
+end
+
 RSpec.shared_context 'with captured logger' do
   let(:log_output) { StringIO.new }
 

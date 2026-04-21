@@ -42,18 +42,15 @@ RSpec.describe PredictabilityEngine::Config do
     end
 
     context 'with profile_name' do
+      let(:p_profile) { { 'p' => { 'site' => 'https://p.net' } } }
+
       it 'prioritizes profile specific settings' do
-        write_config({ 'jira' => { 'profiles' => { 'p' => { 'site' => 'https://p.net' } } } })
+        write_config({ 'jira' => { 'profiles' => p_profile } })
         expect(described_class.jira('p')[:site]).to eq('https://p.net')
       end
 
       it 'prevents global setting leak to profile' do
-        write_config({
-                       'jira' => {
-                         'email' => 'g@e.com',
-                         'profiles' => { 'p' => { 'site' => 'https://p.net' } }
-                       }
-                     })
+        write_config({ 'jira' => { 'email' => 'g@e.com', 'profiles' => p_profile } })
         expect(described_class.jira('p')[:email]).to be_nil
       end
     end

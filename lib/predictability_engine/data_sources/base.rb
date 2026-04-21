@@ -48,10 +48,16 @@ module PredictabilityEngine
           id: row[:id] || row[:key] || row[:item_id],
           title: row[:title] || row[:summary],
           type: row[:type] || row[:issuetype],
-          priority: row[:priority],
+          priority: normalize_priority(row[:priority]),
           start_date: parse_date(row[:start_date] || row[:created]),
           end_date: parse_date(row[:end_date] || row[:resolutiondate] || row[:resolved])
         }
+      end
+
+      def normalize_priority(name)
+        return nil if name.nil?
+
+        (@priority_aliases || {})[name.to_s] || name
       end
 
       def mock_data(env_key)

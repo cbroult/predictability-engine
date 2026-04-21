@@ -111,16 +111,12 @@ module JiraProjectSetup
     def fetch_existing_statuses
       result = @api.get('/rest/api/3/statuses/search?maxResults=200')
       (result['values'] || []).to_h { |s| [s['name'].downcase, s['id']] }
-    rescue StandardError
-      {}
     end
 
     def find_workflow(name)
       encoded = URI.encode_www_form_component(name)
       @api.get("/rest/api/3/workflow/search?workflowName=#{encoded}")['values']
           &.find { |w| w['name'] == name }
-    rescue StandardError
-      nil
     end
 
     def build_payload(name, statuses, status_ids)
@@ -339,13 +335,16 @@ module JiraProjectSetup
 
     private
 
+    def each_team_with_key(&block)
+      @teams.each { |team| block.call(JiraProjectSetup.project_key(@env, team['abbrev']), team) }
+    end
+
     def setup
       puts "Setting up #{@teams.size} Jira projects for ENV=#{@env} (#{@count} issues each)..."
       wf_provisioner = WorkflowProvisioner.new(api)
       pr_provisioner = ProjectProvisioner.new(api, client)
 
-      @teams.each do |team|
-        key  = JiraProjectSetup.project_key(@env, team['abbrev'])
+      each_team_with_key do |key, team|
         name = "PE #{@env.upcase} - #{team['name']}"
         puts "\n#{key} — #{team['name']}"
         wf_provisioner.ensure_workflow(team['workflow'], team['statuses'])
@@ -360,8 +359,7 @@ module JiraProjectSetup
 
     def teardown
       puts "Tearing down test data for ENV=#{@env}..."
-      @teams.each do |team|
-        key = JiraProjectSetup.project_key(@env, team['abbrev'])
+      each_team_with_key do |key, team|
         puts "\n#{key}"
         DataSeeder.new(client, key, team).cleanup
       end
@@ -372,8 +370,7 @@ module JiraProjectSetup
       puts "Project status for ENV=#{@env}:\n\n"
       printf "%-15<key>s %-40<name>s %<items>s\n", key: 'Key', name: 'Name', items: 'Items'
       puts '-' * 65
-      @teams.each do |team|
-        key = JiraProjectSetup.project_key(@env, team['abbrev'])
+      each_team_with_key do |key, team|
         begin
           project = client.Project.find(key)
           count   = DataSeeder.new(client, key, team).count_issues

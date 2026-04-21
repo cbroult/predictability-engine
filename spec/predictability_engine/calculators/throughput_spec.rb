@@ -18,18 +18,15 @@ RSpec.describe PredictabilityEngine::Calculators::Throughput do
     let(:all_items) { [item_on_day_one, first_item_on_day_two, second_item_on_day_two, incomplete_item] }
 
     it 'returns counts per completion day' do
-      res = described_class.daily(all_items)
-      expect(res[day_two]).to eq(2)
-      expect(res[day_one]).to eq(1)
-      expect(res.keys.size).to eq(2)
+      counts = described_class.daily(all_items)
+      expect(counts).to include(day_two => 2, day_one => 1)
+      expect(counts.keys.size).to eq(2)
     end
 
     it 'fills in zeros for days with no completions if range is provided' do
-      res = described_class.daily([item_on_day_one, second_item_on_day_two],
-                                  start_date: day_one, end_date: day_three)
-      expect(res[day_one]).to eq(1)
-      expect(res[day_two]).to eq(1)
-      expect(res[day_three]).to eq(0)
+      counts = described_class.daily([item_on_day_one, second_item_on_day_two],
+                                     start_date: day_one, end_date: day_three)
+      expect(counts).to include(day_one => 1, day_two => 1, day_three => 0)
     end
   end
 

@@ -54,10 +54,12 @@ RSpec.describe PredictabilityEngine::Cli do
   describe '#ask_ai' do
     let(:manager) { instance_double(PredictabilityEngine::DataManager, load: true) }
     let(:assistant) { instance_double(PredictabilityEngine::Agents::Assistant) }
+    let(:ai_response) { 'AI Raw Answer' }
 
     before do
       allow(PredictabilityEngine::DataManager).to receive(:new).and_return(manager)
       allow(PredictabilityEngine::Agents::Assistant).to receive(:new).and_return(assistant)
+      allow(assistant).to receive(:ask).and_return(ai_response)
     end
 
     it 'outputs content if response responds to :content' do
@@ -70,8 +72,6 @@ RSpec.describe PredictabilityEngine::Cli do
     end
 
     it 'outputs response directly if it does not respond to :content' do
-      allow(assistant).to receive(:ask).and_return('AI Raw Answer')
-
       cli.ask_ai(source, 'question')
       expect(log_output.string).to match(/AI Raw Answer/)
     end
