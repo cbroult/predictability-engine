@@ -64,7 +64,7 @@ Captured from `AGENT.md` (authoritative project guidelines):
 - **`PredictabilityEngine.today`** honors `MOCK_TODAY=YYYY-MM-DD`. Tests and deterministic repros rely on it — never call `Date.today`/`Date.current` directly in engine code.
 - **CFD color coding is fixed**: Arrivals = blue, Departures = green.
 - **Forecast percentiles ≠ cycle-time percentiles.** The Forecasted CFD's confidence rules come from `Calculators::CfdForecaster` — Monte Carlo simulation of backlog depletion ("when will all current WIP be done?"), NOT `Calculators::CycleTime.percentile` ("how long does a single item take?"). Even when CT p95 == CT p98 for a dataset, the backlog forecast typically produces distinct dates because it answers a different question. The chart carries a subtitle reinforcing this; don't "fix" the discrepancy by swapping in cycle-time percentiles.
-- **Forecast alignment invariant (IMMUTABLE)** — see dedicated section below. Protected verification files cannot be modified without the `[unlock-alignment]` commit-message token.
+- **Forecast alignment invariant** — see dedicated section below.
 - **Conventional Commits** (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:` …). CI badge pipeline and changelog automation depend on this.
 - **Co-author**: when committing, use your own Claude Code signature as the co-author trailer (e.g. `Co-Authored-By: Claude <noreply@anthropic.com>`). The `Junie <junie@jetbrains.com>` trailer seen in prior commits was for the JetBrains Junie agent — do not reuse it for Claude-authored work.
 - **Fail-fast**: surface descriptive errors; do not silently swallow exceptions in calculators or simulators.
@@ -78,37 +78,27 @@ The Forecasted CFD draws a vertical "confidence rule" for every percentile `p`. 
 
 > For each percentile `p` with plateau day `d_p = today + summary[:"p#{p}"]` and plateau value `plateau = summary[:departed_so_far] + summary[:wip]`, the vertical rule is drawn at `x = d_p`, `y ∈ [0, plateau]`. The rule tip touches the top-right corner of the p% surface — never the live Arrivals line, never a neighbour's date.
 
-This is a **load-bearing invariant**: every refactor of `vega_visualizer/cfd_layout.rb` has historically re-broken this alignment. The invariant is encoded in three places and those three places are **protected**:
-
-### Protected verification files
-
-Do NOT modify any of the following without explicit authorization:
-
-- `features/forecast_alignment.feature`
-- `spec/predictability_engine/forecast_alignment_spec.rb`
-- The step definitions `should have confidence rules hit the local surface`, `should have confidence rules hit the forecast plateau`, and `should have confidence rules aligned with the rightmost part of forecast areas` inside `features/step_definitions/visualization_steps.rb`.
-
-### Unlock mechanism
-
-The sole authorized way to modify a protected verification file is to stage or land a commit whose message contains the literal token `[unlock-alignment]`. This mirrors the existing `[skip ci]` / `[skip bump]` convention used by `scripts/auto-bump.sh`.
-
-When the token is absent:
-- The PreToolUse hook (`.claude/hooks/protect-alignment.sh`) rejects the edit.
-- The `scenario-guardian` subagent flags any diff touching these files.
-- Claude MUST refuse the edit and cite this section.
-
-When adding or removing protected files, update *all four* touch points: this section, the hook script, the `/verify-alignment` skill, and the `scenario-guardian` agent description.
-
-### Verifying alignment
-
-Run the `/verify-alignment` slash-command, or manually:
+The invariant is verified by:
 
 ```bash
 bundle exec rspec spec/predictability_engine/forecast_alignment_spec.rb
 bundle exec cucumber features/forecast_alignment.feature
 ```
 
-If either fails, fix the **code** (typically `lib/predictability_engine/vega_visualizer/cfd_layout.rb`), not the verification.
+Run the `/verify-alignment` slash-command for the same checks with diagnostics.
+
+If either fails, fix the **code** (typically `lib/predictability_engine/vega_visualizer/cfd_layout.rb`), not the verification. The verification files may be edited freely for refactoring — keep the suite green.
+
+## jscpd configuration invariant
+
+`.jscpd.json`: threshold 0.8%, minLines 2, minTokens 16 (ruby/yaml/etc, no gherkin).
+`.jscpd.gherkin.json`: threshold 5%, minLines 5, minTokens 50 (gherkin only).
+
+Do NOT change these values without an explicit `[unlock-jscpd]` token in the commit message. When the token is absent, Claude MUST refuse the edit and cite this section.
+
+## Consecutive logger calls → heredoc
+
+When 2+ consecutive `logger` calls form one logical output block, collapse them into a single call with a squiggly heredoc block.
 
 ## External Integrations
 

@@ -43,7 +43,8 @@ end
 # Quality: copy-paste detection
 desc 'Run jscpd'
 task :jscpd do
-  sh 'npx jscpd .'
+  sh 'npx jscpd . --config .jscpd.json'
+  sh 'npx jscpd . --config .jscpd.gherkin.json'
 end
 
 # Quality: documentation

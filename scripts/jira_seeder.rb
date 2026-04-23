@@ -31,11 +31,7 @@ class JiraSeeder
 
     # 2. Create tickets
     @count.times do |i|
-      summary = "Test Issue #{Time.now.to_i} - #{i}"
-      ticket = @client.Issue.build
-      ticket.save({ 'fields' => { 'project' => { 'key' => @project_key },
-                                  'summary' => summary,
-                                  'issuetype' => { 'name' => 'Story' } } })
+      ticket = create_story("Test Issue #{Time.now.to_i} - #{i}")
       puts "Created ticket: #{ticket.key}"
 
       # 3. Transition some tickets to simulate workflow
@@ -63,6 +59,14 @@ class JiraSeeder
   end
 
   private
+
+  def create_story(summary)
+    @client.Issue.build.tap do |ticket|
+      ticket.save({ 'fields' => { 'issuetype' => { 'name' => 'Story' },
+                                  'project' => { 'key' => @project_key },
+                                  'summary' => summary } })
+    end
+  end
 
   def build_client
     PredictabilityEngine::Config.jira_client(ENV.fetch('JIRA_PROFILE', nil))

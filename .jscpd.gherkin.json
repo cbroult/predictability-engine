@@ -1,0 +1,14 @@
+{
+  "threshold": 5.0,
+  "minLines": 5,
+  "minTokens": 50,
+  "format": "gherkin",
+  "reporters": [
+    "console"
+  ],
+  "ignore": [
+    "vendor/**",
+    "node_modules/**"
+  ],
+  "absolute": true
+}

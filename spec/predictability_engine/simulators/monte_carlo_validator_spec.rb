@@ -11,6 +11,15 @@ RSpec.describe PredictabilityEngine::Simulators::MonteCarloValidator do
   #   - in-flight items: i where end_date > d   (at least 1)
   #   - MC predicts exactly (25 - (d-base)) days; actual is the same → 100% coverage
   let(:base) { Date.parse('2025-01-01') }
+  let(:regular_items) { build_dated_items(25) }
+  # Items where start == end: completed? is true, but in_progress? is always false.
+  let(:never_in_flight_items) do
+    Array.new(25) do |n|
+      PredictabilityEngine::Models::WorkItem.new(item_id: n + 1, start_date: (base + n + 1).to_s,
+                                                 end_date: (base + n + 1).to_s)
+    end
+  end
+  let(:opts) { { validation_trials: 20, primary_trials: 500 } }
 
   def build_dated_items(count, start_offset: 0)
     (1..count).map do |i|
@@ -21,17 +30,6 @@ RSpec.describe PredictabilityEngine::Simulators::MonteCarloValidator do
       )
     end
   end
-
-  let(:regular_items) { build_dated_items(25) }
-
-  # Items where start == end: completed? is true, but in_progress? is always false.
-  let(:never_in_flight_items) do
-    (1..25).map do |i|
-      PredictabilityEngine::Models::WorkItem.new(item_id: i, start_date: (base + i).to_s, end_date: (base + i).to_s)
-    end
-  end
-
-  let(:opts) { { validation_trials: 20, primary_trials: 500 } }
 
   describe '.calibration' do
     context 'with fewer than MIN_COMPLETED_ITEMS completed items' do

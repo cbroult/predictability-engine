@@ -3,10 +3,21 @@
 require 'json'
 require 'date'
 
+def read_html(filename)
+  File.read(check_file_path(filename))
+end
+
+def read_cfd_data(filename)
+  spec = find_cfd_spec(read_html(filename))
+  vert_data = find_vert_data(spec)
+  main_data = spec['data']['values']
+  [spec, vert_data, main_data]
+end
+
 Then(/^the HTML file "([^"]*)" should be valid and visible in a browser$/) do |filename|
-  content = File.read(check_file_path(filename))
-  expect(content).to include('<html', 'vega')
-  expect(content).to match(/vg-canvas|vega-embed/)
+  html = read_html(filename)
+  expect(html).to include('<html', 'vega')
+  expect(html).to match(/vg-canvas|vega-embed/)
 end
 
 Then(/^the output should contain ANSI color codes$/) do
@@ -35,28 +46,26 @@ Then(/^the PDF file "([^"]*)" should have (\d+) page(?:s?)$/) do |filename, coun
 end
 
 Then(/^the HTML file "([^"]*)" should have vertical rules for confidence levels$/) do |filename|
-  raw_content = File.read(check_file_path(filename))
+  raw_content = read_html(filename)
   # Vega spec for Forecasted CFD contains rules with tooltips like "50% Confidence (2026-04-18)"
   expect(raw_content).to include('"mark":{"type":"rule"')
   expect(raw_content).to match(/"tooltip":"[^"]*\d+% Confidence \(\d{4}-\d{2}-\d{2}\)[^"]*"/)
 end
 
 Then(/^the HTML file "([^"]*)" should have CFD areas with no stacking$/) do |filename|
-  area_content = File.read(check_file_path(filename))
+  area_content = read_html(filename)
   # Search for the area encoding and verify it has stack: null
   expect(area_content).to match(/"type":"area".*?"encoding":\{.*?"y":\{.*?"stack":null/m)
 end
 
 Then(/^the HTML file "([^"]*)" should have rotated X-axis labels$/) do |filename|
-  content = File.read(check_file_path(filename))
+  content = read_html(filename)
   # Check for labelAngle: -45 in the X axis encoding
   expect(content).to match(/"encoding":\{"x":\{.*?"axis":\{.*?"labelAngle":-45/m)
 end
 
 Then(/^the HTML file "([^"]*)" should have a confidence rule for (\d+)% at a date >= Today$/) do |filename, pct|
-  content = File.read(check_file_path(filename))
-  spec = find_cfd_spec(content)
-  vert_data = find_vert_data(spec)
+  _, vert_data, = read_cfd_data(filename)
 
   today = Date.parse(ENV['MOCK_TODAY'] || Date.current.to_s)
 
@@ -66,11 +75,7 @@ Then(/^the HTML file "([^"]*)" should have a confidence rule for (\d+)% at a dat
 end
 
 Then(/^the HTML file "([^"]*)" should have confidence rules hit the forecast plateau$/) do |filename|
-  require 'json'
-  content = File.read(check_file_path(filename))
-  spec = find_cfd_spec(content)
-  vert_data = find_vert_data(spec)
-  main_data = spec['data']['values']
+  _, vert_data, main_data = read_cfd_data(filename)
 
   arrivals = main_data.select { |d| d['type'] == 'Arrivals' }
   max_arrivals = arrivals.map { |d| d['count'] }.max
@@ -82,14 +87,7 @@ Then(/^the HTML file "([^"]*)" should have confidence rules hit the forecast pla
 end
 
 Then(/^the HTML file "([^"]*)" should have confidence rules hit the local surface$/) do |filename|
-  # IMMUTABLE: see CLAUDE.md §"Forecast alignment invariant".
-  # The rule's count must equal the percentile-surface plateau (departed_so_far + wip),
-  # i.e. the top-right corner of the p% surface — not the live Arrivals line.
-  require 'json'
-  content = File.read(check_file_path(filename))
-  spec = find_cfd_spec(content)
-  vert_data = find_vert_data(spec)
-  main_data = spec['data']['values']
+  _, vert_data, main_data = read_cfd_data(filename)
 
   plateau = compute_plateau(main_data)
 
@@ -164,10 +162,7 @@ end
 
 Then(/^the HTML file "([^"]*)" should have confidence rules aligned with the rightmost part of forecast areas$/) \
   do |filename|
-  content = File.read(check_file_path(filename))
-  spec = find_cfd_spec(content)
-  main_data = spec['data']['values']
-  vert_data = find_vert_data(spec)
+  _spec, vert_data, main_data = read_cfd_data(filename)
 
   vert_data.each_with_index do |v, _vi|
     pcts_in_rule = v['label'].scan(/(\d+)%/).flatten.map(&:to_i)
@@ -194,7 +189,7 @@ Then(/^the HTML file "([^"]*)" should have confidence rules aligned with the rig
 end
 
 Then(/^the HTML file "([^"]*)" should have navigation links:$/) do |filename, table|
-  content = File.read(check_file_path(filename))
+  content = read_html(filename)
   table.hashes.each do |row|
     active_class = row['active'] == 'true' ? 'active' : ''
     # Expecting <a href='url' class='active_class'>label</a>
@@ -228,7 +223,7 @@ Then(/^it is a valid PNG file$/) do
 end
 
 Then(/^the HTML file "([^"]*)" should have "([^"]*)" as the first chart panel$/) do |filename, title|
-  content = File.read(check_file_path(filename))
+  content = read_html(filename)
   # First chart panel comes after summary panel
   # Split by <div class='chart-panel'> and check the first one (index 1 because index 0 is everything before)
   first_panel = content.split("<div class='chart-panel'>").at(1)
@@ -237,7 +232,7 @@ end
 
 Then(/^the HTML file "([^"]*)" should have "([^"]*)" as the (\d+)(?:st|nd|rd|th) chart panel$/) \
   do |filename, title, index|
-  content = File.read(check_file_path(filename))
+  content = read_html(filename)
   # First chart panel comes after summary panel
   # Split by <div class='chart-panel'> and check the one at given index
   panel = content.split("<div class='chart-panel'>").at(index.to_i)
@@ -247,7 +242,7 @@ end
 Then(
   /^the HTML file "([^"]*)" should have a date on the x-axis within (\d+) days? of "([^"]*)" as the first date$/
 ) do |filename, tolerance, expected|
-  content = File.read(check_file_path(filename))
+  content = read_html(filename)
   dates = extract_vega_specs(content).flat_map do |spec|
     [spec, *(spec['vconcat'] || []), *(spec['layer'] || [])].flat_map do |node|
       (node.dig('data', 'values') || []).map { |v| v['date'] }
@@ -262,7 +257,7 @@ Then(
 end
 
 Then(/^the HTML file "([^"]*)" should have CFD x-axis with minor ticks and long labeled ticks$/) do |filename|
-  content = File.read(check_file_path(filename))
+  content = read_html(filename)
   expect(content).to include('"minorTicks":true')
   expect(content).to include('"tickSize":8')
   expect(content).to include('"minorTickSize":4')
@@ -270,8 +265,7 @@ Then(/^the HTML file "([^"]*)" should have CFD x-axis with minor ticks and long 
 end
 
 Then(/^the HTML file "([^"]*)" should have "([^"]*)" as a labeled x-axis tick$/) do |filename, date|
-  require 'json'
-  content = File.read(check_file_path(filename))
+  content = read_html(filename)
   specs = extract_vega_specs(content)
   all_values = specs.flat_map do |s|
     [s, *(s['vconcat'] || []), *(s['layer'] || [])].flat_map do |n|
@@ -289,8 +283,7 @@ def check_file_path(filename)
 end
 
 def read_cfd_vert_data(filename)
-  content = File.read(check_file_path(filename))
-  find_vert_data(find_cfd_spec(content))
+  find_vert_data(find_cfd_spec(read_html(filename)))
 end
 
 Then(/^the HTML file "([^"]*)" should have (\d+)% and (\d+)% confidence on the same vertical rule$/) \

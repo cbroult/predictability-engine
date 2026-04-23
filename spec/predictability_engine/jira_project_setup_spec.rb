@@ -42,22 +42,16 @@ RSpec.describe JiraProjectSetup do
     end
 
     it 'each team has required keys' do
-      teams.each do |team|
-        expect(team.keys).to include('abbrev', 'name', 'workflow', 'issue_types', 'statuses')
-      end
+      required = %w[abbrev name workflow issue_types statuses]
+      teams.each { |team| expect(team.keys).to include(*required) }
     end
 
-    it 'each team has at least one arrival status' do
+    it 'each team has at least one arrival and one departure status' do
       teams.each do |team|
-        arrivals = team['statuses'].select { |s| s['role'] == 'arrival' }
-        expect(arrivals).not_to be_empty, "#{team['abbrev']} has no arrival status"
-      end
-    end
-
-    it 'each team has at least one departure status' do
-      teams.each do |team|
-        departures = team['statuses'].select { |s| s['role'] == 'departure' }
-        expect(departures).not_to be_empty, "#{team['abbrev']} has no departure status"
+        %w[arrival departure].each do |role|
+          count = team['statuses'].count { |s| s['role'] == role }
+          expect(count).to be_positive, "#{team['abbrev']} has no #{role} status"
+        end
       end
     end
   end
@@ -70,15 +64,15 @@ RSpec.describe JiraProjectSetup do
       let(:seeder) { described_class.new(nil, 'PEDEVTBD', tbd_team, count: 40) }
 
       it 'assigns :completed to the first 60% (issues 1-24)' do
-        (1..24).each { |i| expect(seeder.send(:bucket_for, i)).to eq(:completed) }
+        expect((1..24).map { |i| seeder.send(:bucket_for, i) }).to all(eq(:completed))
       end
 
       it 'assigns :in_progress to the next 30% (issues 25-36)' do
-        (25..36).each { |i| expect(seeder.send(:bucket_for, i)).to eq(:in_progress) }
+        expect((25..36).map { |i| seeder.send(:bucket_for, i) }).to all(eq(:in_progress))
       end
 
       it 'assigns :backlog to the last 10% (issues 37-40)' do
-        (37..40).each { |i| expect(seeder.send(:bucket_for, i)).to eq(:backlog) }
+        expect((37..40).map { |i| seeder.send(:bucket_for, i) }).to all(eq(:backlog))
       end
     end
 

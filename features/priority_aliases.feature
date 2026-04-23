@@ -64,12 +64,12 @@ Feature: Priority name normalization
       P0: Highest
       P1: High
       """
-    And a file named "myteam.PROJ.yml" with:
+    And a file named "myteam.PROJ2.yml" with:
       """
       priority_aliases:
         P1: Medium
       """
-    When I successfully run `predictability-engine summary myteam.PROJ.yml`
+    When I successfully run `predictability-engine summary myteam.PROJ2.yml`
     Then the output should contain "Highest"
     And the output should contain "Medium"
     And the output should not contain "P1"

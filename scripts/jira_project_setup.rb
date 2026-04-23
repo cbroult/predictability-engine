@@ -371,13 +371,11 @@ module JiraProjectSetup
       printf "%-15<key>s %-40<name>s %<items>s\n", key: 'Key', name: 'Name', items: 'Items'
       puts '-' * 65
       each_team_with_key do |key, team|
-        begin
-          project = client.Project.find(key)
-          count   = DataSeeder.new(client, key, team).count_issues
-          printf "%-15<key>s %-40<name>s %<count>d\n", key: key, name: project.name, count: count
-        rescue StandardError
-          printf "%-15<key>s %-40<name>s %<status>s\n", key: key, name: "(#{team['name']})", status: 'NOT FOUND'
-        end
+        project = client.Project.find(key)
+        count   = DataSeeder.new(client, key, team).count_issues
+        printf "%-15<key>s %-40<name>s %<count>d\n", key: key, name: project.name, count: count
+      rescue StandardError
+        printf "%-15<key>s %-40<name>s %<status>s\n", key: key, name: "(#{team['name']})", status: 'NOT FOUND'
       end
     end
 

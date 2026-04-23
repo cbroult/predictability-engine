@@ -14,19 +14,19 @@ RSpec.describe PredictabilityEngine::Logger do
     instance.instance_variable_set(:@console_logger, console)
   end
 
-  def set_level(level)
+  def configure_level(level)
     instance.instance_variable_get(:@console_logger).level = level
   end
 
   describe '#info with block' do
     it 'evaluates the block when the level is enabled' do
-      set_level(Logger::INFO)
+      configure_level(Logger::INFO)
       instance.info { 'hello' }
       expect(io.string).to include('hello')
     end
 
     it 'does NOT evaluate the block when the level is disabled' do
-      set_level(Logger::WARN)
+      configure_level(Logger::WARN)
       expect { instance.info { raise 'block must not run' } }.not_to raise_error
       expect(io.string).to eq('')
     end
@@ -34,7 +34,7 @@ RSpec.describe PredictabilityEngine::Logger do
 
   describe '#warn with block' do
     it 'evaluates the block at WARN level' do
-      set_level(Logger::WARN)
+      configure_level(Logger::WARN)
       instance.warn { 'uh-oh' }
       expect(io.string).to include('uh-oh')
     end
@@ -42,7 +42,7 @@ RSpec.describe PredictabilityEngine::Logger do
 
   describe 'backward-compatible string form' do
     it 'still accepts a plain message argument' do
-      set_level(Logger::INFO)
+      configure_level(Logger::INFO)
       instance.info('plain')
       expect(io.string).to include('plain')
     end

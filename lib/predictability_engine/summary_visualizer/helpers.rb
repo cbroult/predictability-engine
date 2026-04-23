@@ -32,22 +32,25 @@ module PredictabilityEngine
 
       def self.facet_breakdown(completed_items, facet)
         counts = completed_items.filter_map { |i| i.public_send(facet[:accessor]) }.tally
-        return nil if counts.empty?
         return nil if counts.size <= 1
 
-        entries = if facet[:key] == :priority
-                    priority_order = Report::Constants::PRIORITY_ORDER
-                    ordered = priority_order.filter_map { |p| "#{p} #{counts[p]}" if counts[p] }
-                    others  = (counts.keys - priority_order).sort.map { |p| "#{p} #{counts[p]}" }
-                    ordered + others
-                  else
-                    counts.sort_by { |_, v| -v }.map { |k, v| "#{k} #{v}" }
-                  end
-
-        "\n" + entries.map { |entry| "  #{entry}" }.join("\n")
+        "\n#{ordered_facet_entries(counts, facet).map { |e| "  #{e}" }.join("\n")}"
       end
 
-      private_class_method :facet_breakdown
+      def self.ordered_facet_entries(counts, facet)
+        return priority_ordered_entries(counts) if facet[:key] == :priority
+
+        counts.sort_by { |_, v| -v }.map { |k, v| "#{k} #{v}" }
+      end
+
+      def self.priority_ordered_entries(counts)
+        priority_order = Report::Constants::PRIORITY_ORDER
+        ordered = priority_order.filter_map { |p| "#{p} #{counts[p]}" if counts[p] }
+        others  = (counts.keys - priority_order).sort.map { |p| "#{p} #{counts[p]}" }
+        ordered + others
+      end
+
+      private_class_method :facet_breakdown, :ordered_facet_entries, :priority_ordered_entries
 
       def self.terminal_colors(color)
         color ? ["\e[1m", "\e[36m", "\e[0m"] : ['', '', '']

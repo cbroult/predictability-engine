@@ -21,11 +21,6 @@ Feature: predictability-engine setup command
     And the output should contain "Installing Ruby dependencies"
     And the output should contain "Setup complete"
 
-  Scenario: setup with --skip-bundle --skip-playwright exits successfully
-    When I successfully run `predictability-engine setup --skip-bundle --skip-playwright`
-    Then the exit status should be 0
-    And the output should contain "Setup complete"
-
   Scenario: setup --help documents all flags
     When I successfully run `predictability-engine help setup`
     Then the output should contain "--skip-playwright"

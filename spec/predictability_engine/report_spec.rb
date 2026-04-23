@@ -3,16 +3,8 @@
 require 'spec_helper'
 
 RSpec.describe PredictabilityEngine::Report do
-  let(:items) do
-    [
-      PredictabilityEngine::Models::WorkItem.new(
-        item_id: 'PROJ-1',
-        title: 'Task 1',
-        start_date: '2026-03-01',
-        end_date: '2026-03-05'
-      )
-    ]
-  end
+  include_context 'with sample work items'
+
   let(:report) { described_class.new(items) }
 
   describe '#render' do
@@ -90,24 +82,30 @@ RSpec.describe PredictabilityEngine::Report do
   end
 
   describe '.generate_all' do
-    let(:reports) { described_class.generate_all(items) }
+    let(:story) do
+      build_item('S1', '2024-01-01', '2024-01-05').tap do |i|
+        i.instance_variable_set(:@type, 'Story')
+        i.instance_variable_set(:@priority, 'High')
+      end
+    end
+    let(:bug) do
+      build_item('B1', '2024-01-02', '2024-01-08').tap do |i|
+        i.instance_variable_set(:@type, 'Bug')
+        i.instance_variable_set(:@priority, 'Low')
+      end
+    end
 
     it 'generates sub-reports grouped by facet when multiple values exist' do
-      items << PredictabilityEngine::Models::WorkItem.new(item_id: 'PROJ-2', title: 'Task 2',
-                                                          type: 'Bug', priority: 'Low')
-      items[0].instance_variable_set(:@type, 'Story')
-      items[0].instance_variable_set(:@priority, 'High')
-
+      reports = described_class.generate_all([story, bug])
       expect(reports).to have_key(:all)
       expect(reports[:type].keys).to contain_exactly('Story', 'Bug')
       expect(reports[:priority].keys).to contain_exactly('High', 'Low')
     end
 
     it 'omits a facet whose values are all identical' do
-      items << PredictabilityEngine::Models::WorkItem.new(item_id: 'PROJ-2', title: 'Task 2', type: 'Bug')
-      items[0].instance_variable_set(:@type, 'Story')
-
-      expect(reports).not_to have_key(:priority)
+      no_prio_story = build_item('S1', '2024-01-01', '2024-01-05').tap { |i| i.instance_variable_set(:@type, 'Story') }
+      no_prio_bug   = build_item('B1', '2024-01-02', '2024-01-08').tap { |i| i.instance_variable_set(:@type, 'Bug') }
+      expect(described_class.generate_all([no_prio_story, no_prio_bug])).not_to have_key(:priority)
     end
   end
 

@@ -63,17 +63,14 @@ Feature: Jira data source journey
   # any report command works against the live Jira data.
 
   @jira_live
-  Scenario: Phase 4 — summary command loads items from a Jira YAML config
+  Scenario Outline: Phase 4 — <command> works with a Jira YAML config
     Given the JIRA_PROFILE environment variable is set
     And a Jira YAML config "jira.yml" exists with the current profile
-    When I successfully run `predictability-engine summary jira.yml`
+    When I successfully run `predictability-engine <command> jira.yml`
     Then the exit status should be 0
-    And the output should contain "Total Items"
+    And the output should contain "<expected>"
 
-  @jira_live
-  Scenario: Phase 4b — batch generates all report formats from a Jira YAML config
-    Given the JIRA_PROFILE environment variable is set
-    And a Jira YAML config "jira.yml" exists with the current profile
-    When I successfully run `predictability-engine batch jira.yml`
-    Then the exit status should be 0
-    And the output should contain "terminal"
+    Examples:
+      | command | expected    |
+      | summary | Total Items |
+      | batch   | terminal    |

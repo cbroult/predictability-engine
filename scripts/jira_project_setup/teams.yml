@@ -20,11 +20,14 @@ teams:
       - Bug
       - Task
     statuses:
-      - { name: "To Do",             category: "to do"       }
+      - name: "To Do"
+        category: "to do"
       - { name: "Ready for Testing", category: "in progress", role: arrival   }
       - { name: "In Testing",        category: "in progress"                  }
       - { name: "Test Review",       category: "in progress"                  }
-      - { name: "Done",              category: "done",        role: departure }
+      - name: "Done"
+        category: "done"
+        role: departure
 
   - abbrev: TST
     name: The Support Team

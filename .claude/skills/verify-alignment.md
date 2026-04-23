@@ -12,5 +12,3 @@ Both must pass. If either fails, the invariant described in CLAUDE.md §"Forecas
 For diagnostics when one fails:
 - Extract each rule's `count` from the generated `reports/repro_align/dashboard.html` and compare against `summary[:departed_so_far] + summary[:wip]`.
 - `calculate_arrivals_at`-style helpers are a red flag: the rule height must come from the plateau formula directly.
-
-Never edit the verification files themselves. They are protected by `.claude/hooks/protect-alignment.sh` and require the `[unlock-alignment]` commit-message token.

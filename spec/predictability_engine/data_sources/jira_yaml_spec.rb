@@ -76,8 +76,9 @@ RSpec.describe PredictabilityEngine::DataSources::JiraYaml do
     end
 
     it 'loads aliases from profile-level ~/.config/jira/<profile>.priorities.yml' do
-      write_profile_priorities('myteam', "P0: Highest\nP1: High\n")
-      expect(new_yaml_for('myteam.PROJ.yml').priority_aliases).to eq('P0' => 'Highest', 'P1' => 'High')
+      write_profile_priorities('myteam', "Critical: Highest\nMajor: High\nMinor: Low\n")
+      expect(new_yaml_for('myteam.PROJ.yml').priority_aliases)
+        .to eq('Critical' => 'Highest', 'Major' => 'High', 'Minor' => 'Low')
     end
 
     it 'inline priority_aliases overrides profile-level aliases' do

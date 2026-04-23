@@ -2,6 +2,7 @@
   "threshold": 0.8,
   "minLines": 2,
   "minTokens": 16,
+  "format": "ruby,yaml,javascript,bash,json,markdown",
   "reporters": [
     "html",
     "console"
