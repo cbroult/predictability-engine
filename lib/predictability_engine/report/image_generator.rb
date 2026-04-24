@@ -13,7 +13,7 @@ module PredictabilityEngine
 
         require 'playwright'
         Playwright.create(playwright_cli_executable_path: report.playwright_bin) do |playwright|
-          playwright.chromium.launch do |browser|
+          playwright.chromium.launch(**report.playwright_chromium_launch_opts) do |browser|
             page = browser.new_page(viewport: { width: 800, height: 600 })
             page.goto("file://#{File.expand_path(temp_html)}")
             sleep 2

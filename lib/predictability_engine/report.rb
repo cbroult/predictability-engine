@@ -102,6 +102,11 @@ module PredictabilityEngine
       File.exist?("#{root}/node_modules/.bin/playwright") ? "#{root}/node_modules/.bin/playwright" : 'npx playwright'
     end
 
+    def playwright_chromium_launch_opts
+      exe = ENV.fetch('PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH', nil)
+      exe ? { executable_path: exe } : {}
+    end
+
     def pdf_viewport_size(format, landscape)
       res = RESOLUTION_CONFIG[format.to_s.downcase]
       if res
@@ -248,7 +253,7 @@ module PredictabilityEngine
     def with_playwright_page(html_path, width: 1280, height: 720)
       require 'playwright'
       Playwright.create(playwright_cli_executable_path: playwright_bin) do |p|
-        p.chromium.launch do |browser|
+        p.chromium.launch(**playwright_chromium_launch_opts) do |browser|
           page = browser.new_page(viewport: { width: width, height: height })
           page.goto("file://#{File.expand_path(html_path)}")
           sleep 2 # wait for Vega to render

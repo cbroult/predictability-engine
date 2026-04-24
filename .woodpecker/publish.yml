@@ -44,11 +44,11 @@ steps:
     environment:
       CUCUMBER_PUBLISH_QUIET: "true"
     commands:
-      - apk add --no-cache build-base nodejs npm git
-      - npm install playwright && npx playwright install chromium --with-deps
+      - apk add --no-cache build-base nodejs npm git chromium
+      - PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install playwright
       - mkdir -p /root/.local/share/ruby-advisory-db/gems
       - bundle install --jobs 4 --retry 3
-      - bundle exec rake verify
+      - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser bundle exec rake verify
 
   - name: auto-bump
     image: ruby:4.0.2-alpine
@@ -103,13 +103,13 @@ steps:
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert
     commands:
-      - apk add --no-cache build-base ca-certificates curl nodejs npm
+      - apk add --no-cache build-base ca-certificates curl nodejs npm chromium
       - printf '%s' "$CBP_ORG_CA_CERT" | base64 -d > /usr/local/share/ca-certificates/cbp-org.crt
       - update-ca-certificates
       - export GEM_VERSION=$(ruby -e "load 'lib/predictability_engine/version.rb'; puts PredictabilityEngine::VERSION")
       - gem install predictability-engine --version "$GEM_VERSION" --source https://gems.cbp-org.internal --no-document
-      - npm install playwright && npx playwright install chromium --with-deps
-      - sh scripts/verify-fresh-install.sh
+      - PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install playwright
+      - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser sh scripts/verify-fresh-install.sh
 
   - name: badge
     image: docker-registry.cbp-org.internal/badge-reporter:latest

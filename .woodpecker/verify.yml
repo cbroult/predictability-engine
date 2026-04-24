@@ -16,10 +16,11 @@ steps:
     environment:
       CUCUMBER_PUBLISH_QUIET: "true"
     commands:
-      - apk add --no-cache build-base nodejs npm bash
+      - apk add --no-cache build-base nodejs npm bash chromium
       - mkdir -p /root/.local/share/ruby-advisory-db/gems
-      - ./bin/setup
-      - bundle exec rake verify
+      - SKIP_PLAYWRIGHT=1 ./bin/setup
+      - npm install playwright
+      - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser bundle exec rake verify
 
   - name: badge
     image: docker-registry.cbp-org.internal/badge-reporter:latest
