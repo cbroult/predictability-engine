@@ -104,7 +104,7 @@ module PredictabilityEngine
 
     def playwright_chromium_launch_opts
       exe = ENV.fetch('PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH', nil)
-      exe ? { executable_path: exe } : {}
+      exe ? { executablePath: exe } : {}
     end
 
     def pdf_viewport_size(format, landscape)

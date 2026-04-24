@@ -19,7 +19,7 @@ steps:
       - apk add --no-cache build-base nodejs npm bash chromium
       - mkdir -p /root/.local/share/ruby-advisory-db/gems
       - SKIP_PLAYWRIGHT=1 ./bin/setup
-      - npm install playwright
+      - PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install playwright
       - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser bundle exec rake verify
 
   - name: badge
