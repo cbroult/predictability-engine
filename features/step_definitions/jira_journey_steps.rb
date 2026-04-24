@@ -26,6 +26,13 @@ Then('the credentials file should contain profile {string}') do |profile|
   expect(content.dig('profiles', profile)).not_to be_nil
 end
 
+Then('the credentials file should contain profile {string} with context_path {string}') do |profile, expected_path|
+  fake_home = aruba.environment.fetch('HOME', Dir.home)
+  path = File.join(fake_home, '.config', 'jira', 'jira_credentials.yml')
+  content = YAML.load_file(path)
+  expect(content.dig('profiles', profile, 'context_path')).to eq(expected_path)
+end
+
 def jira_yaml_for(filename)
   PredictabilityEngine::DataSources::JiraYaml.new(expand_path(filename))
 end

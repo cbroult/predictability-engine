@@ -11,11 +11,17 @@ Feature: Jira data source journey
   # ~/.config/jira/jira_credentials.yml (inside fake HOME during tests).
 
   Scenario: Phase 1 — jira_config stores profile credentials to the home config
-    When I run `predictability-engine jira_config my-team` interactively with input "https://my-org.atlassian.net\nteam@example.com\nmy-api-token"
+    When I run `predictability-engine jira_config my-team` interactively with input "https://my-org.atlassian.net\n\nteam@example.com\nmy-api-token"
     Then the exit status should be 0
     And the output should contain "saved to"
     And a credentials file should exist at "$HOME/.config/jira/jira_credentials.yml"
     And the credentials file should contain profile "my-team"
+
+  Scenario: Phase 1b — jira_config stores context_path for on-premise Jira
+    When I run `predictability-engine jira_config on-prem` interactively with input "https://jira.example.com\n/jira\nteam@example.com\nmy-api-token"
+    Then the exit status should be 0
+    And the output should contain "saved to"
+    And the credentials file should contain profile "on-prem" with context_path "/jira"
 
   # ─── Phase 2 — Create a Jira YAML config file ────────────────────────────────
   # Each data source needs a small YAML file. `init` creates a commented template.

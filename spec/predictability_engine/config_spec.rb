@@ -53,6 +53,33 @@ RSpec.describe PredictabilityEngine::Config do
         write_config({ 'jira' => { 'email' => 'g@e.com', 'profiles' => p_profile } })
         expect(described_class.jira('p')[:email]).to be_nil
       end
+
+      it 'loads context_path from profile' do
+        profile = { 'q' => { 'site' => 'https://q.net', 'context_path' => '/jira' } }
+        write_config({ 'jira' => { 'profiles' => profile } })
+        expect(described_class.jira('q')[:context_path]).to eq('/jira')
+      end
+    end
+
+    context 'when context_path is configured' do
+      it 'loads context_path from global config file' do
+        write_config({ 'jira' => { 'site' => 'https://host.net', 'context_path' => '/jira' } })
+        stub_const('ENV', clean_env)
+        expect(described_class.jira[:context_path]).to eq('/jira')
+      end
+
+      it 'loads context_path from JIRA_CONTEXT_PATH env var' do
+        stub_const('ENV', clean_env.merge(
+                            'JIRA_SITE' => 'https://host.net',
+                            'JIRA_CONTEXT_PATH' => '/jira'
+                          ))
+        expect(described_class.jira[:context_path]).to eq('/jira')
+      end
+
+      it 'returns nil context_path when not configured' do
+        stub_const('ENV', clean_env.merge('JIRA_SITE' => 'https://cloud.atlassian.net'))
+        expect(described_class.jira[:context_path]).to be_nil
+      end
     end
 
     def write_config(data)

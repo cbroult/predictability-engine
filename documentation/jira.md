@@ -13,17 +13,34 @@ Use the `jira_config` command to securely store your credentials in `~/.config/j
 
 Example output:
 ```bash
-JIRA Site (e.g., https://your-domain.atlassian.net): 
-Email: 
-API Token (input masked): 
-JIRA project (optional):
+Jira site (e.g., https://your-domain.atlassian.net): https://my-org.atlassian.net
+Context path, if any (e.g., /jira — leave blank for Atlassian Cloud): 
+Jira email: team@example.com
+Jira API token (input masked): ********
 Jira credentials for profile '[profile-name]' saved to ~/.config/jira/jira_credentials.yml
 ```
+
+### On-Premise Jira with a Sub-Path (`context_path`)
+
+If your Jira server is hosted under a sub-path (e.g. `https://collaboration.example.com/jira`), set `context_path` in your profile. This is required when the server returns a redirect for requests that omit the trailing slash on the context path.
+
+```yaml
+# ~/.config/jira/jira_credentials.yml
+profiles:
+  my-server:
+    site: "https://collaboration.example.com"
+    context_path: "/jira"
+    email: "user@example.com"
+    token: "api_token"
+```
+
+The `jira_config` command will prompt for this value — leave it blank for Atlassian Cloud (where it is not needed).
 
 ### Transparent Configuration (CI/CD)
 For GitHub Actions, Woodpecker CI, or environments where files are not easily persisted, use environment variables. The engine will automatically pick these up if no explicit profile is provided:
 
 - `JIRA_SITE`: JIRA instance URL
+- `JIRA_CONTEXT_PATH`: Sub-path for on-premise Jira (e.g. `/jira`); not needed for Atlassian Cloud
 - `JIRA_EMAIL`: Your JIRA email
 - `JIRA_API_TOKEN`: Your JIRA API token
 - `JIRA_PROJECT`: Default JIRA project key (e.g., `PROJ`)

@@ -16,10 +16,11 @@ module PredictabilityEngine
       instrument_jira_http! unless ::JIRA::HttpClient.ancestors.include?(JiraHttpLogger)
       config = jira(profile)
       validate_jira!(config)
-      origin, context_path = split_jira_site(config[:site])
+      origin, derived_path = split_jira_site(config[:site])
       options = {
         username: config[:email], password: config[:token],
-        site: origin, context_path: context_path, auth_type: :basic
+        site: origin, context_path: config[:context_path] || derived_path,
+        auth_type: :basic
       }
       ::JIRA::Client.new(options)
     end
@@ -84,7 +85,8 @@ module PredictabilityEngine
         site: jira_val('SITE', global, local),
         email: jira_val('EMAIL', global, local),
         token: jira_val('API_TOKEN', global, local),
-        project: jira_val('PROJECT', global, local)
+        project: jira_val('PROJECT', global, local),
+        context_path: jira_val('CONTEXT_PATH', global, local)
       }
     end
 
@@ -110,7 +112,8 @@ module PredictabilityEngine
       raw ||= {}
       config = global ? (raw['jira'] || raw) : raw.fetch('jira', {})
       { site: config['site'], email: config['email'], token: config['token'],
-        project: config['project'], profiles: config.fetch('profiles', {}) }
+        project: config['project'], context_path: config['context_path'],
+        profiles: config.fetch('profiles', {}) }
     end
 
     def self.load_profile(name, global, local)
@@ -121,7 +124,8 @@ module PredictabilityEngine
         site: profile['site'],
         email: profile['email'],
         token: profile['token'],
-        project: profile['project']
+        project: profile['project'],
+        context_path: profile['context_path']
       }
     end
 

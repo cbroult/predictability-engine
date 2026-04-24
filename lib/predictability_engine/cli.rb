@@ -250,6 +250,7 @@ module PredictabilityEngine
     desc 'jira_config PROFILE', 'Generate/Update JIRA credentials in ~/.config/jira/jira_credentials.yml'
     def jira_config(profile)
       site = ask('Jira site (e.g., https://your-domain.atlassian.net):')
+      context_path = ask('Context path, if any (e.g., /jira — leave blank for Atlassian Cloud):')
       email = ask('Jira email:')
       token = ask_secret('Jira API token:')
 
@@ -259,11 +260,9 @@ module PredictabilityEngine
       config = File.exist?(path) ? YAML.load_file(path) : {}
       config ||= {}
       config['profiles'] ||= {}
-      config['profiles'][profile] = {
-        'site' => site,
-        'email' => email,
-        'token' => token
-      }
+      profile_data = { 'site' => site, 'email' => email, 'token' => token }
+      profile_data['context_path'] = context_path unless context_path.strip.empty?
+      config['profiles'][profile] = profile_data
 
       File.write(path, config.to_yaml)
       PredictabilityEngine.logger.info { "Jira credentials for profile '#{profile}' saved to #{path}" }
