@@ -22,7 +22,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'jira-ruby'
   spec.add_dependency 'langchainrb'
   spec.add_dependency 'matrix'
-  spec.add_dependency 'numo-narray'
   spec.add_dependency 'playwright-ruby-client'
   spec.add_dependency 'powerpoint'
   spec.add_dependency 'prawn'
