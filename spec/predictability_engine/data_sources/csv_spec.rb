@@ -41,6 +41,58 @@ RSpec.describe PredictabilityEngine::DataSources::Csv do
     end
   end
 
+  context 'with done_statuses configured' do
+    let(:csv_content) do
+      <<~CSV
+        Issue key,Summary,Issue Type,Priority,Created,Updated,Resolved,Status
+        PROJ-1,Done no resolved,Story,High,2026-01-10,2026-01-25,,Done
+        PROJ-2,Done with resolved,Story,High,2026-01-10,2026-01-25,2026-01-20,Done
+        PROJ-3,In progress,Story,High,2026-01-10,2026-01-25,,In Progress
+      CSV
+    end
+
+    context 'with a sidecar YAML' do
+      let(:items) do
+        Dir.mktmpdir do |dir|
+          csv_path = File.join(dir, 'issues.csv')
+          File.write(csv_path, csv_content)
+          File.write(File.join(dir, 'issues.yml'), "done_statuses:\n  - Done\n")
+          described_class.new.load(csv_path)
+        end
+      end
+
+      it 'uses Updated as end_date when Status is done and Resolved is blank' do
+        expect(items[0].end_date).to eq(Date.new(2026, 1, 25))
+      end
+
+      it 'keeps explicit Resolved date even when Status is done' do
+        expect(items[1].end_date).to eq(Date.new(2026, 1, 20))
+      end
+
+      it 'returns nil end_date for non-done status with blank Resolved' do
+        expect(items[2].end_date).to be_nil
+      end
+    end
+
+    context 'with .predictability_engine.yml fallback' do
+      let(:items) do
+        Dir.mktmpdir do |dir|
+          Dir.chdir(dir) do
+            csv_path = File.join(dir, 'issues.csv')
+            File.write(csv_path, csv_content)
+            File.write('.predictability_engine.yml',
+                       "jira_csv:\n  done_statuses:\n    - Done\n")
+            described_class.new.load(csv_path)
+          end
+        end
+      end
+
+      it 'uses Updated as end_date when Status is done and Resolved is blank' do
+        expect(items[0].end_date).to eq(Date.new(2026, 1, 25))
+      end
+    end
+  end
+
   context 'with Jira CSV export headers' do
     let(:items) do
       load_csv(<<~CSV)

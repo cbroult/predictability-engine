@@ -16,6 +16,22 @@ Feature: Jira CSV export as data source
     Then the exit status should be 0
     And the output should contain "Total Items"
 
+  Scenario: Done items without Resolved use Updated when done_statuses sidecar configured
+    Given a file named "jira_export.csv" with:
+      """
+      Issue key,Summary,Issue Type,Priority,Created,Updated,Resolved,Status
+      PROJ-1,Done no resolved,Story,High,2026-01-10,2026-01-25,,Done
+      PROJ-2,Properly resolved,Story,High,2026-02-01,2026-02-15,2026-02-15,Done
+      """
+    And a file named "jira_export.yml" with:
+      """
+      done_statuses:
+        - Done
+      """
+    When I successfully run `predictability-engine summary jira_export.csv`
+    Then the exit status should be 0
+    And the output should contain "Total Items"
+
   Scenario: Jira CSV export with extra columns loads without error
     Given a file named "jira_full.csv" with:
       """
