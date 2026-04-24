@@ -26,4 +26,18 @@ Before do
   # Redirect ~ to a temp dir inside the Aruba working directory so no CLI subprocess
   # reads or writes the developer's real ~/.config/jira/ directory.
   set_environment_variable('HOME', expand_path('home'))
+
+  # Save process-level MOCK_TODAY so we can restore it after each scenario.
+  # The "Given Today is ..." step writes directly to ENV (needed for in-process
+  # date-shifting helpers); without save/restore that value leaks into the next
+  # scenario and shifts fixture dates to the wrong base date.
+  @_saved_mock_today = ENV.fetch('MOCK_TODAY', nil)
+end
+
+After do
+  if @_saved_mock_today.nil?
+    ENV.delete('MOCK_TODAY')
+  else
+    ENV['MOCK_TODAY'] = @_saved_mock_today
+  end
 end
