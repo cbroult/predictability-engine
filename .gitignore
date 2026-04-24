@@ -10,6 +10,6 @@ coverage/
 *.gem
 pkg/
 doc/
-report/
+/report/
 .env
 .claude/scheduled_tasks.lock
