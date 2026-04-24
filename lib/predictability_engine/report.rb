@@ -104,7 +104,10 @@ module PredictabilityEngine
 
     def playwright_chromium_launch_opts
       exe = ENV.fetch('PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH', nil)
-      exe ? { executablePath: exe } : {}
+      return {} unless exe
+
+      # System Chromium (e.g. Alpine apk) needs --no-sandbox in Docker containers.
+      { executablePath: exe, chromiumSandbox: false }
     end
 
     def pdf_viewport_size(format, landscape)
