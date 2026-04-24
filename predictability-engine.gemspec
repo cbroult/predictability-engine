@@ -26,6 +26,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'powerpoint'
   spec.add_dependency 'prawn'
   spec.add_dependency 'roo'
+  spec.add_dependency 'semantic_logger'
   spec.add_dependency 'thor'
   spec.add_dependency 'tty-table'
   spec.add_dependency 'unicode_plot'

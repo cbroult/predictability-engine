@@ -10,23 +10,21 @@ require 'langchain'
 Dotenv.load
 
 require_relative 'predictability_engine/logger'
-require_relative 'predictability_engine/loggable'
 
 loader = Zeitwerk::Loader.for_gem
 loader.ignore("#{__dir__}/predictability_engine/logger.rb") # Manual require
-loader.ignore("#{__dir__}/predictability_engine/loggable.rb") # Manual require
 loader.setup
 
-# Auto-inject Loggable into every class/module defined under PredictabilityEngine::
-# so each gains `logger` / `self.logger` without polluting Object.
+# Auto-inject SemanticLogger::Loggable into every class/module defined under
+# PredictabilityEngine:: so each gains its own named `logger` / `self.logger`
+# without polluting Object.
 TracePoint.new(:end) do |tp|
   mod = tp.self
   next unless mod.is_a?(Module)
   next unless mod.name&.start_with?('PredictabilityEngine::')
-  next if mod == PredictabilityEngine::Loggable
-  next if mod.include?(PredictabilityEngine::Loggable)
+  next if mod.ancestors.include?(SemanticLogger::Loggable)
 
-  mod.include(PredictabilityEngine::Loggable)
+  mod.include(SemanticLogger::Loggable)
 end.enable
 
 module PredictabilityEngine

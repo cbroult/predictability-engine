@@ -126,7 +126,11 @@ module PredictabilityEngine
 
       def fetch_issues(client, query)
         jql = query.start_with?('jira:') ? "filter = #{query.sub('jira:', '')}" : query.sub('jql:', '')
+        logger.debug { "JIRA JQL: #{jql}" }
         client.Issue.jql(jql, expand: 'changelog', fields: FIELDS)
+      rescue StandardError => e
+        logger.debug { "JIRA fetch failed: #{e.class} — #{e.message}" }
+        raise Error, "Failed to fetch issues from Jira: #{e.message}"
       end
 
       def map_issue(issue)

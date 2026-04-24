@@ -4,46 +4,53 @@ require 'spec_helper'
 require 'stringio'
 require 'tmpdir'
 
-RSpec.describe PredictabilityEngine::Logger do
-  let(:instance) { described_class.new }
-  let(:io) { StringIO.new }
-
-  before do
-    console = Logger.new(io)
-    console.formatter = proc { |_, _, _, msg| "#{msg}\n" }
-    instance.instance_variable_set(:@console_logger, console)
-  end
-
-  def configure_level(level)
-    instance.instance_variable_get(:@console_logger).level = level
+# rubocop:disable RSpec/DescribeClass
+RSpec.describe 'PredictabilityEngine logging' do
+  around do |example|
+    orig_level = SemanticLogger.default_level
+    orig_appenders = SemanticLogger.appenders.dup
+    SemanticLogger.appenders.dup.each { |a| SemanticLogger.remove_appender(a) }
+    example.run
+    SemanticLogger.flush
+    SemanticLogger.appenders.dup.each { |a| SemanticLogger.remove_appender(a) }
+    orig_appenders.each { |a| SemanticLogger.add_appender(a) }
+    SemanticLogger.default_level = orig_level
   end
 
   describe '#info with block' do
     it 'evaluates the block when the level is enabled' do
-      configure_level(Logger::INFO)
-      instance.info { 'hello' }
+      io = StringIO.new
+      SemanticLogger.default_level = :info
+      SemanticLogger.add_appender(io: io, formatter: :default)
+      PredictabilityEngine.logger.info { 'hello' }
+      SemanticLogger.flush
       expect(io.string).to include('hello')
     end
 
     it 'does NOT evaluate the block when the level is disabled' do
-      configure_level(Logger::WARN)
-      expect { instance.info { raise 'block must not run' } }.not_to raise_error
-      expect(io.string).to eq('')
+      SemanticLogger.default_level = :warn
+      expect { PredictabilityEngine.logger.info { raise 'block must not run' } }.not_to raise_error
     end
   end
 
   describe '#warn with block' do
     it 'evaluates the block at WARN level' do
-      configure_level(Logger::WARN)
-      instance.warn { 'uh-oh' }
+      io = StringIO.new
+      SemanticLogger.default_level = :warn
+      SemanticLogger.add_appender(io: io, formatter: :default)
+      PredictabilityEngine.logger.warn { 'uh-oh' }
+      SemanticLogger.flush
       expect(io.string).to include('uh-oh')
     end
   end
 
   describe 'backward-compatible string form' do
     it 'still accepts a plain message argument' do
-      configure_level(Logger::INFO)
-      instance.info('plain')
+      io = StringIO.new
+      SemanticLogger.default_level = :info
+      SemanticLogger.add_appender(io: io, formatter: :default)
+      PredictabilityEngine.logger.info('plain')
+      SemanticLogger.flush
       expect(io.string).to include('plain')
     end
   end
@@ -52,10 +59,12 @@ RSpec.describe PredictabilityEngine::Logger do
     it 'forwards the block to the file logger when configured' do
       Dir.mktmpdir do |dir|
         log_file = File.join(dir, 'pe.log')
-        instance.setup(level: 'info', log_file: log_file)
-        instance.info { 'fan-out' }
+        PredictabilityEngine.setup_logging(level: 'info', log_file: log_file)
+        PredictabilityEngine.logger.info { 'fan-out' }
+        SemanticLogger.flush
         expect(File.read(log_file)).to include('fan-out')
       end
     end
   end
 end
+# rubocop:enable RSpec/DescribeClass

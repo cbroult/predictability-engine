@@ -1,84 +1,45 @@
 # frozen_string_literal: true
 
-require 'logger'
-require 'json'
+require 'semantic_logger'
 require 'fileutils'
 
 module PredictabilityEngine
-  class Logger
-    def self.instance
-      @instance ||= new
-    end
-
-    def initialize
-      @level = ::Logger::INFO
-      @log_file = nil
-      @console_logger = create_console_logger
-      @file_logger = nil
-    end
-
-    def setup(level: 'info', log_file: nil)
-      @level = parse_level(level)
-      @log_file = log_file
-      @console_logger.level = @level
-      return unless log_file
-
-      FileUtils.mkdir_p(File.dirname(log_file))
-      @file_logger = create_file_logger(log_file)
-      @file_logger.level = @level
-    end
-
-    LEVEL_MAP = {
-      'debug' => ::Logger::DEBUG,
-      'info' => ::Logger::INFO,
-      'warn' => ::Logger::WARN,
-      'error' => ::Logger::ERROR
-    }.freeze
-    private_constant :LEVEL_MAP
-
-    %i[info warn error debug].each do |level|
-      define_method(level) do |msg = nil, &block|
-        @console_logger.public_send(level, msg, &block)
-        @file_logger&.public_send(level, msg, &block)
+  # Custom console formatter matching current terminal output:
+  #   INFO  → plain message (no prefix)
+  #   WARN  → yellow "Warning: …"
+  #   ERROR → red    "Error: …"
+  #   DEBUG → gray   "DEBUG: …"
+  class TerminalFormatter < SemanticLogger::Formatters::Base
+    def call(log, _logger)
+      msg = log.message.to_s
+      case log.level
+      when :error then "\e[31mError: #{msg}\e[0m\n"
+      when :warn  then "\e[33mWarning: #{msg}\e[0m\n"
+      when :debug then "\e[90mDEBUG: #{msg}\e[0m\n"
+      else "#{msg}\n"
       end
-    end
-
-    private
-
-    def parse_level(level)
-      LEVEL_MAP.fetch(level.to_s.downcase, ::Logger::INFO)
-    end
-
-    def create_console_logger
-      logger = ::Logger.new($stdout)
-      logger.formatter = proc do |severity, _datetime, _progname, msg|
-        case severity
-        when 'ERROR' then "\e[31mError: #{msg}\e[0m\n"
-        when 'WARN'  then "\e[33mWarning: #{msg}\e[0m\n"
-        when 'DEBUG' then "\e[90mDEBUG: #{msg}\e[0m\n"
-        else "#{msg}\n"
-        end
-      end
-      logger
-    end
-
-    def create_file_logger(path)
-      # Daily rotation, keep 7 files
-      logger = ::Logger.new(path, 'daily', 7)
-      logger.formatter = proc do |severity, datetime, _progname, msg|
-        # Strip ANSI colors for machine-readable file log
-        clean_msg = msg.to_s.gsub(/\e\[([;\d]+)?m/, '')
-        "#{{ timestamp: datetime.iso8601, level: severity, message: clean_msg }.to_json}\n"
-      end
-      logger
     end
   end
 
-  def self.logger
-    Logger.instance
-  end
-
+  # Called from CliBase#initialize via --log-level / --log-file options.
+  # Removes only appenders previously added by this method (tracked in
+  # @_pe_appenders) so that external appenders — e.g. test StringIO captures —
+  # are never disturbed.
   def self.setup_logging(level: 'info', log_file: nil)
-    Logger.instance.setup(level: level, log_file: log_file)
+    SemanticLogger.default_level = level.to_sym
+    (@_pe_appenders || []).each { |a| SemanticLogger.remove_appender(a) }
+    @_pe_appenders = []
+    @_pe_appenders << SemanticLogger.add_appender(io: $stdout, formatter: TerminalFormatter.new)
+    return unless log_file
+
+    FileUtils.mkdir_p(File.dirname(log_file))
+    @_pe_appenders << SemanticLogger.add_appender(file_name: log_file, formatter: :json)
+  end
+
+  # Module-level logger named "PredictabilityEngine".
+  # Memoized so that all call sites share the same instance (required for RSpec
+  # `receive` mocks, and avoids allocating a new object on every log call).
+  def self.logger
+    @logger ||= SemanticLogger[self]
   end
 end

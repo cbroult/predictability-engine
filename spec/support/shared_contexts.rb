@@ -1,13 +1,5 @@
 # frozen_string_literal: true
 
-# Redirects PredictabilityEngine logger output to a StringIO buffer for each
-# example. Avoids the `output` matcher + singleton-reset dance; the logger is
-# bound to the buffer before subject creation so Thor's initialize doesn't
-# accidentally capture real $stdout.
-#
-# Usage:
-#   include_context 'with captured logger'
-#   it { expect(log_output).to include('saved') }
 RSpec.shared_context 'with mocked today' do
   around do |example|
     old_mock_today = ENV.fetch('MOCK_TODAY', nil)
@@ -17,19 +9,34 @@ RSpec.shared_context 'with mocked today' do
   end
 end
 
+# Redirects all SemanticLogger output to a StringIO buffer for each example.
+# setup_logging only removes its own previously registered appenders (not this
+# test appender), so CLI#initialize will not disturb the capture buffer.
+# Usage:
+#   include_context 'with captured logger'
+#   it { expect(log_output.string).to include('saved') }
 RSpec.shared_context 'with captured logger' do
-  let(:log_output) { StringIO.new }
-
-  before do
-    PredictabilityEngine::Logger.instance_variable_set(:@instance, nil)
-    inst = PredictabilityEngine::Logger.instance
-    buf_logger = Logger.new(log_output)
-    buf_logger.formatter = proc { |_sev, _dt, _prog, msg| "#{msg}\n" }
-    inst.instance_variable_set(:@console_logger, buf_logger)
+  # Flush SemanticLogger's async background thread before reading so assertions
+  # don't race against messages still queued in the appender worker.
+  let(:log_output) do
+    StringIO.new.tap do |io|
+      io.define_singleton_method(:string) do
+        SemanticLogger.flush
+        super()
+      end
+    end
   end
 
-  after do
-    PredictabilityEngine::Logger.instance_variable_set(:@instance, nil)
+  around do |example|
+    orig_appenders = SemanticLogger.appenders.dup
+    orig_level = SemanticLogger.default_level
+    SemanticLogger.appenders.dup.each { |a| SemanticLogger.remove_appender(a) }
+    SemanticLogger.add_appender(io: log_output, formatter: :default)
+    example.run
+    SemanticLogger.flush
+    SemanticLogger.appenders.dup.each { |a| SemanticLogger.remove_appender(a) }
+    orig_appenders.each { |a| SemanticLogger.add_appender(a) }
+    SemanticLogger.default_level = orig_level
   end
 end
 

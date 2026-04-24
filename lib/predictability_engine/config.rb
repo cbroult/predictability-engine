@@ -13,14 +13,49 @@ module PredictabilityEngine
 
     def self.jira_client(profile = nil)
       require 'jira-ruby'
+      instrument_jira_http! unless ::JIRA::HttpClient.ancestors.include?(JiraHttpLogger)
       config = jira(profile)
       validate_jira!(config)
+      origin, context_path = split_jira_site(config[:site])
       options = {
-        username: config[:email], password: config[:token], site: config[:site],
-        context_path: '', auth_type: :basic
+        username: config[:email], password: config[:token],
+        site: origin, context_path: context_path, auth_type: :basic
       }
       ::JIRA::Client.new(options)
     end
+
+    # Splits a full Jira site URL (e.g. "https://host/jira") into the origin
+    # ("https://host") and context path ("/jira") that jira-ruby expects.
+    # This avoids 301/302 redirect errors when the server requires the path.
+    def self.split_jira_site(site_url)
+      uri = URI.parse(site_url.to_s.chomp('/'))
+      port_suffix = [80, 443].include?(uri.port) ? '' : ":#{uri.port}"
+      origin = "#{uri.scheme}://#{uri.host}#{port_suffix}"
+      [origin, uri.path]
+    end
+    private_class_method :split_jira_site
+
+    # Prepended to JIRA::HttpClient to trace every HTTP call at DEBUG level.
+    # SemanticLogger evaluates blocks only when debug is active → zero overhead at
+    # INFO or higher.
+    module JiraHttpLogger
+      def make_request(http_method, url, body = '', headers = {})
+        log = SemanticLogger['JIRA::HTTP']
+        log.debug { "→ #{http_method.upcase} #{url}" }
+        result = super
+        log.debug { "← #{result.code} #{result.message}" }
+        result
+      rescue StandardError => e
+        SemanticLogger['JIRA::HTTP'].debug { "✗ #{http_method.upcase} #{url} (#{e.class}: #{e.message})" }
+        raise
+      end
+    end
+    private_constant :JiraHttpLogger
+
+    def self.instrument_jira_http!
+      ::JIRA::HttpClient.prepend(JiraHttpLogger)
+    end
+    private_class_method :instrument_jira_http!
 
     def self.validate_jira!(config)
       %i[site email token].each do |key|
