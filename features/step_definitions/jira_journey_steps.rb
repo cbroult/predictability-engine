@@ -11,7 +11,8 @@ When('I run {command} interactively with input {string}') do |cmd, input|
 end
 
 def expand_path_template(template)
-  template.gsub('$HOME', Dir.home).gsub('$JIRA_PROFILE', ENV.fetch('JIRA_PROFILE', ''))
+  home = aruba.environment.fetch('HOME', Dir.home)
+  template.gsub('$HOME', home).gsub('$JIRA_PROFILE', ENV.fetch('JIRA_PROFILE', ''))
 end
 
 Then('a credentials file should exist at {string}') do |path_template|
