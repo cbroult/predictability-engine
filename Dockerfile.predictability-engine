@@ -19,14 +19,18 @@ RUN apk add --no-cache ca-certificates && \
       > /usr/local/share/ca-certificates/cbp-org-root-ca.crt && \
     update-ca-certificates
 
-# Install predictability-engine (optionally pinned to ${GEM_VERSION})
-RUN if [ -n "${GEM_VERSION}" ]; then \
+# Install predictability-engine (optionally pinned to ${GEM_VERSION}).
+# build-base is required to compile native gem extensions (e.g. enumerable-statistics);
+# it is removed after installation to keep the image lean.
+RUN apk add --no-cache --virtual .build-deps build-base && \
+    if [ -n "${GEM_VERSION}" ]; then \
       gem install predictability-engine --version "${GEM_VERSION}" \
         --source https://gems.cbp-org.internal --no-document; \
     else \
       gem install predictability-engine \
         --source https://gems.cbp-org.internal --no-document; \
-    fi
+    fi && \
+    apk del .build-deps
 
 # Entrypoint could be the engine itself
 ENTRYPOINT ["predictability-engine"]
