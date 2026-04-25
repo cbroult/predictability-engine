@@ -11,9 +11,12 @@ steps:
   - name: cpd
     image: node:22-alpine
     commands:
-      # Strict copy-paste detection: threshold 0 means any duplication above min-lines fails.
-      # Configuration is read from .jscpd.json at the repo root.
-      - npx --yes jscpd
+      # Strict copy-paste detection — thresholds and exclusions live in
+      # .jscpd.json (non-gherkin) and .jscpd.gherkin.json (gherkin).
+      # Pass --config explicitly because newer jscpd versions no longer
+      # auto-discover .jscpd.json from the working directory.
+      - npx --yes jscpd --config .jscpd.json
+      - npx --yes jscpd --config .jscpd.gherkin.json
 
   - name: badge
     image: docker-registry.cbp-org.internal/badge-reporter:latest
