@@ -5,7 +5,7 @@
 #   1. HEAD commit message contains [skip bump] or [skip ci], or
 #   2. the code's current version is already higher than what's published
 #      (meaning a human already bumped — respect their decision).
-# Otherwise: `rake version:bump[patch]` → commit → tag `v<new>` → push back.
+# Otherwise: `gem bump --no-commit` → commit → tag `v<new>` → push back.
 #
 # The push uses `[skip ci]` in the commit message so the new commit does not
 # re-trigger the publish pipeline (Woodpecker honours that convention).
@@ -56,8 +56,13 @@ bundle install --jobs 4 --retry 3 --quiet
 # so gem-release's version:bump dirty-tree check does not abort.
 git checkout -- .
 
-echo "auto-bump: running rake version:bump[patch]"
-bundle exec rake "version:bump[patch]"
+echo "auto-bump: bumping patch version"
+# Use gem bump directly with an explicit --file so gem-release can locate
+# lib/predictability_engine/version.rb regardless of the gem name format.
+# --no-commit lets auto-bump.sh handle the commit with [skip ci] itself.
+bundle exec gem bump --version patch \
+  --file lib/predictability_engine/version.rb \
+  --no-commit
 
 NEW_VERSION=$(ruby -e "load 'lib/predictability_engine/version.rb'; puts PredictabilityEngine::VERSION")
 echo "auto-bump: bumped to ${NEW_VERSION}"
