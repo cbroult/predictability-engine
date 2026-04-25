@@ -51,6 +51,11 @@ fi
 
 bundle install --jobs 4 --retry 3 --quiet
 
+# The preceding test step shares the workspace and may have modified tracked
+# files (e.g. Gemfile.lock platform entries, package-lock.json). Reset them
+# so gem-release's version:bump dirty-tree check does not abort.
+git checkout -- .
+
 echo "auto-bump: running rake version:bump[patch]"
 bundle exec rake "version:bump[patch]"
 
