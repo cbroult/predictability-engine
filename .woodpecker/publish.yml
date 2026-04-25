@@ -44,7 +44,7 @@ steps:
     environment:
       CUCUMBER_PUBLISH_QUIET: "true"
     commands:
-      - apk add --no-cache build-base nodejs npm git chromium
+      - apk add --no-cache build-base nodejs npm git bash chromium
       - PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install playwright
       - mkdir -p /root/.local/share/ruby-advisory-db/gems
       - bundle install --jobs 4 --retry 3
