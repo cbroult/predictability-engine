@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'yaml'
+require 'fileutils'
 
 # Load script without running CLI entry point
 module JiraProjectSetup; end unless defined?(JiraProjectSetup)
@@ -13,6 +14,17 @@ Before('@jira_setup') do
 end
 
 Before('@jira_live') do
+  # Copy real credentials into the Aruba home so CLI subprocesses can read
+  # them from ~/.config/jira/jira_credentials.yml without touching the real home.
+  # Dir.home is the real home; aruba.environment['HOME'] is the isolated Aruba home.
+  real_creds = File.join(Dir.home, '.config', 'jira', 'jira_credentials.yml')
+  if File.exist?(real_creds)
+    aruba_creds = File.join(aruba.environment.fetch('HOME', expand_path('home')),
+                            '.config', 'jira', 'jira_credentials.yml')
+    FileUtils.mkdir_p(File.dirname(aruba_creds))
+    FileUtils.cp(real_creds, aruba_creds)
+  end
+
   profile = ENV.fetch('JIRA_PROFILE', nil)
   raise 'JIRA_PROFILE environment variable must be set to run @jira_live scenarios' if profile.nil? || profile.empty?
 
