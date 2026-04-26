@@ -28,11 +28,11 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'roo'
   spec.add_dependency 'rotp'
   spec.add_dependency 'semantic_logger'
-  spec.add_dependency 'webrick'
   spec.add_dependency 'thor'
   spec.add_dependency 'tty-table'
   spec.add_dependency 'unicode_plot'
   spec.add_dependency 'vega'
+  spec.add_dependency 'webrick'
   spec.add_dependency 'zeitwerk'
 
   spec.add_development_dependency 'aruba'

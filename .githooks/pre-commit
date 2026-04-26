@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+echo "Pre-commit: Running RuboCop..."
+bundle exec rubocop
+
 echo "Pre-commit: Generating sample reports..."
 bundle exec rake reports:generate_samples
 git add data/samples/reports/

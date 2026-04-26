@@ -7,6 +7,7 @@ AllCops:
   SuggestExtensions: false
   Exclude:
     - "Dockerfile*"
+    - ".githooks/*"
 
 # --- Style ---
 
