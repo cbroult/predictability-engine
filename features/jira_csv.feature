@@ -32,6 +32,69 @@ Feature: Jira CSV export as data source
     Then the exit status should be 0
     And the output should contain "Total Items"
 
+  Scenario: Shared .predictability_engine.yml supplies done_statuses for any CSV in the working directory
+    Given a file named "export_a.csv" with:
+      """
+      Issue key,Summary,Issue Type,Priority,Created,Updated,Resolved,Status
+      PROJ-1,Done item,Story,High,2026-01-10,2026-01-25,,Done
+      PROJ-2,WIP item,Story,High,2026-01-10,2026-01-25,,In Progress
+      """
+    And a file named ".predictability_engine.yml" with:
+      """
+      jira_csv:
+        done_statuses:
+          - Done
+      """
+    When I successfully run `predictability-engine summary export_a.csv`
+    Then the exit status should be 0
+    And the output should contain "Completed Items: 1"
+
+  Scenario: Workflow YAML statuses format is accepted as done_statuses config in sidecar
+    Given a file named "jira_wf.csv" with:
+      """
+      Issue key,Summary,Issue Type,Priority,Created,Updated,Resolved,Status
+      PROJ-1,Done item,Story,High,2026-01-10,2026-01-25,,Done
+      PROJ-2,WIP item,Story,High,2026-01-10,2026-01-25,,In Progress
+      """
+    And a file named "jira_wf.yml" with:
+      """
+      statuses:
+        - name: Done
+          category: done
+          role: departure
+        - name: In Progress
+          category: in progress
+          role: arrival
+      """
+    When I successfully run `predictability-engine summary jira_wf.csv`
+    Then the exit status should be 0
+    And the output should contain "Completed Items: 1"
+
+  Scenario: workflow_config_path in sidecar loads done statuses from a shared workflow file
+    Given a file named "jira_ref.csv" with:
+      """
+      Issue key,Summary,Issue Type,Priority,Created,Updated,Resolved,Status
+      PROJ-1,Done item,Story,High,2026-01-10,2026-01-25,,Done
+      PROJ-2,WIP item,Story,High,2026-01-10,2026-01-25,,In Progress
+      """
+    And a file named "team.workflow.yml" with:
+      """
+      statuses:
+        - name: Done
+          category: done
+          role: departure
+        - name: In Progress
+          category: in progress
+          role: arrival
+      """
+    And a file named "jira_ref.yml" with:
+      """
+      workflow_config_path: team.workflow.yml
+      """
+    When I successfully run `predictability-engine summary jira_ref.csv`
+    Then the exit status should be 0
+    And the output should contain "Completed Items: 1"
+
   Scenario: Jira CSV export with extra columns loads without error
     Given a file named "jira_full.csv" with:
       """
