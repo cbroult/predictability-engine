@@ -5,6 +5,10 @@ require 'English'
 require 'roo'
 require_relative '../../lib/predictability_engine'
 
+Given(/^the environment variable "([^"]*)" is set to "([^"]*)"$/) do |name, value|
+  set_environment_variable(name, value)
+end
+
 Given(/^an excel file named "([^"]*)" with items:$/) do |filename, table|
   # We create a dummy file to satisfy the existence check if needed,
   # but the engine will use the mock data if ENV['MOCK_EXCEL_DATA'] is set.

@@ -29,6 +29,10 @@ module PredictabilityEngine
       base
     end
 
+    def self.item_id_tooltip_field
+      { field: 'id', type: 'nominal', title: 'Work Item ID' }
+    end
+
     def self.quantitative_y_axis(...) = quantitative_axis(...)
     def self.quantitative_x_axis(...) = quantitative_axis(...)
 

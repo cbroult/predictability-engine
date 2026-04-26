@@ -17,12 +17,15 @@ module PredictabilityEngine
       end
 
       def self.aging_bar_layer
-        { mark: { type: 'bar', tooltip: true, stroke: 'white', strokeWidth: 0.2 },
+        { mark: { type: 'bar', stroke: 'white', strokeWidth: 0.2 },
           encoding: { x: { field: 'id', type: 'nominal', title: 'Work Item ID', sort: '-y',
                            axis: { labelAngle: -45, labelOverlap: 'parity' } },
                       y: VegaVisualizer.quantitative_y_axis('age', title: 'Age (days)'),
                       color: { field: 'age', type: 'quantitative', scale: { scheme: 'yelloworangered' },
-                               legend: { orient: 'bottom', title: 'Age' } } } }
+                               legend: { orient: 'bottom', title: 'Age' } },
+                      tooltip: [VegaVisualizer.item_id_tooltip_field,
+                                { field: 'title', type: 'nominal', title: 'Title' },
+                                { field: 'age', type: 'quantitative', title: 'Age (days)' }] } }
       end
 
       def self.aging_rule_layers(mapped_pcts)
