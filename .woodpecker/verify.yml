@@ -34,3 +34,4 @@ steps:
         from_secret: badge_service_token
     commands:
       - badge report verify
+      - badge report code-quality
