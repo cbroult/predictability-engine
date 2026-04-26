@@ -17,14 +17,18 @@ RSpec.describe 'PredictabilityEngine logging' do
     SemanticLogger.default_level = orig_level
   end
 
+  def log_capture(level: :info)
+    io = StringIO.new
+    SemanticLogger.default_level = level
+    SemanticLogger.add_appender(io: io, formatter: :default)
+    yield
+    SemanticLogger.flush
+    io.string
+  end
+
   describe '#info with block' do
     it 'evaluates the block when the level is enabled' do
-      io = StringIO.new
-      SemanticLogger.default_level = :info
-      SemanticLogger.add_appender(io: io, formatter: :default)
-      PredictabilityEngine.logger.info { 'hello' }
-      SemanticLogger.flush
-      expect(io.string).to include('hello')
+      expect(log_capture { PredictabilityEngine.logger.info { 'hello' } }).to include('hello')
     end
 
     it 'does NOT evaluate the block when the level is disabled' do
@@ -35,23 +39,13 @@ RSpec.describe 'PredictabilityEngine logging' do
 
   describe '#warn with block' do
     it 'evaluates the block at WARN level' do
-      io = StringIO.new
-      SemanticLogger.default_level = :warn
-      SemanticLogger.add_appender(io: io, formatter: :default)
-      PredictabilityEngine.logger.warn { 'uh-oh' }
-      SemanticLogger.flush
-      expect(io.string).to include('uh-oh')
+      expect(log_capture(level: :warn) { PredictabilityEngine.logger.warn { 'uh-oh' } }).to include('uh-oh')
     end
   end
 
   describe 'backward-compatible string form' do
     it 'still accepts a plain message argument' do
-      io = StringIO.new
-      SemanticLogger.default_level = :info
-      SemanticLogger.add_appender(io: io, formatter: :default)
-      PredictabilityEngine.logger.info('plain')
-      SemanticLogger.flush
-      expect(io.string).to include('plain')
+      expect(log_capture { PredictabilityEngine.logger.info('plain') }).to include('plain')
     end
   end
 

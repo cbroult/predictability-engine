@@ -5,6 +5,10 @@ require 'spec_helper'
 RSpec.describe PredictabilityEngine::JiraAuth::MfaBrowser do
   let(:base) { { site: 'https://jira.corp.com', context_path: nil, default_headers: {} } }
 
+  def bearer_auth_header
+    strategy.jira_options(base)[:default_headers]['Authorization']
+  end
+
   describe 'manual-paste sub-mode (no idp_callback_port)' do
     subject(:strategy) { described_class.new(config) }
 
@@ -17,13 +21,10 @@ RSpec.describe PredictabilityEngine::JiraAuth::MfaBrowser do
     end
 
     it 'reads token from stdin and injects as Bearer header' do
-      result = strategy.jira_options(base)
-      expect(result[:default_headers]).to eq('Authorization' => 'Bearer my-pasted-token')
+      expect(bearer_auth_header).to eq('Bearer my-pasted-token')
     end
 
-    it 'sets auth_type to :basic' do
-      expect(strategy.jira_options(base)[:auth_type]).to eq(:basic)
-    end
+    it_behaves_like 'sets auth_type to basic'
 
     it 'raises when no token is pasted' do
       allow($stdin).to receive(:gets).and_return("\n")
@@ -32,8 +33,7 @@ RSpec.describe PredictabilityEngine::JiraAuth::MfaBrowser do
 
     it 'strips whitespace from pasted token' do
       allow($stdin).to receive(:gets).and_return("  tok-with-spaces  \n")
-      result = strategy.jira_options(base)
-      expect(result[:default_headers]['Authorization']).to eq('Bearer tok-with-spaces')
+      expect(bearer_auth_header).to eq('Bearer tok-with-spaces')
     end
   end
 
@@ -45,17 +45,20 @@ RSpec.describe PredictabilityEngine::JiraAuth::MfaBrowser do
       instance_double(WEBrick::HTTPServer, shutdown: nil)
     end
 
-    before do
+    def stub_callback_server(token)
       allow(strategy).to receive(:build_callback_server) do |_port, queue|
-        queue.push('server-token')
+        queue.push(token)
         server_double
       end
+    end
+
+    before do
+      stub_callback_server('server-token')
       allow(strategy).to receive(:open_browser)
     end
 
     it 'captures the token from the callback and injects as Bearer header' do
-      result = strategy.jira_options(base)
-      expect(result[:default_headers]).to eq('Authorization' => 'Bearer server-token')
+      expect(bearer_auth_header).to eq('Bearer server-token')
     end
 
     it 'shuts down the server after receiving the token' do
@@ -64,10 +67,7 @@ RSpec.describe PredictabilityEngine::JiraAuth::MfaBrowser do
     end
 
     it 'shuts down the server and raises when token is nil' do
-      allow(strategy).to receive(:build_callback_server) do |_port, queue|
-        queue.push(nil)
-        server_double
-      end
+      stub_callback_server(nil)
       expect(server_double).to receive(:shutdown)
       expect { strategy.jira_options(base) }.to raise_error(PredictabilityEngine::Error, /No token received/)
     end

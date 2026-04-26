@@ -5,17 +5,16 @@ require 'spec_helper'
 RSpec.describe PredictabilityEngine::JiraAuth::Bearer do
   subject(:strategy) { described_class.new(config) }
 
+  include_context 'with jira auth base options'
+
   let(:config) { { bearer_token: 'tok123' } }
-  let(:base)   { { site: 'https://jira.example.com', context_path: nil, default_headers: {} } }
 
   it 'injects Authorization Bearer header' do
     result = strategy.jira_options(base)
     expect(result[:default_headers]).to eq('Authorization' => 'Bearer tok123')
   end
 
-  it 'sets auth_type to :basic (suppresses Basic auth header)' do
-    expect(strategy.jira_options(base)[:auth_type]).to eq(:basic)
-  end
+  it_behaves_like 'sets auth_type to basic'
 
   it 'does not set username or password' do
     result = strategy.jira_options(base)

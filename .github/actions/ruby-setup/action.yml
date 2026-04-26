@@ -1,0 +1,13 @@
+name: 'Ruby Setup'
+description: 'Checkout repo, configure Ruby with bundler cache, and install Playwright Chromium'
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@main
+    - uses: ruby/setup-ruby@main
+      with:
+        ruby-version: '4.0.2'
+        bundler-cache: true
+    - name: Install Playwright
+      shell: bash
+      run: npm install playwright && npx playwright install chromium --with-deps

@@ -21,16 +21,20 @@ RSpec.describe PredictabilityEngine::JiraAuth::MfaApi do
     allow(ROTP::TOTP).to receive(:new).with('JBSWY3DPEHPK3PXP').and_return(totp)
   end
 
+  def stub_http(response)
+    allow(Net::HTTP).to receive(:post).and_return(response)
+  end
+
   def stub_http_ok(body)
     response = instance_double(Net::HTTPOK, is_a?: true, body: body, code: '200')
     allow(response).to receive(:is_a?).with(Net::HTTPOK).and_return(true)
-    allow(Net::HTTP).to receive(:post).and_return(response)
+    stub_http(response)
   end
 
   def stub_http_error(code, body)
     response = instance_double(Net::HTTPResponse, is_a?: false, body: body, code: code)
     allow(response).to receive(:is_a?).with(Net::HTTPOK).and_return(false)
-    allow(Net::HTTP).to receive(:post).and_return(response)
+    stub_http(response)
   end
 
   describe '#jira_options' do
@@ -40,13 +44,10 @@ RSpec.describe PredictabilityEngine::JiraAuth::MfaApi do
       before { stub_http_ok('{"access_token":"mfa-bearer-tok"}') }
 
       it 'fetches a bearer token via TOTP + API login' do
-        result = strategy.jira_options(base)
-        expect(result[:default_headers]).to eq('Authorization' => 'Bearer mfa-bearer-tok')
+        expect(strategy.jira_options(base)[:default_headers]).to eq('Authorization' => 'Bearer mfa-bearer-tok')
       end
 
-      it 'sets auth_type to :basic' do
-        expect(strategy.jira_options(base)[:auth_type]).to eq(:basic)
-      end
+      it_behaves_like 'sets auth_type to basic'
 
       it 'posts the email, password, and OTP to the login URL' do
         expect(Net::HTTP).to receive(:post) do |uri, payload_json, _headers|

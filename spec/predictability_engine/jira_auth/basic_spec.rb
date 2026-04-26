@@ -5,8 +5,9 @@ require 'spec_helper'
 RSpec.describe PredictabilityEngine::JiraAuth::Basic do
   subject(:strategy) { described_class.new(config) }
 
+  include_context 'with jira auth base options'
+
   let(:config) { { email: 'user@example.com', token: 'my-token' } }
-  let(:base)   { { site: 'https://jira.example.com', context_path: nil, default_headers: {} } }
 
   it 'sets username, password, and auth_type' do
     result = strategy.jira_options(base)
@@ -17,10 +18,7 @@ RSpec.describe PredictabilityEngine::JiraAuth::Basic do
     )
   end
 
-  it 'preserves base options' do
-    result = strategy.jira_options(base)
-    expect(result[:site]).to eq('https://jira.example.com')
-  end
+  it_behaves_like 'preserves base site'
 
   it 'has a no-op post_init' do
     expect { strategy.post_init(double) }.not_to raise_error
