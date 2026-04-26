@@ -37,8 +37,8 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: ruby/setup-ruby@v1
+      - uses: actions/checkout@main
+      - uses: ruby/setup-ruby@main
         with:
           ruby-version: '4.0.2'
           bundler-cache: true
@@ -49,8 +49,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@v4
-      - uses: ruby/setup-ruby@v1
+      - uses: actions/checkout@main
+      - uses: ruby/setup-ruby@main
         with:
           ruby-version: '4.0.2'
           bundler-cache: true
@@ -71,8 +71,8 @@ jobs:
     env:
       CUCUMBER_PUBLISH_QUIET: "true"
     steps:
-      - uses: actions/checkout@v4
-      - uses: ruby/setup-ruby@v1
+      - uses: actions/checkout@main
+      - uses: ruby/setup-ruby@main
         with:
           ruby-version: '4.0.2'
           bundler-cache: true
