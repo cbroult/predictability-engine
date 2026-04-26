@@ -95,6 +95,32 @@ Feature: Jira CSV export as data source
     Then the exit status should be 0
     And the output should contain "Completed Items: 1"
 
+  Scenario: workflow_config_path in .predictability_engine.yml shares a workflow file across all CSVs
+    Given a file named "export_b.csv" with:
+      """
+      Issue key,Summary,Issue Type,Priority,Created,Updated,Resolved,Status
+      PROJ-1,Done item,Story,High,2026-01-10,2026-01-25,,Done
+      PROJ-2,WIP item,Story,High,2026-01-10,2026-01-25,,In Progress
+      """
+    And a file named "shared.workflow.yml" with:
+      """
+      statuses:
+        - name: Done
+          category: done
+          role: departure
+        - name: In Progress
+          category: in progress
+          role: arrival
+      """
+    And a file named ".predictability_engine.yml" with:
+      """
+      jira_csv:
+        workflow_config_path: shared.workflow.yml
+      """
+    When I successfully run `predictability-engine summary export_b.csv`
+    Then the exit status should be 0
+    And the output should contain "Completed Items: 1"
+
   Scenario: Jira CSV export with extra columns loads without error
     Given a file named "jira_full.csv" with:
       """
