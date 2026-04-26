@@ -41,10 +41,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'cucumber'
   spec.add_development_dependency 'gem-release'
   spec.add_development_dependency 'rake'
-  # 0.1.2, 0.1.3, and 0.1.4 have been yanked from rubygems.org; pin to the
-  # latest remaining version (0.1.1) so that fresh installs from rubygems.org
-  # (e.g. CI containers) can still resolve the dependency.
-  spec.add_development_dependency 'rake-gem-maintenance', '= 0.1.1'
+  spec.add_development_dependency 'rake-gem-maintenance'
   spec.add_development_dependency 'redcarpet'
   spec.add_development_dependency 'rspec'
   spec.add_development_dependency 'rubocop'
