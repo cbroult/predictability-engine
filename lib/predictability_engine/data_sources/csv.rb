@@ -33,7 +33,14 @@ module PredictabilityEngine
       end
 
       def load_done_statuses(csv_path)
-        Array(load_csv_config(csv_path)['done_statuses']).map(&:downcase)
+        config = load_csv_config(csv_path)
+        if (wf_path = config['workflow_config_path'])
+          JiraWorkflow.load(File.expand_path(wf_path))&.departure_names.to_a.map(&:downcase)
+        elsif config.key?('statuses')
+          JiraWorkflow.new(statuses: Array(config['statuses'])).departure_names.map(&:downcase)
+        else
+          Array(config['done_statuses']).map(&:downcase)
+        end
       end
 
       def load_csv_config(csv_path)

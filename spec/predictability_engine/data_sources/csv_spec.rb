@@ -51,15 +51,29 @@ RSpec.describe PredictabilityEngine::DataSources::Csv do
       CSV
     end
 
-    context 'with a sidecar YAML' do
-      let(:items) do
-        Dir.mktmpdir do |dir|
-          csv_path = File.join(dir, 'issues.csv')
-          File.write(csv_path, csv_content)
-          File.write(File.join(dir, 'issues.yml'), "done_statuses:\n  - Done\n")
-          described_class.new.load(csv_path)
-        end
+    let(:workflow_yaml) do
+      <<~YAML
+        statuses:
+          - name: Done
+            category: done
+            role: departure
+          - name: In Progress
+            category: in progress
+            role: arrival
+      YAML
+    end
+
+    def load_with_sidecar(sidecar_yaml)
+      Dir.mktmpdir do |dir|
+        csv_path = File.join(dir, 'issues.csv')
+        File.write(csv_path, csv_content)
+        File.write(File.join(dir, 'issues.yml'), sidecar_yaml)
+        described_class.new.load(csv_path)
       end
+    end
+
+    context 'with a sidecar YAML' do
+      let(:items) { load_with_sidecar("done_statuses:\n  - Done\n") }
 
       it 'uses Updated as end_date when Status is done and Resolved is blank' do
         expect(items[0].end_date).to eq(Date.new(2026, 1, 25))
@@ -90,6 +104,34 @@ RSpec.describe PredictabilityEngine::DataSources::Csv do
       it 'uses Updated as end_date when Status is done and Resolved is blank' do
         expect(items[0].end_date).to eq(Date.new(2026, 1, 25))
       end
+    end
+
+    shared_examples 'departure statuses mark items done' do
+      it 'treats departure-role statuses as done, non-departure as not done' do
+        expect(items[0].end_date).to eq(Date.new(2026, 1, 25))
+        expect(items[2].end_date).to be_nil
+      end
+    end
+
+    context 'with statuses: in workflow format in sidecar' do
+      let(:items) { load_with_sidecar(workflow_yaml) }
+
+      it_behaves_like 'departure statuses mark items done'
+    end
+
+    context 'with workflow_config_path: pointing to a workflow file' do
+      let(:items) do
+        Dir.mktmpdir do |dir|
+          wf_path = File.join(dir, 'workflow.yml')
+          csv_path = File.join(dir, 'issues.csv')
+          File.write(wf_path, workflow_yaml)
+          File.write(csv_path, csv_content)
+          File.write(File.join(dir, 'issues.yml'), "workflow_config_path: #{wf_path}\n")
+          described_class.new.load(csv_path)
+        end
+      end
+
+      it_behaves_like 'departure statuses mark items done'
     end
   end
 
