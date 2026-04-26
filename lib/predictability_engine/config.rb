@@ -7,6 +7,17 @@ module PredictabilityEngine
   class Config
     CONFIG_FILE = '.predictability_engine.yml'
 
+    # Single source of truth: config key → JIRA_ env var suffix.
+    JIRA_FIELDS = {
+      site: 'SITE', email: 'EMAIL', token: 'API_TOKEN', project: 'PROJECT',
+      context_path: 'CONTEXT_PATH', auth_mode: 'AUTH_MODE',
+      bearer_token: 'BEARER_TOKEN', auth_cookie: 'AUTH_COOKIE',
+      password: 'PASSWORD', totp_secret: 'TOTP_SECRET',
+      mfa_login_url: 'MFA_LOGIN_URL', mfa_token_field: 'MFA_TOKEN_FIELD',
+      idp_login_url: 'IDP_LOGIN_URL', idp_callback_port: 'IDP_CALLBACK_PORT'
+    }.freeze
+    private_constant :JIRA_FIELDS
+
     def self.jira(profile_name = nil)
       load_jira_config(profile_name)
     end
@@ -17,12 +28,11 @@ module PredictabilityEngine
       config = jira(profile)
       validate_jira!(config)
       origin, derived_path = split_jira_site(config[:site])
-      options = {
-        username: config[:email], password: config[:token],
-        site: origin, context_path: config[:context_path] || derived_path,
-        auth_type: :basic
-      }
-      ::JIRA::Client.new(options)
+      base = { site: origin, context_path: config[:context_path] || derived_path, default_headers: {} }
+      auth = JiraAuth.build(config)
+      client = ::JIRA::Client.new(auth.jira_options(base))
+      auth.post_init(client)
+      client
     end
 
     # Splits a full Jira site URL (e.g. "https://host/jira") into the origin
@@ -59,13 +69,30 @@ module PredictabilityEngine
     private_class_method :instrument_jira_http!
 
     def self.validate_jira!(config)
-      %i[site email token].each do |key|
-        next if config[key]
-
-        name = key.to_s.capitalize
-        raise Error, "Jira #{name} not configured (use JIRA_#{name.upcase} env var or credentials file)"
+      raise_missing(config, :site)
+      case config[:auth_mode].to_s
+      when 'bearer'
+        raise_missing(config, :bearer_token)
+      when 'cookie'
+        raise_missing(config, :auth_cookie)
+      when 'mfa_api'
+        %i[email password totp_secret mfa_login_url].each { |k| raise_missing(config, k) }
+      when 'mfa_browser'
+        raise_missing(config, :idp_login_url)
+      else
+        raise_missing(config, :email)
+        raise_missing(config, :token)
       end
     end
+
+    def self.raise_missing(config, key)
+      return if config[key]
+
+      env_suffix = JIRA_FIELDS[key]
+      env_var = env_suffix ? "JIRA_#{env_suffix}" : "JIRA_#{key.to_s.upcase}"
+      raise Error, "Jira #{key} not configured (use #{env_var} env var or credentials file)"
+    end
+    private_class_method :raise_missing
 
     def self.load_jira_config(profile_name = nil)
       profile_name ||= default_profile_name
@@ -81,13 +108,7 @@ module PredictabilityEngine
     end
 
     def self.fallback_config(global, local)
-      {
-        site: jira_val('SITE', global, local),
-        email: jira_val('EMAIL', global, local),
-        token: jira_val('API_TOKEN', global, local),
-        project: jira_val('PROJECT', global, local),
-        context_path: jira_val('CONTEXT_PATH', global, local)
-      }
+      JIRA_FIELDS.transform_values { |env_key| jira_val(env_key, global, local) }
     end
 
     def self.jira_val(name, global, local)
@@ -111,23 +132,20 @@ module PredictabilityEngine
       raw = File.exist?(path) ? YAML.load_file(path) : {}
       raw ||= {}
       config = global ? (raw['jira'] || raw) : raw.fetch('jira', {})
-      { site: config['site'], email: config['email'], token: config['token'],
-        project: config['project'], context_path: config['context_path'],
-        profiles: config.fetch('profiles', {}) }
+      extract_fields(config).merge(profiles: config.fetch('profiles', {}))
     end
 
     def self.load_profile(name, global, local)
       profile = global[:profiles][name.to_s] || local[:profiles][name.to_s] || {}
       return if profile.empty?
 
-      {
-        site: profile['site'],
-        email: profile['email'],
-        token: profile['token'],
-        project: profile['project'],
-        context_path: profile['context_path']
-      }
+      extract_fields(profile)
     end
+
+    def self.extract_fields(hash)
+      JIRA_FIELDS.keys.to_h { |key| [key, hash[key.to_s]] }
+    end
+    private_class_method :extract_fields
 
     private_class_method :load_jira_config, :load_global_jira_config,
                          :load_local_jira_config, :load_profile, :default_profile_name,

@@ -138,9 +138,9 @@ RSpec.describe PredictabilityEngine::DataSources::Jira do
   describe '#build_client' do
     it 'raises error when configuration is incomplete' do
       [
-        [{ email: 'e', token: 't' }, /Jira Site not configured/],
-        [{ site: 's', token: 't' }, /Jira Email not configured/],
-        [{ site: 's', email: 'e' }, /Jira Token not configured/]
+        [{ email: 'e', token: 't' }, /Jira site not configured/],
+        [{ site: 's', token: 't' }, /Jira email not configured/],
+        [{ site: 's', email: 'e' }, /Jira token not configured/]
       ].each do |config, expectation|
         allow(PredictabilityEngine::Config).to receive(:jira).and_return(config)
         expect { instance.send(:build_client) }.to raise_error(PredictabilityEngine::Error, expectation)

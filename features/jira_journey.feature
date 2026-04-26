@@ -23,6 +23,20 @@ Feature: Jira data source journey
     And the output should contain "saved to"
     And the credentials file should contain profile "on-prem" with context_path "/jira"
 
+  Scenario: Phase 1c — jira_config stores bearer token for SSO-gated Jira
+    When I run `predictability-engine jira_config sso-bearer --auth-mode bearer` interactively with input "https://jira.corp.com\n\ney.my-bearer-token"
+    Then the exit status should be 0
+    And the output should contain "saved to"
+    And the credentials file should contain profile "sso-bearer" with auth_mode "bearer"
+    And the credentials file should contain profile "sso-bearer" with bearer_token "ey.my-bearer-token"
+
+  Scenario: Phase 1d — jira_config stores session cookie for SSO-gated Jira
+    When I run `predictability-engine jira_config sso-cookie --auth-mode cookie` interactively with input "https://jira.corp.com\n\nJSESSIONID=abc123; crowd.token_key=xyz"
+    Then the exit status should be 0
+    And the output should contain "saved to"
+    And the credentials file should contain profile "sso-cookie" with auth_mode "cookie"
+    And the credentials file should contain profile "sso-cookie" with auth_cookie "JSESSIONID=abc123; crowd.token_key=xyz"
+
   # ─── Phase 2 — Create a Jira YAML config file ────────────────────────────────
   # Each data source needs a small YAML file. `init` creates a commented template.
   # By convention, naming it <profile>.<PROJECT_KEY>.yml auto-resolves both the

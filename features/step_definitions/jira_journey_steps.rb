@@ -15,22 +15,33 @@ def expand_path_template(template)
   template.gsub('$HOME', home).gsub('$JIRA_PROFILE', ENV.fetch('JIRA_PROFILE', ''))
 end
 
+def credentials_file_content
+  home = aruba.environment.fetch('HOME', Dir.home)
+  YAML.load_file(File.join(home, '.config', 'jira', 'jira_credentials.yml'))
+end
+
 Then('a credentials file should exist at {string}') do |path_template|
   expect(File.exist?(expand_path_template(path_template))).to be true
 end
 
 Then('the credentials file should contain profile {string}') do |profile|
-  fake_home = aruba.environment.fetch('HOME', Dir.home)
-  path = File.join(fake_home, '.config', 'jira', 'jira_credentials.yml')
-  content = YAML.load_file(path)
-  expect(content.dig('profiles', profile)).not_to be_nil
+  expect(credentials_file_content.dig('profiles', profile)).not_to be_nil
 end
 
-Then('the credentials file should contain profile {string} with context_path {string}') do |profile, expected_path|
-  fake_home = aruba.environment.fetch('HOME', Dir.home)
-  path = File.join(fake_home, '.config', 'jira', 'jira_credentials.yml')
-  content = YAML.load_file(path)
-  expect(content.dig('profiles', profile, 'context_path')).to eq(expected_path)
+Then('the credentials file should contain profile {string} with context_path {string}') do |profile, expected|
+  expect(credentials_file_content.dig('profiles', profile, 'context_path')).to eq(expected)
+end
+
+Then('the credentials file should contain profile {string} with auth_mode {string}') do |profile, expected|
+  expect(credentials_file_content.dig('profiles', profile, 'auth_mode')).to eq(expected)
+end
+
+Then('the credentials file should contain profile {string} with bearer_token {string}') do |profile, expected|
+  expect(credentials_file_content.dig('profiles', profile, 'bearer_token')).to eq(expected)
+end
+
+Then('the credentials file should contain profile {string} with auth_cookie {string}') do |profile, expected|
+  expect(credentials_file_content.dig('profiles', profile, 'auth_cookie')).to eq(expected)
 end
 
 def jira_yaml_for(filename)

@@ -191,6 +191,7 @@ module PredictabilityEngine
 
   class Cli < Thor
     include CliBase
+    include JiraConfigPrompter
 
     desc 'viz SUBCOMMAND ...ARGS', 'Visualization commands'
     subcommand 'viz', Viz
@@ -248,11 +249,14 @@ module PredictabilityEngine
     end
 
     desc 'jira_config PROFILE', 'Generate/Update JIRA credentials in ~/.config/jira/jira_credentials.yml'
+    method_option :auth_mode, aliases: '-a', default: 'basic',
+                              desc: 'Auth mode: basic | bearer | cookie | mfa_api | mfa_browser'
     def jira_config(profile)
       site = ask('Jira site (e.g., https://your-domain.atlassian.net):')
       context_path = ask('Context path, if any (e.g., /jira — leave blank for Atlassian Cloud):')
-      email = ask('Jira email:')
-      token = ask_secret('Jira API token:')
+      mode = options[:auth_mode]
+
+      profile_data = build_profile_data(site, context_path, mode)
 
       path = Config.jira_credentials_file
       FileUtils.mkdir_p(File.dirname(path))
@@ -260,8 +264,6 @@ module PredictabilityEngine
       config = File.exist?(path) ? YAML.load_file(path) : {}
       config ||= {}
       config['profiles'] ||= {}
-      profile_data = { 'site' => site, 'email' => email, 'token' => token }
-      profile_data['context_path'] = context_path unless context_path.strip.empty?
       config['profiles'][profile] = profile_data
 
       File.write(path, config.to_yaml)
