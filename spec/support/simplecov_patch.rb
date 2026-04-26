@@ -2,7 +2,7 @@
 
 require 'simplecov'
 
-# Monkeypatch SimpleCov to avoid NoMethodError on Ruby 4.0.2 when branch data is nil
+# Monkeypatch SimpleCov to avoid NoMethodError on Ruby 4.0.3 when branch data is nil
 module SimpleCov
   class SourceFile
     def build_branches

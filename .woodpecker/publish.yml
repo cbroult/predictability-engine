@@ -39,7 +39,7 @@ when:
 
 steps:
   - name: test
-    image: ruby:4.0.2-alpine
+    image: ruby:4.0.3-alpine
     <<: *network_host
     environment:
       CUCUMBER_PUBLISH_QUIET: "true"
@@ -51,7 +51,7 @@ steps:
       - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser bundle exec rake verify
 
   - name: auto-bump
-    image: ruby:4.0.2-alpine
+    image: ruby:4.0.3-alpine
     when:
       event: push
       branch: main
@@ -65,13 +65,13 @@ steps:
       - sh scripts/auto-bump.sh
 
   - name: build-gem
-    image: ruby:4.0.2-alpine
+    image: ruby:4.0.3-alpine
     commands:
       - apk add --no-cache build-base
       - gem build predictability-engine.gemspec
 
   - name: publish-gem
-    image: ruby:4.0.2-alpine
+    image: ruby:4.0.3-alpine
     environment:
       GEM_USER:
         from_secret: gem_user
@@ -84,7 +84,7 @@ steps:
       - sh scripts/publish-gem.sh
 
   - name: rebuild-image
-    image: ruby:4.0.2-alpine
+    image: ruby:4.0.3-alpine
     environment:
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert
@@ -97,7 +97,7 @@ steps:
       - sh scripts/build-engine-image.sh
 
   - name: verify-fresh-install
-    image: ruby:4.0.2-alpine
+    image: ruby:4.0.3-alpine
     <<: *network_host
     environment:
       CBP_ORG_CA_CERT:

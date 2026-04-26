@@ -9,7 +9,7 @@ clone:
 
 steps:
   - name: verify
-    image: ruby:4.0.2-alpine
+    image: ruby:4.0.3-alpine
     backend_options:
       docker:
         network_mode: host

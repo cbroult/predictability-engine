@@ -25,7 +25,7 @@ clone:
 
 steps:
   - name: rebuild-image
-    image: ruby:4.0.2-alpine
+    image: ruby:4.0.3-alpine
     environment:
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert

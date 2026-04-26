@@ -6,7 +6,7 @@
 #   - predictability-engine version changes
 #   - cbp-org root CA rotates
 
-FROM ruby:4.0.2-alpine
+FROM ruby:4.0.3-alpine
 
 # CBP_ORG_CA_CERT_B64: base64-encoded cbp-org root CA certificate.
 ARG CBP_ORG_CA_CERT_B64

@@ -46,7 +46,7 @@ when:
 
 steps:
   - name: setup
-    image: ruby:4.0.2-alpine
+    image: ruby:4.0.3-alpine
     <<: *network_host
     environment: *jira_env
     commands:
@@ -55,7 +55,7 @@ steps:
       - bundle exec ruby scripts/jira_project_setup.rb setup --env wp --count 25 --profile wp
 
   - name: verify-reports
-    image: ruby:4.0.2-alpine
+    image: ruby:4.0.3-alpine
     <<: *network_host
     environment: *jira_env
     commands:
@@ -68,7 +68,7 @@ steps:
       - test -s /tmp/jira.html
 
   - name: jira-cucumber
-    image: ruby:4.0.2-alpine
+    image: ruby:4.0.3-alpine
     <<: *network_host
     environment:
       <<: *jira_env

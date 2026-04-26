@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Ruby gem (`predictability-engine`) that calculates Actionable Agile Metrics (Cycle Time, Throughput, WIP, CFD, Aging WIP) and runs Monte Carlo forecasts on work-item data sourced from CSV, Excel, or Jira. Output is a unified `Report` rendered to terminal, HTML dashboard, PDF, PNG, PPTX, Markdown, or Confluence via a shared visualizer pipeline (UnicodePlot / Vega-Lite + Playwright).
 
-Ruby version pinned in `.ruby-version` (currently 4.0.2). Thor-based CLI entry point is `bin/predictability-engine`.
+Ruby version pinned in `.ruby-version` (currently 4.0.3). Thor-based CLI entry point is `bin/predictability-engine`.
 
 ## Commands
 
@@ -111,5 +111,5 @@ When 2+ consecutive `logger` calls form one logical output block, collapse them 
 
 Woodpecker pipelines in `.woodpecker/`:
 
-- `verify.yml` runs `bundle exec rake verify` in `ruby:4.0.2-alpine` with Playwright preinstalled — this is the gate that must stay green.
+- `verify.yml` runs `bundle exec rake verify` in `ruby:4.0.3-alpine` with Playwright preinstalled — this is the gate that must stay green.
 - `code-quality.yml`, `jira-integration.yml`, `publish.yml`, `predictability-engine.yml` — ancillary; check each before assuming a single pipeline is authoritative.
