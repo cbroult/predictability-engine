@@ -33,22 +33,15 @@ env:
   JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
   JIRA_ENV:       gha
 
-x-ruby-setup: &ruby-setup
-  - uses: actions/checkout@v4
-  - uses: ruby/setup-ruby@v1
-    with:
-      ruby-version: '4.0.2'
-      bundler-cache: true
-
-x-playwright-setup: &playwright-setup
-  - name: Install Playwright
-    run: npm install playwright && npx playwright install chromium --with-deps
-
 jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-      - *ruby-setup
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '4.0.2'
+          bundler-cache: true
       - name: Provision Jira projects
         run: bundle exec ruby scripts/jira_project_setup.rb setup --env gha --count 25 --profile gha
 
@@ -56,8 +49,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - *ruby-setup
-      - *playwright-setup
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '4.0.2'
+          bundler-cache: true
+      - name: Install Playwright
+        run: npm install playwright && npx playwright install chromium --with-deps
       - name: Verify summary report
         run: bundle exec ./bin/predictability-engine summary  PEGHATBD
       - name: Verify forecast report
@@ -73,7 +71,12 @@ jobs:
     env:
       CUCUMBER_PUBLISH_QUIET: "true"
     steps:
-      - *ruby-setup
-      - *playwright-setup
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '4.0.2'
+          bundler-cache: true
+      - name: Install Playwright
+        run: npm install playwright && npx playwright install chromium --with-deps
       - name: Run Jira BDD scenarios
         run: bundle exec cucumber features/jira_pipeline.feature --tags @real_jira
