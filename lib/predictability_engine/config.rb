@@ -30,7 +30,9 @@ module PredictabilityEngine
       origin, derived_path = split_jira_site(config[:site])
       base = { site: origin, context_path: config[:context_path] || derived_path, default_headers: {} }
       auth = JiraAuth.build(config)
-      client = ::JIRA::Client.new(auth.jira_options(base))
+      options = auth.jira_options(base)
+      options[:http_debug] = true if jira_http_debug?
+      client = ::JIRA::Client.new(options)
       auth.post_init(client)
       client
     end
@@ -67,6 +69,11 @@ module PredictabilityEngine
       ::JIRA::HttpClient.prepend(JiraHttpLogger)
     end
     private_class_method :instrument_jira_http!
+
+    def self.jira_http_debug?
+      ENV.fetch('JIRA_HTTP_DEBUG', nil).to_s.match?(/\A(true|1|yes)\z/i)
+    end
+    private_class_method :jira_http_debug?
 
     def self.validate_jira!(config)
       raise_missing(config, :site)

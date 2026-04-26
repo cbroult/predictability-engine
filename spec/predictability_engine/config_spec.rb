@@ -86,4 +86,47 @@ RSpec.describe PredictabilityEngine::Config do
       File.write(config_file, data.to_yaml)
     end
   end
+
+  describe '.jira_client http_debug' do
+    let(:base_options) { { site: 'https://jira.example.com', context_path: nil, auth_type: :basic } }
+    let(:auth_double) do
+      instance_double(PredictabilityEngine::JiraAuth::Basic,
+                      jira_options: base_options,
+                      post_init: nil)
+    end
+    let(:client_double) { instance_double(JIRA::Client) }
+
+    before do
+      require 'jira-ruby'
+      allow(described_class).to receive(:jira).and_return(
+        { site: 'https://jira.example.com', email: 'u@e.com', token: 't' }
+      )
+      allow(described_class).to receive(:validate_jira!)
+      allow(PredictabilityEngine::JiraAuth).to receive(:build).and_return(auth_double)
+      allow(JIRA::Client).to receive(:new).and_return(client_double)
+    end
+
+    def captured_client_options
+      described_class.jira_client
+      captured = nil
+      expect(JIRA::Client).to have_received(:new) { |opts| captured = opts }
+      captured
+    end
+
+    context 'when JIRA_HTTP_DEBUG=true' do
+      before { stub_const('ENV', ENV.to_h.merge('JIRA_HTTP_DEBUG' => 'true')) }
+
+      it 'passes http_debug: true to JIRA::Client' do
+        expect(captured_client_options[:http_debug]).to be true
+      end
+    end
+
+    context 'when JIRA_HTTP_DEBUG is not set' do
+      before { stub_const('ENV', ENV.to_h.except('JIRA_HTTP_DEBUG')) }
+
+      it 'does not pass http_debug to JIRA::Client' do
+        expect(captured_client_options).not_to have_key(:http_debug)
+      end
+    end
+  end
 end
