@@ -6,7 +6,8 @@ module PredictabilityEngine
       def self.cycle_time_scatter(items, percentiles, title: 'Cycle Time Scatter Plot')
         completed = PredictabilityEngine.completed_items(items)
         data = completed.map do |i|
-          { date: PredictabilityEngine.format_date(i.end_date), cycle_time: i.cycle_time, id: i.id }
+          { date: PredictabilityEngine.format_date(i.end_date), cycle_time: i.cycle_time, id: i.id,
+            title: i.title }
         end
         pct_data = PredictabilityEngine.mapped_percentiles(items, percentiles)
         VegaVisualizer.apply_standard_dims(
@@ -24,9 +25,9 @@ module PredictabilityEngine
           encoding: { x: x_axis,
                       y: VegaVisualizer.quantitative_y_axis('cycle_time', title: 'Cycle Time (days)'),
                       color: { value: '#4c78a8' },
-                      tooltip: [VegaVisualizer.item_id_tooltip_field,
-                                { field: 'date', type: 'temporal', title: 'Completion Date' },
-                                { field: 'cycle_time', type: 'quantitative', title: 'Cycle Time (days)' }] } }
+                      tooltip: VegaVisualizer.standard_item_tooltip_fields +
+                        [{ field: 'date', type: 'temporal', title: 'Completion Date' },
+                         { field: 'cycle_time', type: 'quantitative', title: 'Cycle Time (days)' }] } }
       end
 
       def self.scatter_rules_layer(pct_data)

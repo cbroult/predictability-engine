@@ -33,6 +33,14 @@ module PredictabilityEngine
       { field: 'id', type: 'nominal', title: 'Work Item ID' }
     end
 
+    def self.title_tooltip_field
+      { field: 'title', type: 'nominal', title: 'Title' }
+    end
+
+    def self.standard_item_tooltip_fields
+      [item_id_tooltip_field, title_tooltip_field]
+    end
+
     def self.quantitative_y_axis(...) = quantitative_axis(...)
     def self.quantitative_x_axis(...) = quantitative_axis(...)
 
