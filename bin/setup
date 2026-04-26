@@ -24,3 +24,6 @@ playwright_flag=()
 [ -n "${SKIP_PLAYWRIGHT:-}" ] && playwright_flag=(--skip-playwright)
 
 bundle exec predictability-engine setup --skip-bundle "${playwright_flag[@]}"
+
+echo "==> Configuring git hooks"
+git config core.hooksPath .githooks

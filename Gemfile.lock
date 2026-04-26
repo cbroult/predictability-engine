@@ -21,6 +21,13 @@ PATH
       zeitwerk
 
 GEM
+  remote: https://gems.cbp-org.internal/
+  specs:
+    badge-service-cli (0.2.6)
+      thor
+      zeitwerk
+
+GEM
   remote: https://rubygems.org/
   specs:
     activesupport (8.1.3)
@@ -261,6 +268,7 @@ PLATFORMS
 
 DEPENDENCIES
   aruba
+  badge-service-cli!
   benchmark-ips
   bundler-audit
   cucumber
@@ -282,6 +290,7 @@ CHECKSUMS
   aruba (2.3.3) sha256=837a2f023368a75a38ad9be227e9738ab9af7df3b3f35afd8fb5fc5f7a93f1d4
   ast (2.4.3) sha256=954615157c1d6a382bc27d690d973195e79db7f55e9765ac7c481c60bdb4d383
   atlassian-jwt (0.2.1) sha256=2fd2d87418773f2e140c038cb22e049069708aff2bd0a423a7e1740574e97823
+  badge-service-cli (0.2.6) sha256=573d5926a75c9960646b8bc81763f90bd047b46e22b5302635a7c3b89642dfe0
   baran (0.1.12) sha256=32c1362c3bc7506fb75a2b3f6123dd9c4b3e2e721c066a9a7e6e63893082af94
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
   benchmark-ips (2.14.0) sha256=b72bc8a65d525d5906f8cd94270dccf73452ee3257a32b89fbd6684d3e8a9b1d

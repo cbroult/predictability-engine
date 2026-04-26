@@ -1,5 +1,12 @@
 # jira-integration.yml — end-to-end validation against a live Jira instance.
 #
+# This is the WOODPECKER variant of the Jira integration pipeline. It targets the
+# `wp` Jira environment (projects seeded as PEWP*) using Woodpecker secrets.
+# A separate GitHub Actions variant (.github/workflows/jira-integration.yml)
+# targets the `gha` Jira environment (projects seeded as PEGHA*) using GHA secrets.
+# The two pipelines are complementary, not redundant — they hit different Jira
+# projects seeded independently on different CI infrastructure.
+#
 # Pipeline:
 #   1. setup             run scripts/jira_project_setup.rb to provision the three
 #                        wp-environment Jira projects with realistic test data

@@ -4,8 +4,15 @@
 
 [![Ruby Version](https://img.shields.io/badge/ruby-%3E%3D%204.0.0-red.svg)](https://www.ruby-lang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
-[![Code Quality](https://img.shields.io/badge/code%20quality-RuboCop-blue.svg)]()
+[![Jira Integration (GHA)](https://github.com/cbroult/predictability-engine/actions/workflows/jira-integration.yml/badge.svg)](https://github.com/cbroult/predictability-engine/actions/workflows/jira-integration.yml)
+
+<!-- BADGES_START -->
+[![code-quality](https://badge.cbp-org.internal/badge/cbp-org/predictability-engine/code-quality.svg?branch=main)](https://ci.cbp-org.internal/cbp-org/predictability-engine)
+[![jira-integration](https://badge.cbp-org.internal/badge/cbp-org/predictability-engine/jira-integration.svg?branch=main)](https://ci.cbp-org.internal/cbp-org/predictability-engine)
+[![predictability-engine](https://badge.cbp-org.internal/badge/cbp-org/predictability-engine/predictability-engine.svg?branch=main)](https://ci.cbp-org.internal/cbp-org/predictability-engine)
+[![publish](https://badge.cbp-org.internal/badge/cbp-org/predictability-engine/publish.svg?branch=main)](https://ci.cbp-org.internal/cbp-org/predictability-engine)
+[![verify](https://badge.cbp-org.internal/badge/cbp-org/predictability-engine/verify.svg?branch=main)](https://ci.cbp-org.internal/cbp-org/predictability-engine)
+<!-- BADGES_END -->
 
 The **Predictability Engine** is designed to help teams and organizations move from "when will it be done?" guesses to data-driven probabilistic forecasting. It focuses on leading indicators—specifically **Aging WIP**—to manage flow and improve predictability.
 

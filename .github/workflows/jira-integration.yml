@@ -1,9 +1,19 @@
 # jira-integration.yml — end-to-end validation against a live Jira instance (GitHub Actions).
 #
+# This is the GITHUB ACTIONS variant of the Jira integration pipeline. It targets the
+# `gha` Jira environment (projects seeded as PEGHA*) using GitHub secrets.
+# A separate Woodpecker variant (.woodpecker/jira-integration.yml) targets the
+# `wp` Jira environment (projects seeded as PEWP*) using Woodpecker secrets.
+# The two pipelines are complementary, not redundant — they hit different Jira
+# projects seeded independently on different CI infrastructure.
+#
+# This GHA variant also runs verify-reports and jira-cucumber in parallel
+# (using `needs: setup`) whereas the Woodpecker variant runs them sequentially.
+#
 # Pipeline:
 #   1. setup             provision the three gha-environment Jira projects with test data
 #   2. verify-reports    validate the full report pipeline against the seeded project
-#   3. jira-cucumber     run @real_jira BDD scenarios
+#   3. jira-cucumber     run @real_jira BDD scenarios (parallel with verify-reports)
 #
 # Manual trigger only — Jira writes are side-effectful.
 #

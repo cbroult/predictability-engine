@@ -19,6 +19,10 @@ Cucumber::Rake::Task.new(:features) do |t|
   t.cucumber_opts = ['-p', 'default']
 end
 
+Cucumber::Rake::Task.new(:features_npm) do |t|
+  t.cucumber_opts = ['-p', 'npm']
+end
+
 Cucumber::Rake::Task.new(:jira_integrated_tests_run) do |t|
   t.cucumber_opts = ['-p', 'jira_live']
 end
@@ -75,8 +79,11 @@ end
 desc 'Run rubocop + bundler-audit + jscpd'
 task lint: %i[rubocop audit jscpd]
 
-desc 'Run spec + features + lint'
-task verify: %i[spec features lint jira_integrated_tests]
+desc 'Run lint + spec + features + jira_integrated_tests (fail-fast: style/audit before slow suites)'
+task verify: %i[rubocop audit spec features jscpd jira_integrated_tests]
+
+desc 'Alias for verify — mirrors exactly what verify.yml CI runs'
+task ci: :verify
 
 # Default is everything (including slow benchmarks and docs)
 task default: %i[verify docs bench]
