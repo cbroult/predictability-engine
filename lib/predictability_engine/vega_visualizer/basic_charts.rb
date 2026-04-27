@@ -27,7 +27,7 @@ module PredictabilityEngine
                       color: { value: '#4c78a8' },
                       tooltip: VegaVisualizer.standard_item_tooltip_fields +
                         [{ field: 'date', type: 'temporal', title: 'Completion Date' },
-                         { field: 'cycle_time', type: 'quantitative', title: 'Cycle Time (days)' }] } }
+                         VegaVisualizer.cycle_time_tooltip_field] } }
       end
 
       def self.scatter_rules_layer(pct_data)
@@ -47,7 +47,9 @@ module PredictabilityEngine
                       strokeWidth: { condition: width_condition, value: 1 },
                       color: { field: 'type', type: 'nominal', title: 'Percentiles',
                                scale: { range: palette.take(count) },
-                               legend: { orient: 'bottom', columns: 3 } } } }
+                               legend: { orient: 'bottom', columns: 3 } },
+                      tooltip: [{ field: 'type', type: 'nominal', title: 'Percentile' },
+                                VegaVisualizer.cycle_time_tooltip_field(field: 'val')] } }
       end
 
       def self.throughput_histogram(items, title: 'Throughput Histogram')

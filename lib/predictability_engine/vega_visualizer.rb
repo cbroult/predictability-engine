@@ -41,6 +41,10 @@ module PredictabilityEngine
       [item_id_tooltip_field, title_tooltip_field]
     end
 
+    def self.cycle_time_tooltip_field(field: 'cycle_time')
+      { field: field, type: 'quantitative', title: 'Cycle Time (days)' }
+    end
+
     def self.quantitative_y_axis(...) = quantitative_axis(...)
     def self.quantitative_x_axis(...) = quantitative_axis(...)
 

@@ -29,9 +29,12 @@ module PredictabilityEngine
 
       def self.aging_rule_layers(mapped_pcts)
         mapped_pcts.map do |p|
-          { data: { values: [{ val: p[:val] }] },
+          { data: { values: [{ val: p[:val], label: p[:label] }] },
             mark: { type: 'rule', strokeDash: [4, 4] },
-            encoding: { y: VegaVisualizer.quantitative_y_axis('val'), color: { value: '#e45756' } } }
+            encoding: { y: VegaVisualizer.quantitative_y_axis('val'),
+                        color: { value: '#e45756' },
+                        tooltip: [{ field: 'label', type: 'nominal', title: 'Percentile' },
+                                  { field: 'val', type: 'quantitative', title: 'Age (days)' }] } }
         end
       end
     end
