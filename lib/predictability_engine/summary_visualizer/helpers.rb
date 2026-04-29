@@ -13,7 +13,7 @@ module PredictabilityEngine
             items = v.to_s.strip.split("\n").map { |e| "<li>#{e.strip}</li>" }.join
             "<li class='breakdown'><strong>#{k}:</strong><ul>#{items}</ul></li>"
           else
-            "<li><strong>#{k}:</strong> #{v}</li>"
+            "<li><strong>#{k}:</strong> <span class='metric-value'>#{v}</span></li>"
           end
         end.join("\n")
       end

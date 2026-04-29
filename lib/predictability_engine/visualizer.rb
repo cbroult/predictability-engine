@@ -35,8 +35,9 @@ module PredictabilityEngine
       .chart-container { flex-grow: 1; min-height: 0; width: 100%; display: flex; justify-content: center; align-items: center; }
       .chart-container > div { width: 100% !important; height: 100% !important; }
       ul { list-style: none; padding: 0; margin: 10px 0; }
-      li { margin-bottom: 8px; font-size: 0.95rem; color: #505d6b; display: flex; justify-content: space-between; }
-      li strong { color: #2c3e50; }
+      li { margin-bottom: 8px; font-size: 0.95rem; color: #505d6b; display: flex; flex-wrap: wrap; gap: 0 8px; }
+      li strong { color: #2c3e50; white-space: nowrap; }
+      .metric-value { margin-left: auto; text-align: right; }
 
       @media screen {
         body { height: 100vh; overflow: auto; }
