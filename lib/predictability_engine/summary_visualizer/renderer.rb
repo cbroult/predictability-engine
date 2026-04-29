@@ -14,12 +14,11 @@ module PredictabilityEngine
         HTML
 
         if metrics[:aging]
+          items = aging_pairs(metrics[:aging]).map { |l, v| Helpers.html_metric_li(l, v) }.join("\n            ")
           html += <<~HTML
             <h3>Aging WIP Summary</h3>
             <ul>
-              <li><strong>Active WIP:</strong> <span class='metric-value'>#{metrics[:aging][:count]} items</span></li>
-              <li><strong>Average WIP Age:</strong> <span class='metric-value'>#{metrics[:aging][:avg_age]} days</span></li>
-              <li><strong>Oldest Item Age:</strong> <span class='metric-value'>#{metrics[:aging][:max_age]} days</span></li>
+              #{items}
             </ul>
           HTML
         end
@@ -50,13 +49,15 @@ module PredictabilityEngine
         out.join("\n")
       end
 
+      def self.aging_pairs(aging)
+        [['Active WIP', "#{aging[:count]} items"],
+         ['Average WIP Age', "#{aging[:avg_age]} days"],
+         ['Oldest Item Age', "#{aging[:max_age]} days"]]
+      end
+
       def self.aging_summary_lines(metrics, title, prefix, bold = '')
-        [
-          title, '',
-          "#{prefix}#{bold}Active WIP:#{bold} #{metrics[:aging][:count]} items",
-          "#{prefix}#{bold}Average WIP Age:#{bold} #{metrics[:aging][:avg_age]} days",
-          "#{prefix}#{bold}Oldest Item Age:#{bold} #{metrics[:aging][:max_age]} days", ''
-        ]
+        lines = aging_pairs(metrics[:aging]).map { |label, value| "#{prefix}#{bold}#{label}:#{bold} #{value}" }
+        [title, '', *lines, '']
       end
 
       def self.render_markdown_summary(work_items, metrics, percentiles)

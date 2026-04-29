@@ -7,13 +7,17 @@ module PredictabilityEngine
         shared_metrics(work_items, metrics).map { |k, v| "#{prefix}#{bold}#{k}:#{bold} #{v}" }.join("\n")
       end
 
+      def self.html_metric_li(label, value)
+        "<li><strong>#{label}:</strong> <span class='metric-value'>#{value}</span></li>"
+      end
+
       def self.metric_list(work_items, metrics)
         shared_metrics(work_items, metrics).map do |k, v|
           if v.to_s.include?("\n")
             items = v.to_s.strip.split("\n").map { |e| "<li>#{e.strip}</li>" }.join
             "<li class='breakdown'><strong>#{k}:</strong><ul>#{items}</ul></li>"
           else
-            "<li><strong>#{k}:</strong> <span class='metric-value'>#{v}</span></li>"
+            html_metric_li(k, v)
           end
         end.join("\n")
       end
