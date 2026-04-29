@@ -17,9 +17,9 @@ module PredictabilityEngine
           html += <<~HTML
             <h3>Aging WIP Summary</h3>
             <ul>
-              <li><strong>Active WIP:</strong> #{metrics[:aging][:count]} items</li>
-              <li><strong>Average WIP Age:</strong> #{metrics[:aging][:avg_age]} days</li>
-              <li><strong>Oldest Item Age:</strong> #{metrics[:aging][:max_age]} days</li>
+              <li><strong>Active WIP:</strong> <span class='metric-value'>#{metrics[:aging][:count]} items</span></li>
+              <li><strong>Average WIP Age:</strong> <span class='metric-value'>#{metrics[:aging][:avg_age]} days</span></li>
+              <li><strong>Oldest Item Age:</strong> <span class='metric-value'>#{metrics[:aging][:max_age]} days</span></li>
             </ul>
           HTML
         end
