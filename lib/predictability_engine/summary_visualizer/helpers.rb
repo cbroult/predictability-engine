@@ -8,7 +8,14 @@ module PredictabilityEngine
       end
 
       def self.metric_list(work_items, metrics)
-        shared_metrics(work_items, metrics).map { |k, v| "<li><strong>#{k}:</strong> #{v}</li>" }.join("\n")
+        shared_metrics(work_items, metrics).map do |k, v|
+          if v.to_s.include?("\n")
+            items = v.to_s.strip.split("\n").map { |e| "<li>#{e.strip}</li>" }.join
+            "<li class='breakdown'><strong>#{k}:</strong><ul>#{items}</ul></li>"
+          else
+            "<li><strong>#{k}:</strong> #{v}</li>"
+          end
+        end.join("\n")
       end
 
       def self.percentile_lines(metrics, percentiles, prefix: '', bold: '', suffix: '')
@@ -40,13 +47,13 @@ module PredictabilityEngine
       def self.ordered_facet_entries(counts, facet)
         return priority_ordered_entries(counts) if facet[:key] == :priority
 
-        counts.sort_by { |_, v| -v }.map { |k, v| "#{k} #{v}" }
+        counts.sort_by { |_, v| -v }.map { |k, v| "#{k}: #{v}" }
       end
 
       def self.priority_ordered_entries(counts)
         priority_order = Report::Constants::PRIORITY_ORDER
-        ordered = priority_order.filter_map { |p| "#{p} #{counts[p]}" if counts[p] }
-        others  = (counts.keys - priority_order).sort.map { |p| "#{p} #{counts[p]}" }
+        ordered = priority_order.filter_map { |p| "#{p}: #{counts[p]}" if counts[p] }
+        others  = (counts.keys - priority_order).sort.map { |p| "#{p}: #{counts[p]}" }
         ordered + others
       end
 

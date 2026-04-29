@@ -18,7 +18,7 @@ RSpec.describe PredictabilityEngine::SummaryVisualizer::Helpers do
 
     it 'includes Priority Breakdown when completed items have priorities' do
       result = described_class.shared_metrics(all_items, metrics)
-      expect(result[:'Priority Breakdown']).to include('High 1').and include('Low 1')
+      expect(result[:'Priority Breakdown']).to include('High: 1').and include('Low: 1')
     end
 
     it 'omits Priority Breakdown when no completed item has a priority' do
@@ -43,10 +43,10 @@ RSpec.describe PredictabilityEngine::SummaryVisualizer::Helpers do
     it 'outputs priorities in standard Jira order' do
       result = described_class.shared_metrics([], metrics)
       breakdown = result[:'Priority Breakdown']
-      expect(breakdown.index('Highest')).to be < breakdown.index('High 1')
-      expect(breakdown.index('High 1')).to be < breakdown.index('Medium')
-      expect(breakdown.index('Medium')).to be < breakdown.index('Low 1')
-      expect(breakdown.index('Low 1')).to be < breakdown.index('Lowest')
+      expect(breakdown.index('Highest')).to be < breakdown.index('High: 1')
+      expect(breakdown.index('High: 1')).to be < breakdown.index('Medium')
+      expect(breakdown.index('Medium')).to be < breakdown.index('Low: 1')
+      expect(breakdown.index('Low: 1')).to be < breakdown.index('Lowest')
     end
   end
 end

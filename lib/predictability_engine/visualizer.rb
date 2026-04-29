@@ -49,6 +49,13 @@ module PredictabilityEngine
         header { margin-bottom: 10px; padding-bottom: 5px; }
         h1 { font-size: 1.2rem; }
       }
+
+      .vg-tooltip td { vertical-align: top !important; }
+      .vg-tooltip td.value { white-space: pre-wrap !important; max-width: 250px !important; }
+
+      li.breakdown { flex-direction: column; align-items: flex-start; }
+      li.breakdown ul { list-style: none; padding: 0 0 0 10px; margin: 4px 0 0 0; }
+      li.breakdown ul li { display: block; margin-bottom: 2px; justify-content: flex-start; }
     </style>
   CSS
 

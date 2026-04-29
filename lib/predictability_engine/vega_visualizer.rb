@@ -34,11 +34,23 @@ module PredictabilityEngine
     end
 
     def self.title_tooltip_field
-      { field: 'title', type: 'nominal', title: 'Title' }
+      { field: 'title_display', type: 'nominal', title: 'Title' }
     end
 
     def self.standard_item_tooltip_fields
       [item_id_tooltip_field, title_tooltip_field]
+    end
+
+    TOOLTIP_WRAP_WIDTH = 40
+
+    def self.wrap_tooltip_title(text, width: TOOLTIP_WRAP_WIDTH)
+      str = text.to_s
+      return str if str.length <= width
+
+      str.split.each_with_object(['']) do |word, lines|
+        lines << '' if "#{lines.last} #{word}".strip.length > width
+        lines[-1] = "#{lines.last} #{word}".strip
+      end.join("\n")
     end
 
     def self.cycle_time_tooltip_field(field: 'cycle_time')

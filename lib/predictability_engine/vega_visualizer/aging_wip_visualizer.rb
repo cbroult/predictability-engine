@@ -5,9 +5,10 @@ module PredictabilityEngine
     module AgingWipVisualizer
       def self.aging_wip(items, title: 'Aging Work In Progress',
                          pcts: PredictabilityEngine::DEFAULT_PERCENTILES, **)
-        data = Calculators::Aging.item_age_data(items)
-        return Vega.lite.data([]).title(title || 'Aging Work In Progress') if data.empty?
+        raw = Calculators::Aging.item_age_data(items)
+        return Vega.lite.data([]).title(title || 'Aging Work In Progress') if raw.empty?
 
+        data = raw.map { |row| row.merge(title_display: VegaVisualizer.wrap_tooltip_title(row[:title].to_s)) }
         mapped = PredictabilityEngine.mapped_percentiles(items, pcts)
         VegaVisualizer.apply_standard_dims(
           Vega.lite.data(data)

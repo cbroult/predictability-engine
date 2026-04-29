@@ -7,7 +7,7 @@ module PredictabilityEngine
         completed = PredictabilityEngine.completed_items(items)
         data = completed.map do |i|
           { date: PredictabilityEngine.format_date(i.end_date), cycle_time: i.cycle_time, id: i.id,
-            title: i.title }
+            title: i.title, title_display: VegaVisualizer.wrap_tooltip_title(i.title) }
         end
         pct_data = PredictabilityEngine.mapped_percentiles(items, percentiles)
         VegaVisualizer.apply_standard_dims(
