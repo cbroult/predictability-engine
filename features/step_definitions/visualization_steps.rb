@@ -121,8 +121,9 @@ end
 
 def cfd_forecast_spec?(spec)
   spec['layer']&.any? do |l|
+    tooltip = l['encoding']&.[]('tooltip')
     l['mark'] && l['mark']['type'] == 'rule' && l['encoding'] &&
-      l['encoding']['tooltip'] && l['encoding']['tooltip']['field'] == 'tooltip'
+      tooltip.is_a?(Hash) && tooltip['field'] == 'tooltip'
   end
 end
 
