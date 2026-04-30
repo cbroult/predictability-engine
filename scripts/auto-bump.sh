@@ -45,8 +45,18 @@ HIGHER=$(ruby -rrubygems -e "
 " "$CURRENT_VERSION" "$PUBLISHED_VERSION")
 
 if [ "$HIGHER" = "yes" ]; then
-  echo "auto-bump: developer already bumped to ${CURRENT_VERSION} — no action"
-  exit 0
+  # The developer (or a prior CI run) bumped the version. Before skipping,
+  # verify the current version is not already published — a tag-triggered
+  # publish pipeline may have uploaded it while specs.4.8.gz still showed
+  # the old index entry. If it is already published, fall through and bump.
+  ALREADY_PUBLISHED=$(curl -sf --cacert "$CA_CERT_FILE" \
+    "https://gems.cbp-org.internal/gems/predictability-engine-${CURRENT_VERSION}.gem" \
+    -o /dev/null -w '%{http_code}' 2>/dev/null || echo "000")
+  if [ "$ALREADY_PUBLISHED" != "200" ]; then
+    echo "auto-bump: developer already bumped to ${CURRENT_VERSION} and it is not yet published — no action"
+    exit 0
+  fi
+  echo "auto-bump: ${CURRENT_VERSION} is already published (HTTP ${ALREADY_PUBLISHED}) — bumping anyway"
 fi
 
 bundle install --jobs 4 --retry 3 --quiet
