@@ -73,14 +73,14 @@ Feature: Visualization command
       | DYN-1  | Primary Item   | 2026-03-01 | 2026-03-02 |
     When I run `predictability-engine viz html_all dynamic_test.csv`
     Then the exit status should be 0
-    And a file named "reports/dynamic_test/dashboard.html" should contain "Total Items:</strong> 1"
+    And a file named "reports/dynamic_test/dashboard.html" should contain "Total Items:</strong> <span class='metric-value'>1</span>"
     Given a file named "dynamic_test.csv" with the following adjusted data:
       | id     | title          | start_date | end_date   |
       | DYN-A  | Alpha Item     | 2026-03-01 | 2026-03-02 |
       | DYN-B  | Beta Item      | 2026-03-01 | 2026-03-02 |
     When I run `predictability-engine viz html_all dynamic_test.csv`
     Then the exit status should be 0
-    And a file named "reports/dynamic_test/dashboard.html" should contain "Total Items:</strong> 2"
+    And a file named "reports/dynamic_test/dashboard.html" should contain "Total Items:</strong> <span class='metric-value'>2</span>"
 
   Scenario: Verifying Forecasted CFD vertical lines in HTML report
     Given a file named "align_test.csv" with the following adjusted data:
