@@ -20,6 +20,7 @@ require 'uri'
 require 'yaml'
 require 'fileutils'
 require_relative '../lib/predictability_engine/config'
+require_relative '../lib/predictability_engine/jira_auth'
 require_relative '../lib/predictability_engine/jira_workflow'
 
 module JiraProjectSetup

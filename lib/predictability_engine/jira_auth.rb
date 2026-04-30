@@ -1,5 +1,12 @@
 # frozen_string_literal: true
 
+require_relative 'jira_auth/base'
+require_relative 'jira_auth/basic'
+require_relative 'jira_auth/bearer'
+require_relative 'jira_auth/cookie'
+require_relative 'jira_auth/mfa_api'
+require_relative 'jira_auth/mfa_browser'
+
 module PredictabilityEngine
   module JiraAuth
     MODES = %w[basic bearer cookie mfa_api mfa_browser].freeze
