@@ -1,9 +1,10 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Point bundler at this gem's Gemfile so the binary works from any CWD,
-# not just when invoked via `bundle exec` from the project root.
-ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
+# When running from the source tree (not an installed gem), point Bundler
+# at this gem's Gemfile so the binary works from any CWD.
+gemfile = File.expand_path('../Gemfile', __dir__)
+ENV['BUNDLE_GEMFILE'] ||= gemfile if File.exist?(gemfile)
 
 begin
   require 'bundler/setup'
