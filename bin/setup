@@ -26,4 +26,4 @@ playwright_flag=()
 bundle exec predictability-engine setup --skip-bundle "${playwright_flag[@]}"
 
 echo "==> Configuring git hooks"
-git config core.hooksPath .githooks
+git config core.hooksPath .githooks 2>/dev/null || echo "  (skipped — git not available)"

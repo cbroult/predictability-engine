@@ -1,5 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 set -e
+
+# CI machine commits (auto-bump) skip this hook; Woodpecker sets CI=woodpecker
+if [ -n "${CI:-}" ]; then
+  exit 0
+fi
 
 echo "Pre-commit: Running RuboCop..."
 bundle exec rubocop
