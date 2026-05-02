@@ -59,6 +59,8 @@ module PredictabilityEngine
 
       dir = report_dir(file, **)
       report.generate_chart_images(dir)
+    rescue StandardError => e
+      PredictabilityEngine.logger.warn { "Chart image generation failed: #{e.message}. Inline images will be omitted." }
     end
 
     def self.build_nav_links(format, reports, current_slot)

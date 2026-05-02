@@ -63,9 +63,6 @@ module PredictabilityEngine
 
     def generate_chart_images(base_dir, **)
       @images_path = ImageGenerator.generate(self, base_dir, **)
-    rescue StandardError => e
-      PredictabilityEngine.logger.warn { "Chart image generation failed: #{e.message}. Falling back to Mermaid/ASCII." }
-      @images_path = nil
     end
 
     def render_html(layout: :landscape, sub_reports: nil, **)
@@ -141,7 +138,7 @@ module PredictabilityEngine
       require 'powerpoint'
       base_dir = "tmp/ppt_#{object_id}"
       FileUtils.mkdir_p(base_dir)
-      generate_chart_images(base_dir)
+      generate_chart_images_or_warn(base_dir)
 
       deck = Powerpoint::Presentation.new
       deck.add_intro(@title, "Generated on #{PredictabilityEngine.format_datetime(Time.now)}")
@@ -159,6 +156,13 @@ module PredictabilityEngine
       File.binread(ppt_file)
     ensure
       FileUtils.rm_rf(base_dir) if base_dir
+    end
+
+    def generate_chart_images_or_warn(base_dir, **)
+      generate_chart_images(base_dir, **)
+    rescue StandardError => e
+      PredictabilityEngine.logger.warn { "Chart image generation failed: #{e.message}. Slides will be text-only." }
+      @images_path = nil
     end
 
     def find_format_config(format)
