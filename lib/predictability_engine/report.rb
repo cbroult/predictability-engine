@@ -61,8 +61,8 @@ module PredictabilityEngine
       send(method_name, **opts)
     end
 
-    def generate_chart_images(base_dir)
-      @images_path = ImageGenerator.generate(self, base_dir)
+    def generate_chart_images(base_dir, **)
+      @images_path = ImageGenerator.generate(self, base_dir, **)
     rescue StandardError => e
       PredictabilityEngine.logger.warn { "Chart image generation failed: #{e.message}. Falling back to Mermaid/ASCII." }
       @images_path = nil
@@ -180,7 +180,8 @@ module PredictabilityEngine
     def render_xlsx(**)
       require_relative 'excel_exporter'
       Dir.mktmpdir('pe_xlsx_') do |dir|
-        generate_chart_images(dir)
+        generate_chart_images(dir, width: ExcelExporter::CHART_WIDTH,
+                                   height: ExcelExporter::CHART_HEIGHT)
         ExcelExporter.generate(@items, images_path: @images_path)
       end
     end
