@@ -172,6 +172,19 @@ module PredictabilityEngine
       define_method("render_#{f}") { |**o| TextRenderer.render(self, f, **o) }
     end
 
+    def render_raw_csv(**)
+      require_relative 'raw_data_exporter'
+      RawDataExporter.generate_csv(@items)
+    end
+
+    def render_xlsx(**)
+      require_relative 'excel_exporter'
+      Dir.mktmpdir('pe_xlsx_') do |dir|
+        generate_chart_images(dir)
+        ExcelExporter.generate(@items, images_path: @images_path)
+      end
+    end
+
     def render_landscape(layout: :landscape, **) = render_html(layout: layout, **)
     def render_a3_landscape(**) = render_pdf(**)
 

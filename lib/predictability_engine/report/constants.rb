@@ -25,7 +25,9 @@ module PredictabilityEngine
         png: { layout: :landscape },
         ppt: { layout: :landscape },
         landscape: { aliases: [:dashboard], layout: :landscape },
-        a3_landscape: { format: 'A3', landscape: true, layout: :landscape }
+        a3_landscape: { format: 'A3', landscape: true, layout: :landscape },
+        raw_csv: {},
+        xlsx: {}
       }.freeze
 
       FONT_PATHS = [

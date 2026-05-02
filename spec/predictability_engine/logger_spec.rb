@@ -1,29 +1,17 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'stringio'
 require 'tmpdir'
 
 # rubocop:disable RSpec/DescribeClass
 RSpec.describe 'PredictabilityEngine logging' do
-  around do |example|
-    orig_level = SemanticLogger.default_level
-    orig_appenders = SemanticLogger.appenders.dup
-    SemanticLogger.appenders.dup.each { |a| SemanticLogger.remove_appender(a) }
-    example.run
-    SemanticLogger.flush
-    SemanticLogger.appenders.dup.each { |a| SemanticLogger.remove_appender(a) }
-    orig_appenders.each { |a| SemanticLogger.add_appender(a) }
-    SemanticLogger.default_level = orig_level
-  end
+  include_context 'with captured logger'
 
   def log_capture(level: :info)
-    io = StringIO.new
     SemanticLogger.default_level = level
-    SemanticLogger.add_appender(io: io, formatter: :default)
     yield
     SemanticLogger.flush
-    io.string
+    log_output.string
   end
 
   describe '#info with block' do

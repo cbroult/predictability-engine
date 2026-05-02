@@ -142,14 +142,29 @@ module PredictabilityEngine
     def self.build_nav_bar(sub_reports)
       return '' unless sub_reports&.any?
 
-      links = sub_reports.map { |r| nav_item(r) }.join
-      "<ul class='nav-links'><li><strong>View:</strong></li>#{links}</ul>"
+      view_items, dl_items = sub_reports.partition { |r| !r[:download] }
+      html = view_nav_section(view_items) + export_nav_section(dl_items, view_items.any?)
+      "<ul class='nav-links'>#{html}</ul>"
+    end
+
+    def self.view_nav_section(view_items)
+      return '' unless view_items.any?
+
+      "<li><strong>View:</strong></li>#{view_items.map { |r| nav_item(r) }.join}"
+    end
+
+    def self.export_nav_section(dl_items, has_view)
+      return '' unless dl_items.any?
+
+      sep = has_view ? "<li class='nav-sep' aria-hidden='true'>|</li>" : ''
+      "#{sep}<li><strong>Export:</strong></li>#{dl_items.map { |r| nav_item(r) }.join}"
     end
 
     def self.nav_item(entry)
       return "<li class='nav-sep' aria-hidden='true'>|</li>" if entry[:separator]
 
-      "<li><a href='#{entry[:url]}' class='#{'active' if entry[:active]}'>#{entry[:label]}</a></li>"
+      dl = entry[:download] ? ' download' : ''
+      "<li><a href='#{entry[:url]}' class='#{'active' if entry[:active]}'#{dl}>#{entry[:label]}</a></li>"
     end
 
     def self.prepare_html_content(content_or_chart, layout, html)
@@ -166,6 +181,6 @@ module PredictabilityEngine
       end
     end
 
-    private_class_method :prepare_html_content
+    private_class_method :prepare_html_content, :view_nav_section, :export_nav_section
   end
 end

@@ -30,6 +30,7 @@ module PredictabilityEngine
     def self.generate_single_report(file, format, report, **opts)
       fmt = format.to_sym
       generate_images_if_needed(file, fmt, report, **opts)
+      opts = opts.merge(sub_reports: export_links_for(:all)) if html_format?(fmt) && !opts[:sub_reports]
 
       content = report.render(fmt, **opts)
       if opts[:output] || fmt != :terminal
@@ -61,7 +62,7 @@ module PredictabilityEngine
     end
 
     def self.build_nav_links(format, reports, current_slot)
-      return unless %i[html landscape].include?(format)
+      return unless html_format?(format)
 
       links = [nav_entry(:all, current_slot, label: 'All')]
       Report::FACETS.each do |facet|
@@ -71,7 +72,17 @@ module PredictabilityEngine
         links << { separator: true }
         values.each { |value| links << nav_entry([facet[:key], value], current_slot, label: value) }
       end
-      links
+      links + export_links_for(current_slot)
+    end
+
+    def self.html_format?(format)
+      %i[html landscape].include?(format)
+    end
+
+    def self.export_links_for(slot)
+      prefix = slot.is_a?(Array) ? '../' : ''
+      [{ label: 'CSV', url: "#{prefix}dashboard.csv", download: true },
+       { label: 'XLSX', url: "#{prefix}dashboard.xlsx", download: true }]
     end
 
     def self.nav_entry(slot, current_slot, label:)
@@ -139,16 +150,19 @@ module PredictabilityEngine
       end
     end
 
+    FORMAT_TO_EXT = {
+      markdown: 'md', md: 'md',
+      confluence: 'conf', conf: 'conf',
+      landscape: 'html', dashboard: 'html',
+      a3_landscape: 'pdf',
+      ppt: 'pptx',
+      png: 'png',
+      raw_csv: 'csv',
+      xlsx: 'xlsx'
+    }.freeze
+
     def self.format_to_ext(format)
-      case format
-      when :markdown, :md then 'md'
-      when :confluence, :conf then 'conf'
-      when :landscape, :dashboard then 'html'
-      when :a3_landscape then 'pdf'
-      when :ppt then 'pptx'
-      when :png then 'png'
-      else format.to_s
-      end
+      FORMAT_TO_EXT[format] || format.to_s
     end
   end
 end
