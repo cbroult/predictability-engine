@@ -7,6 +7,7 @@ module PredictabilityEngine
   module ExcelExporter
     CHART_WIDTH  = 1920
     CHART_HEIGHT = 1080
+    CHART_SCALE = 2 # device_scale_factor: PNG is 3840×2160, displayed at 1920×1080 → crisp on 4K
 
     def self.generate(items, images_path: nil)
       Axlsx::Package.new do |p|

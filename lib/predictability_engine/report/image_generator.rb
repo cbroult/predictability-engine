@@ -5,7 +5,7 @@ require_relative '../report'
 module PredictabilityEngine
   class Report
     module ImageGenerator
-      def self.generate(report, base_dir, width: 800, height: 600)
+      def self.generate(report, base_dir, width: 800, height: 600, scale: 1)
         images_path = File.join(base_dir, 'images')
         FileUtils.mkdir_p(images_path)
         temp_html = "tmp/images_#{report.object_id}.html"
@@ -14,7 +14,8 @@ module PredictabilityEngine
         require 'playwright'
         Playwright.create(playwright_cli_executable_path: report.playwright_bin) do |playwright|
           playwright.chromium.launch(**report.playwright_chromium_launch_opts) do |browser|
-            page = browser.new_page(viewport: { width: width, height: height })
+            page = browser.new_page(viewport: { width: width, height: height },
+                                    device_scale_factor: scale)
             page.goto("file://#{File.expand_path(temp_html)}")
             sleep 2
             Constants::CHART_CONFIG.each_key { |id| capture_chart(page, id, images_path) }
