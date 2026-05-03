@@ -65,7 +65,10 @@ module PredictabilityEngine
               x: VegaVisualizer.date_x_axis(
                 values: major_ticks,
                 labelFlush: true,
-                labelOverlap: 'parity'
+                labelOverlap: 'parity',
+                minorTicks: true,
+                tickSize: 8,
+                minorTickSize: 4
               ),
               y: VegaVisualizer.quantitative_y_axis('count', title: 'Total Items'),
               color: { field: 'type', type: 'nominal', scale: { domain: dom, range: range } }

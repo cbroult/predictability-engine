@@ -50,7 +50,8 @@ module PredictabilityEngine
           type: row[:type] || row[:issuetype],
           priority: normalize_priority(row[:priority]),
           start_date: parse_date(row[:start_date] || row[:created]),
-          end_date: parse_date(row[:end_date] || row[:resolutiondate] || row[:resolved])
+          end_date: parse_date(row[:end_date] || row[:resolutiondate] || row[:resolved]),
+          url: row[:url]
         }
       end
 

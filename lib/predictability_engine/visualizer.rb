@@ -53,7 +53,8 @@ module PredictabilityEngine
       # If it was a single chart, it might still have {{CHART_PANELS}} placeholder
       if html.include?('{{CHART_PANELS}}')
         panel = "<div class='chart-panel' style='grid-column: span 2; grid-row: span 2;'>" \
-                "<button class='chart-expand' onclick='toggleFullscreen(this)' title='Expand'></button>" \
+                "<div class='panel-header'>" \
+                "<button class='chart-expand' onclick='toggleFullscreen(this)' title='Expand'></button></div>" \
                 "<div class='chart-container'>#{content}</div></div>"
         html.gsub!('{{CHART_PANELS}}', panel)
       end
@@ -91,8 +92,9 @@ module PredictabilityEngine
     def self.prepare_html_content(content_or_chart, layout, html)
       if layout == :landscape && content_or_chart.is_a?(Array)
         panels = content_or_chart.map do |cfg|
-          "<div class='chart-panel'><h2>#{cfg[:title]}</h2>" \
-            "<button class='chart-expand' onclick='toggleFullscreen(this)' title='Expand'></button>" \
+          "<div class='chart-panel'>" \
+            "<div class='panel-header'><h2>#{cfg[:title]}</h2>" \
+            "<button class='chart-expand' onclick='toggleFullscreen(this)' title='Expand'></button></div>" \
             "<div class='chart-container'>#{cfg[:chart].to_html}</div></div>"
         end.join("\n")
         html.gsub!('{{CHART_PANELS}}', panels)

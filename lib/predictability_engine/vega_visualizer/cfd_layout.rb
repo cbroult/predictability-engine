@@ -32,27 +32,26 @@ module PredictabilityEngine
       def self.area_layer(pcts, legend: true)
         cfg = { field: 'type', type: 'nominal' }
         cfg[:legend] = { title: 'Flow & Forecast', orient: 'bottom', columns: 3 } if legend && !pcts.empty?
-        { mark: { type: 'area', tooltip: true },
+        { mark: { type: 'area' },
           encoding: { y: VegaVisualizer.quantitative_y_axis('count', title: 'Total Items', stack: nil),
                       color: cfg,
-                      order: { field: 'order', type: 'quantitative' } } }
+                      order: { field: 'order', type: 'quantitative' },
+                      tooltip: VegaVisualizer.cfd_tooltip_fields } }
       end
 
       def self.line_layer
-        { mark: { type: 'line', tooltip: true },
+        { mark: { type: 'line' },
           encoding: { y: VegaVisualizer.quantitative_y_axis('count', title: 'Total Items'),
                       strokeDash: {
                         condition: { test: "datum.type == 'Arrivals' || datum.type == 'Departures'", value: [] },
                         value: [4, 4]
-                      } } }
+                      },
+                      tooltip: VegaVisualizer.cfd_tooltip_fields } }
       end
 
       def self.vert_layers(forecast, percentiles)
         data = vert_data(forecast, percentiles)
-        [
-          rule_layer(data),
-          text_layer(data)
-        ]
+        [rule_layer(data), text_layer(data)]
       end
 
       def self.rule_layer(data)

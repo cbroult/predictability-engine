@@ -25,7 +25,8 @@ module PredictabilityEngine
             id: item.id,
             title: item.title,
             age: item.age(date),
-            start_date: item.start_date
+            start_date: item.start_date,
+            url: item.url
           }
         end
         data.sort_by { |d| d[:age] }.reverse

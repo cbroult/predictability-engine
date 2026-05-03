@@ -41,6 +41,8 @@ module PredictabilityEngine
       [item_id_tooltip_field, title_tooltip_field]
     end
 
+    def self.item_href_and_tooltip(extra) = { href: url_href, tooltip: standard_item_tooltip_fields + extra }
+
     TOOLTIP_WRAP_WIDTH = 40
 
     def self.wrap_tooltip_title(text, width: TOOLTIP_WRAP_WIDTH)
@@ -53,8 +55,15 @@ module PredictabilityEngine
       end.join("\n")
     end
 
+    def self.url_href = { field: 'url', type: 'nominal' }
+
     def self.cycle_time_tooltip_field(field: 'cycle_time')
       { field: field, type: 'quantitative', title: 'Cycle Time (days)' }
+    end
+
+    def self.cfd_tooltip_fields
+      [{ field: 'date', type: 'temporal', title: 'Date' }, { field: 'type', type: 'nominal', title: 'Type' },
+       { field: 'count', type: 'quantitative', title: 'Items' }]
     end
 
     def self.quantitative_y_axis(...) = quantitative_axis(...)

@@ -25,7 +25,8 @@ RSpec.describe PredictabilityEngine::VegaVisualizer do
 
   describe '.cycle_time_scatter' do
     let(:scatter_spec) { described_class.cycle_time_scatter(items).spec.deep_stringify_keys }
-    let(:cycle_axis) { find_layer(scatter_spec, 'point')['encoding']['x']['axis'] }
+    let(:scatter_points) { find_layer(scatter_spec, 'point') }
+    let(:cycle_axis) { scatter_points['encoding']['x']['axis'] }
 
     it 'uses a consistent y-axis title across all layers' do
       expect(all_layer_y_titles(scatter_spec).uniq).to eq(['Cycle Time (days)'])
@@ -49,13 +50,22 @@ RSpec.describe PredictabilityEngine::VegaVisualizer do
     it 'includes weekly tick intervals on the x-axis' do
       expect(cycle_axis['tickCount']).to eq({ 'interval' => 'week' })
     end
+
+    it 'includes href encoding on the points layer for URL clickability' do
+      expect(scatter_points['encoding']['href']).to eq({ 'field' => 'url', 'type' => 'nominal' })
+    end
   end
 
   describe '.aging_wip' do
     let(:awip_spec) { described_class.aging_wip(items).spec.deep_stringify_keys }
+    let(:awip_bar) { find_layer(awip_spec, 'bar') }
 
     it 'uses a consistent y-axis title across all layers' do
       expect(all_layer_y_titles(awip_spec).uniq).to eq(['Age (days)'])
+    end
+
+    it 'includes href encoding on the bar layer for URL clickability' do
+      expect(awip_bar['encoding']['href']).to eq({ 'field' => 'url', 'type' => 'nominal' })
     end
   end
 
@@ -84,6 +94,17 @@ RSpec.describe PredictabilityEngine::VegaVisualizer do
 
       # Label should look like "50% (2026-04-17)"
       expect(label_data['label']).to match(/\d+% \(20\d{2}-\d{2}-\d{2}\)/)
+    end
+  end
+
+  describe '.cfd' do
+    let(:cfd_spec) { described_class.cfd(items).spec.deep_stringify_keys }
+
+    it 'does not expose the order field in area layer tooltips' do
+      area = find_layer(cfd_spec, 'area')
+      tooltip_fields = area['encoding']['tooltip'].map { |f| f['field'] }
+      expect(tooltip_fields).not_to include('order')
+      expect(tooltip_fields).to include('date', 'type', 'count')
     end
   end
 

@@ -18,8 +18,9 @@ module PredictabilityEngine
       .summary-panel { grid-row: span 2; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-y: auto; border: 1px solid #e9ecef; }
       .summary-panel h2 { font-size: 1.25rem; margin-top: 0; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 8px; margin-bottom: 15px; }
       .summary-panel h3 { font-size: 1.1rem; color: #34495e; margin-top: 25px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-      .chart-panel { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; border: 1px solid #e9ecef; min-height: 280px; min-width: 0; position: relative; }
-      .chart-panel h2 { margin: 0 0 10px 0; font-size: 1rem; color: #34495e; font-weight: 600; }
+      .chart-panel { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; border: 1px solid #e9ecef; min-height: 280px; min-width: 0; }
+      .panel-header { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+      .panel-header h2 { margin: 0; flex-grow: 1; font-size: 1rem; color: #34495e; font-weight: 600; }
       .chart-container { flex-grow: 1; min-height: 0; width: 100%; overflow: hidden; display: flex; justify-content: center; align-items: center; }
       .chart-container > div { width: 100% !important; height: 100% !important; }
       ul { list-style: none; padding: 0; margin: 10px 0; }
@@ -41,8 +42,8 @@ module PredictabilityEngine
         .chart-expand { display: none; }
       }
 
-      .vega-bindings { position: absolute; top: 15px; right: 40px; font-size: 0.85rem; z-index: 10; }
-      .chart-expand { position: absolute; top: 12px; right: 15px; background: none; border: none; cursor: pointer; font-size: 1rem; color: #adb5bd; padding: 2px 4px; border-radius: 4px; line-height: 1; transition: color 0.2s, background 0.2s; }
+      .vega-bindings { font-size: 0.85rem; }
+      .chart-expand { flex-shrink: 0; background: none; border: none; cursor: pointer; font-size: 1rem; color: #adb5bd; padding: 2px 4px; border-radius: 4px; line-height: 1; transition: color 0.2s, background 0.2s; }
       .chart-expand:hover { color: #2c3e50; background: rgba(0,0,0,0.06); }
       .chart-expand::before { content: '⛶'; }
       .chart-panel.fullscreen .chart-expand::before { content: '✕'; }

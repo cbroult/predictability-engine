@@ -13,6 +13,7 @@ module PredictabilityEngine
 
       def perform_load(path)
         @done_statuses = load_done_statuses(path)
+        @source_url = "file://#{File.expand_path(path)}"
         CSV.open(path, headers: true, header_converters: :symbol)
            .then { |csv| load_data(csv.map { |row| apply_jira_header_map(row.to_h) }) }
       end
@@ -25,6 +26,7 @@ module PredictabilityEngine
 
       def map_row(row)
         super.tap do |mapped|
+          mapped[:url] ||= @source_url
           next if mapped[:end_date]
           next unless @done_statuses.include?(row[:status].to_s.downcase)
 

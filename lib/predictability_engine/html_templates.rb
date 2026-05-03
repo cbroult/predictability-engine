@@ -38,21 +38,31 @@ module PredictabilityEngine
           panel.classList.remove('fullscreen');
           var bd = document.querySelector('.fullscreen-backdrop');
           if (bd) bd.remove();
-          setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 50);
         } else {
           var bd = document.createElement('div');
           bd.className = 'fullscreen-backdrop';
           bd.onclick = function() { toggleFullscreen(btn); };
           document.body.appendChild(bd);
           panel.classList.add('fullscreen');
-          setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 50);
         }
+        setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 50);
       }
       document.addEventListener('keydown', function(e) {
         if (e.key !== 'Escape') return;
         var fp = document.querySelector('.chart-panel.fullscreen');
         if (fp) toggleFullscreen(fp.querySelector('.chart-expand'));
       });
+      var obs = new MutationObserver(function() {
+        document.querySelectorAll('.chart-panel').forEach(function(panel) {
+          var bindings = panel.querySelector('.vega-bindings');
+          var header = panel.querySelector('.panel-header');
+          var btn = header && header.querySelector('.chart-expand');
+          if (bindings && btn && bindings.parentElement !== header) {
+            header.insertBefore(bindings, btn);
+          }
+        });
+      });
+      obs.observe(document.body, { childList: true, subtree: true });
     </script>
   HTML
 

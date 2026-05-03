@@ -24,8 +24,9 @@ module PredictabilityEngine
                       y: VegaVisualizer.quantitative_y_axis('age', title: 'Age (days)'),
                       color: { field: 'age', type: 'quantitative', scale: { scheme: 'yelloworangered' },
                                legend: { orient: 'bottom', title: 'Age' } },
-                      tooltip: VegaVisualizer.standard_item_tooltip_fields +
-                        [{ field: 'age', type: 'quantitative', title: 'Age (days)' }] } }
+                      **VegaVisualizer.item_href_and_tooltip(
+                        [{ field: 'age', type: 'quantitative', title: 'Age (days)' }]
+                      ) } }
       end
 
       def self.aging_rule_layers(mapped_pcts)

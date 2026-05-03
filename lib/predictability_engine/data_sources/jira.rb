@@ -20,6 +20,7 @@ module PredictabilityEngine
         end
 
         profile, query, @workflow = resolve_source(spec)
+        @jira_site = Config.jira(profile)[:site]
         client = build_client(profile)
         issues = fetch_issues(client, query)
 
@@ -136,6 +137,7 @@ module PredictabilityEngine
       def map_issue(issue)
         map_row({
                   id: issue.key,
+                  url: "#{@jira_site.to_s.chomp('/')}/browse/#{issue.key}",
                   summary: issue.summary,
                   issuetype: issue.issuetype.name,
                   priority: jira_priority_name(issue),
