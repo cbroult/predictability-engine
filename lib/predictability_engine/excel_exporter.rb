@@ -5,9 +5,9 @@ require_relative 'raw_data_exporter'
 
 module PredictabilityEngine
   module ExcelExporter
-    CHART_WIDTH  = 1920
-    CHART_HEIGHT = 1080
-    CHART_SCALE = 2 # device_scale_factor: PNG is 3840×2160, displayed at 1920×1080 → crisp on 4K
+    CAPTURE_WIDTH  = 1920
+    CAPTURE_HEIGHT = 1080
+    CHART_SCALE = 2 # deviceScaleFactor: PNG is 2× logical size → crisp on HiDPI/4K screens
 
     def self.generate(items, images_path: nil)
       Axlsx::Package.new do |p|
@@ -29,15 +29,20 @@ module PredictabilityEngine
         sheet_name = File.basename(img_path, '.png').tr('_', ' ').split.map(&:capitalize).join(' ')
         workbook.add_worksheet(name: sheet_name[0, 31]) do |sheet|
           sheet.page_setup.set(orientation: :landscape)
+          png_w, png_h = png_dimensions(img_path)
           sheet.add_image(image_src: img_path, noSelect: true, noMove: true) do |image|
-            image.width  = CHART_WIDTH
-            image.height = CHART_HEIGHT
+            image.width  = png_w / CHART_SCALE
+            image.height = png_h / CHART_SCALE
             image.start_at(0, 0)
           end
         end
       end
     end
 
-    private_class_method :add_work_items_sheet, :add_chart_sheets
+    def self.png_dimensions(path)
+      File.binread(path, 24).unpack('x16NN')
+    end
+
+    private_class_method :add_work_items_sheet, :add_chart_sheets, :png_dimensions
   end
 end

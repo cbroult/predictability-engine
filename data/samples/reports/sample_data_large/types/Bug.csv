@@ -1,51 +1,51 @@
-ID,Title,Type,Priority,Start Date,End Date,Status,Cycle Time (days),Current Age (days),Done ≤ 1 day,Done ≤ 7 days,Done ≤ 14 days,Done ≤ 21 days,Done ≤ 28 days
-DONE-96,Fix performance regression in the data processing pipeline,Bug,Highest,2025-10-14,2025-10-25,Done,12,,false,false,true,true,true
-DONE-26,Resolve memory leak in the background job processing worker,Bug,High,2025-10-22,2025-11-02,Done,12,,false,false,true,true,true
-DONE-13,Redesign the reporting dashboard with filterable date ranges,Bug,Medium,2025-10-26,2025-11-13,Done,19,,false,false,false,true,true
-DONE-128,Fix intermittent timeout errors in the third-party API client,Bug,Low,2025-10-28,2025-11-02,Done,6,,false,true,true,true,true
-DONE-126,Add audit logging for all user actions in the admin interface,Bug,High,2025-11-06,2025-11-16,Done,11,,false,false,true,true,true
-DONE-1,Add internationalization support for the customer-facing UI,Bug,Low,2025-11-11,2025-11-13,Done,3,,false,true,true,true,true
-DONE-56,Add GraphQL API endpoint for the mobile application team,Bug,High,2025-11-16,2025-11-29,Done,14,,false,false,true,true,true
-DONE-28,Add support for custom fields in the customer profile section,Bug,High,2025-11-19,2025-11-22,Done,4,,false,true,true,true,true
-DONE-77,Add automated regression tests for the payment processing flow,Bug,Medium,2025-11-22,2025-11-30,Done,9,,false,false,true,true,true
-DONE-75,Add dark mode support to the main application interface,Bug,Medium,2025-11-24,2025-11-26,Done,3,,false,true,true,true,true
-DONE-146,Add support for multiple currency display in the pricing tables,Bug,Medium,2025-12-02,2025-12-19,Done,18,,false,false,false,true,true
-DONE-7,Add comprehensive API documentation using OpenAPI specification,Bug,Low,2025-12-05,2025-12-09,Done,5,,false,true,true,true,true
-DONE-50,Implement soft-delete functionality across all resource endpoints,Bug,High,2025-12-06,2025-12-26,Done,21,,false,false,false,true,true
-DONE-98,Add comprehensive end-to-end tests for the checkout flow,Bug,Medium,2025-12-08,2025-12-23,Done,16,,false,false,false,true,true
-DONE-2,Improve search indexing performance for large datasets,Bug,Low,2025-12-14,2025-12-24,Done,11,,false,false,true,true,true
-DONE-117,Implement automated data export with configurable scheduling,Bug,Medium,2025-12-16,2026-01-03,Done,19,,false,false,false,true,true
-DONE-48,Create data migration scripts for the legacy customer records,Bug,Medium,2025-12-18,2026-01-02,Done,16,,false,false,false,true,true
-DONE-57,Improve error handling and retry logic in the email delivery service,Bug,Medium,2025-12-20,2025-12-21,Done,2,,false,true,true,true,true
-DONE-30,Implement two-factor authentication for privileged user accounts,Bug,Medium,2025-12-24,2026-01-07,Done,15,,false,false,false,true,true
-DONE-60,Implement webhook delivery with exponential backoff retry,Bug,Medium,2026-01-01,2026-01-16,Done,16,,false,false,false,true,true
-DONE-65,Implement smart caching strategy for frequently accessed resources,Bug,Medium,2026-01-03,2026-01-23,Done,21,,false,false,false,true,true
-DONE-31,Implement configurable rate limiting for the public REST API,Bug,Low,2026-01-07,2026-01-20,Done,14,,false,false,true,true,true
-DONE-137,Implement GDPR-compliant data deletion workflow for user accounts,Bug,Low,2026-01-13,2026-01-28,Done,16,,false,false,false,true,true
-DONE-135,Refactor the notification service to use an event-driven pattern,Bug,Highest,2026-01-17,2026-01-26,Done,10,,false,false,true,true,true
-DONE-88,Resolve slow startup time caused by heavy dependency loading,Bug,High,2026-01-22,2026-02-06,Done,16,,false,false,false,true,true
-DONE-91,Fix performance regression in the data processing pipeline,Bug,Low,2026-01-28,2026-02-11,Done,15,,false,false,false,true,true
-DONE-118,Resolve memory leak in the background job processing worker,Bug,Medium,2026-01-31,2026-02-11,Done,12,,false,false,true,true,true
-DONE-116,Redesign the reporting dashboard with filterable date ranges,Bug,Medium,2026-02-06,2026-02-18,Done,13,,false,false,true,true,true
-DONE-69,Fix intermittent timeout errors in the third-party API client,Bug,Low,2026-02-10,2026-03-01,Done,20,,false,false,false,true,true
-DONE-21,Add audit logging for all user actions in the admin interface,Bug,Lowest,2026-02-14,2026-02-15,Done,2,,false,true,true,true,true
-DONE-100,Add internationalization support for the customer-facing UI,Bug,Medium,2026-02-18,2026-03-08,Done,19,,false,false,false,true,true
-DONE-102,Add GraphQL API endpoint for the mobile application team,Bug,Medium,2026-02-21,2026-03-02,Done,10,,false,false,true,true,true
-DONE-41,Add support for custom fields in the customer profile section,Bug,Medium,2026-02-25,2026-03-14,Done,18,,false,false,false,true,true
-DONE-32,Add automated regression tests for the payment processing flow,Bug,High,2026-02-26,2026-03-16,Done,19,,false,false,false,true,true
-WIP-15,Implement streaming data pipeline for real-time analytics processing,Bug,High,2026-02-27,,In Progress,,65,,,,,
-WIP-48,Migrate all frontend components from JavaScript to TypeScript,Bug,High,2026-02-27,,In Progress,,65,,,,,
-DONE-10,Implement GDPR-compliant data deletion workflow for user accounts,Bug,High,2026-03-01,2026-03-21,Done,21,,false,false,false,true,true
-DONE-83,Implement automated database backup and point-in-time recovery,Bug,High,2026-03-02,2026-03-07,Done,6,,false,true,true,true,true
-DONE-55,Add comprehensive API documentation using OpenAPI specification,Bug,High,2026-03-04,2026-03-08,Done,5,,false,true,true,true,true
-WIP-41,Build the self-service onboarding wizard for new enterprise customers,Bug,Medium,2026-03-07,,In Progress,,57,,,,,
-WIP-39,Add support for pluggable storage backends in the file service,Bug,Low,2026-03-10,,In Progress,,54,,,,,
-WIP-12,Migrate the test suite from RSpec 2 to RSpec 3 and fix all failures,Bug,High,2026-03-13,,In Progress,,51,,,,,
-WIP-50,Implement service mesh with mutual TLS for inter-service communication,Bug,Medium,2026-03-16,,In Progress,,48,,,,,
-WIP-14,Build automated load testing harness for the API performance suite,Bug,Medium,2026-03-18,,In Progress,,46,,,,,
-WIP-9,Build the self-healing infrastructure automation for cloud resources,Bug,Medium,2026-03-20,,In Progress,,44,,,,,
-WIP-32,Build the partner API portal with usage analytics and rate limiting,Bug,Low,2026-03-23,,In Progress,,41,,,,,
-WIP-29,Implement serverless functions for the image transformation pipeline,Bug,Low,2026-03-26,,In Progress,,38,,,,,
-WIP-43,Refactor the notification dispatcher to support pluggable channels,Bug,Medium,2026-04-02,,In Progress,,31,,,,,
-WIP-8,Build the new incident management dashboard with on-call scheduling,Bug,Low,2026-04-06,,In Progress,,27,,,,,
-WIP-1,Build the customer health score algorithm for the success team,Bug,High,2026-04-11,,In Progress,,22,,,,,
+ID,Title,Type,Priority,Start Date,End Date,Status,YYYY-Week,YYYY-MM,YYYY,Cycle Time (days),Current Age (days),Done ≤ 1 day,Done ≤ 7 days,Done ≤ 14 days,Done ≤ 21 days,Done ≤ 28 days
+DONE-96,Fix performance regression in the data processing pipeline,Bug,Highest,2025-10-14,2025-10-25,Done,2025-W43,2025-10,2025,12,,false,false,true,true,true
+DONE-26,Resolve memory leak in the background job processing worker,Bug,High,2025-10-22,2025-11-02,Done,2025-W44,2025-11,2025,12,,false,false,true,true,true
+DONE-13,Redesign the reporting dashboard with filterable date ranges,Bug,Medium,2025-10-26,2025-11-13,Done,2025-W46,2025-11,2025,19,,false,false,false,true,true
+DONE-128,Fix intermittent timeout errors in the third-party API client,Bug,Low,2025-10-28,2025-11-02,Done,2025-W44,2025-11,2025,6,,false,true,true,true,true
+DONE-126,Add audit logging for all user actions in the admin interface,Bug,High,2025-11-06,2025-11-16,Done,2025-W46,2025-11,2025,11,,false,false,true,true,true
+DONE-1,Add internationalization support for the customer-facing UI,Bug,Low,2025-11-11,2025-11-13,Done,2025-W46,2025-11,2025,3,,false,true,true,true,true
+DONE-56,Add GraphQL API endpoint for the mobile application team,Bug,High,2025-11-16,2025-11-29,Done,2025-W48,2025-11,2025,14,,false,false,true,true,true
+DONE-28,Add support for custom fields in the customer profile section,Bug,High,2025-11-19,2025-11-22,Done,2025-W47,2025-11,2025,4,,false,true,true,true,true
+DONE-77,Add automated regression tests for the payment processing flow,Bug,Medium,2025-11-22,2025-11-30,Done,2025-W48,2025-11,2025,9,,false,false,true,true,true
+DONE-75,Add dark mode support to the main application interface,Bug,Medium,2025-11-24,2025-11-26,Done,2025-W48,2025-11,2025,3,,false,true,true,true,true
+DONE-146,Add support for multiple currency display in the pricing tables,Bug,Medium,2025-12-02,2025-12-19,Done,2025-W51,2025-12,2025,18,,false,false,false,true,true
+DONE-7,Add comprehensive API documentation using OpenAPI specification,Bug,Low,2025-12-05,2025-12-09,Done,2025-W50,2025-12,2025,5,,false,true,true,true,true
+DONE-50,Implement soft-delete functionality across all resource endpoints,Bug,High,2025-12-06,2025-12-26,Done,2025-W52,2025-12,2025,21,,false,false,false,true,true
+DONE-98,Add comprehensive end-to-end tests for the checkout flow,Bug,Medium,2025-12-08,2025-12-23,Done,2025-W52,2025-12,2025,16,,false,false,false,true,true
+DONE-2,Improve search indexing performance for large datasets,Bug,Low,2025-12-14,2025-12-24,Done,2025-W52,2025-12,2025,11,,false,false,true,true,true
+DONE-117,Implement automated data export with configurable scheduling,Bug,Medium,2025-12-16,2026-01-03,Done,2026-W01,2026-01,2026,19,,false,false,false,true,true
+DONE-48,Create data migration scripts for the legacy customer records,Bug,Medium,2025-12-18,2026-01-02,Done,2026-W01,2026-01,2026,16,,false,false,false,true,true
+DONE-57,Improve error handling and retry logic in the email delivery service,Bug,Medium,2025-12-20,2025-12-21,Done,2025-W51,2025-12,2025,2,,false,true,true,true,true
+DONE-30,Implement two-factor authentication for privileged user accounts,Bug,Medium,2025-12-24,2026-01-07,Done,2026-W02,2026-01,2026,15,,false,false,false,true,true
+DONE-60,Implement webhook delivery with exponential backoff retry,Bug,Medium,2026-01-01,2026-01-16,Done,2026-W03,2026-01,2026,16,,false,false,false,true,true
+DONE-65,Implement smart caching strategy for frequently accessed resources,Bug,Medium,2026-01-03,2026-01-23,Done,2026-W04,2026-01,2026,21,,false,false,false,true,true
+DONE-31,Implement configurable rate limiting for the public REST API,Bug,Low,2026-01-07,2026-01-20,Done,2026-W04,2026-01,2026,14,,false,false,true,true,true
+DONE-137,Implement GDPR-compliant data deletion workflow for user accounts,Bug,Low,2026-01-13,2026-01-28,Done,2026-W05,2026-01,2026,16,,false,false,false,true,true
+DONE-135,Refactor the notification service to use an event-driven pattern,Bug,Highest,2026-01-17,2026-01-26,Done,2026-W05,2026-01,2026,10,,false,false,true,true,true
+DONE-88,Resolve slow startup time caused by heavy dependency loading,Bug,High,2026-01-22,2026-02-06,Done,2026-W06,2026-02,2026,16,,false,false,false,true,true
+DONE-91,Fix performance regression in the data processing pipeline,Bug,Low,2026-01-28,2026-02-11,Done,2026-W07,2026-02,2026,15,,false,false,false,true,true
+DONE-118,Resolve memory leak in the background job processing worker,Bug,Medium,2026-01-31,2026-02-11,Done,2026-W07,2026-02,2026,12,,false,false,true,true,true
+DONE-116,Redesign the reporting dashboard with filterable date ranges,Bug,Medium,2026-02-06,2026-02-18,Done,2026-W08,2026-02,2026,13,,false,false,true,true,true
+DONE-69,Fix intermittent timeout errors in the third-party API client,Bug,Low,2026-02-10,2026-03-01,Done,2026-W09,2026-03,2026,20,,false,false,false,true,true
+DONE-21,Add audit logging for all user actions in the admin interface,Bug,Lowest,2026-02-14,2026-02-15,Done,2026-W07,2026-02,2026,2,,false,true,true,true,true
+DONE-100,Add internationalization support for the customer-facing UI,Bug,Medium,2026-02-18,2026-03-08,Done,2026-W10,2026-03,2026,19,,false,false,false,true,true
+DONE-102,Add GraphQL API endpoint for the mobile application team,Bug,Medium,2026-02-21,2026-03-02,Done,2026-W10,2026-03,2026,10,,false,false,true,true,true
+DONE-41,Add support for custom fields in the customer profile section,Bug,Medium,2026-02-25,2026-03-14,Done,2026-W11,2026-03,2026,18,,false,false,false,true,true
+DONE-32,Add automated regression tests for the payment processing flow,Bug,High,2026-02-26,2026-03-16,Done,2026-W12,2026-03,2026,19,,false,false,false,true,true
+WIP-15,Implement streaming data pipeline for real-time analytics processing,Bug,High,2026-02-27,,In Progress,,,,,66,,,,,
+WIP-48,Migrate all frontend components from JavaScript to TypeScript,Bug,High,2026-02-27,,In Progress,,,,,66,,,,,
+DONE-10,Implement GDPR-compliant data deletion workflow for user accounts,Bug,High,2026-03-01,2026-03-21,Done,2026-W12,2026-03,2026,21,,false,false,false,true,true
+DONE-83,Implement automated database backup and point-in-time recovery,Bug,High,2026-03-02,2026-03-07,Done,2026-W10,2026-03,2026,6,,false,true,true,true,true
+DONE-55,Add comprehensive API documentation using OpenAPI specification,Bug,High,2026-03-04,2026-03-08,Done,2026-W10,2026-03,2026,5,,false,true,true,true,true
+WIP-41,Build the self-service onboarding wizard for new enterprise customers,Bug,Medium,2026-03-07,,In Progress,,,,,58,,,,,
+WIP-39,Add support for pluggable storage backends in the file service,Bug,Low,2026-03-10,,In Progress,,,,,55,,,,,
+WIP-12,Migrate the test suite from RSpec 2 to RSpec 3 and fix all failures,Bug,High,2026-03-13,,In Progress,,,,,52,,,,,
+WIP-50,Implement service mesh with mutual TLS for inter-service communication,Bug,Medium,2026-03-16,,In Progress,,,,,49,,,,,
+WIP-14,Build automated load testing harness for the API performance suite,Bug,Medium,2026-03-18,,In Progress,,,,,47,,,,,
+WIP-9,Build the self-healing infrastructure automation for cloud resources,Bug,Medium,2026-03-20,,In Progress,,,,,45,,,,,
+WIP-32,Build the partner API portal with usage analytics and rate limiting,Bug,Low,2026-03-23,,In Progress,,,,,42,,,,,
+WIP-29,Implement serverless functions for the image transformation pipeline,Bug,Low,2026-03-26,,In Progress,,,,,39,,,,,
+WIP-43,Refactor the notification dispatcher to support pluggable channels,Bug,Medium,2026-04-02,,In Progress,,,,,32,,,,,
+WIP-8,Build the new incident management dashboard with on-call scheduling,Bug,Low,2026-04-06,,In Progress,,,,,28,,,,,
+WIP-1,Build the customer health score algorithm for the success team,Bug,High,2026-04-11,,In Progress,,,,,23,,,,,

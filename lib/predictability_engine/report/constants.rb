@@ -10,7 +10,8 @@ module PredictabilityEngine
         forecasted_cfd_plot: { title: 'Forecasted Cumulative Flow Diagram', vega: :forecasted_cfd },
         cfd_plot: { title: 'Cumulative Flow Diagram', vega: :cfd },
         cycle_time_scatter: { title: 'Cycle Time Scatter Plot' },
-        throughput_histogram: { title: 'Throughput Histogram' }
+        throughput_histogram: { title: 'Throughput Histogram' },
+        cycle_time_bands: { title: 'Cycle Time Bands Over Time' }
       }.freeze
 
       FORMAT_CONFIG = {

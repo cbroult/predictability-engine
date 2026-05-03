@@ -8,6 +8,7 @@ AllCops:
   Exclude:
     - "Dockerfile*"
     - ".githooks/*"
+    - "scripts/*.ps1"
 
 # --- Style ---
 

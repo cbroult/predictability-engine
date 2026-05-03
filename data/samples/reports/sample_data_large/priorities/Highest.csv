@@ -1,8 +1,8 @@
-ID,Title,Type,Priority,Start Date,End Date,Status,Cycle Time (days),Current Age (days),Done ≤ 1 day,Done ≤ 7 days,Done ≤ 14 days,Done ≤ 21 days,Done ≤ 28 days
-DONE-96,Fix performance regression in the data processing pipeline,Bug,Highest,2025-10-14,2025-10-25,Done,12,,false,false,true,true,true
-DONE-125,Fix race condition in the concurrent order processing service,Task,Highest,2025-11-07,2025-11-11,Done,5,,false,true,true,true,true
-DONE-136,Optimize image processing pipeline to reduce storage costs,Story,Highest,2025-11-13,2025-11-24,Done,12,,false,false,true,true,true
-DONE-127,Implement webhook delivery with exponential backoff retry,Improvement,Highest,2025-11-16,2025-11-22,Done,7,,false,true,true,true,true
-DONE-135,Refactor the notification service to use an event-driven pattern,Bug,Highest,2026-01-17,2026-01-26,Done,10,,false,false,true,true,true
-DONE-54,Implement user authentication and session management for the API,Story,Highest,2026-01-25,2026-01-27,Done,3,,false,true,true,true,true
-WIP-4,Add support for real-time collaborative editing in the document module,Improvement,Highest,2026-03-19,,In Progress,,45,,,,,
+ID,Title,Type,Priority,Start Date,End Date,Status,YYYY-Week,YYYY-MM,YYYY,Cycle Time (days),Current Age (days),Done ≤ 1 day,Done ≤ 7 days,Done ≤ 14 days,Done ≤ 21 days,Done ≤ 28 days
+DONE-96,Fix performance regression in the data processing pipeline,Bug,Highest,2025-10-14,2025-10-25,Done,2025-W43,2025-10,2025,12,,false,false,true,true,true
+DONE-125,Fix race condition in the concurrent order processing service,Task,Highest,2025-11-07,2025-11-11,Done,2025-W46,2025-11,2025,5,,false,true,true,true,true
+DONE-136,Optimize image processing pipeline to reduce storage costs,Story,Highest,2025-11-13,2025-11-24,Done,2025-W48,2025-11,2025,12,,false,false,true,true,true
+DONE-127,Implement webhook delivery with exponential backoff retry,Improvement,Highest,2025-11-16,2025-11-22,Done,2025-W47,2025-11,2025,7,,false,true,true,true,true
+DONE-135,Refactor the notification service to use an event-driven pattern,Bug,Highest,2026-01-17,2026-01-26,Done,2026-W05,2026-01,2026,10,,false,false,true,true,true
+DONE-54,Implement user authentication and session management for the API,Story,Highest,2026-01-25,2026-01-27,Done,2026-W05,2026-01,2026,3,,false,true,true,true,true
+WIP-4,Add support for real-time collaborative editing in the document module,Improvement,Highest,2026-03-19,,In Progress,,,,,46,,,,,

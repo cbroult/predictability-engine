@@ -184,8 +184,8 @@ module PredictabilityEngine
     def render_xlsx(**)
       require_relative 'excel_exporter'
       Dir.mktmpdir('pe_xlsx_') do |dir|
-        generate_chart_images(dir, width: ExcelExporter::CHART_WIDTH,
-                                   height: ExcelExporter::CHART_HEIGHT,
+        generate_chart_images(dir, width: ExcelExporter::CAPTURE_WIDTH,
+                                   height: ExcelExporter::CAPTURE_HEIGHT,
                                    scale: ExcelExporter::CHART_SCALE)
         ExcelExporter.generate(@items, images_path: @images_path)
       end
