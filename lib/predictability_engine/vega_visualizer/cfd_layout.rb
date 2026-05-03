@@ -40,7 +40,7 @@ module PredictabilityEngine
 
       def self.line_layer
         { mark: { type: 'line', tooltip: true },
-          encoding: { y: VegaVisualizer.quantitative_y_axis('count'),
+          encoding: { y: VegaVisualizer.quantitative_y_axis('count', title: 'Total Items'),
                       strokeDash: {
                         condition: { test: "datum.type == 'Arrivals' || datum.type == 'Departures'", value: [] },
                         value: [4, 4]
@@ -66,7 +66,8 @@ module PredictabilityEngine
         base_layer(data).merge(
           mark: { type: 'text', align: 'left', baseline: 'middle',
                   fontWeight: 'bold', fontSize: 10, angle: -45, dx: 5, tooltip: true },
-          encoding: vert_encoding(y: VegaVisualizer.quantitative_y_axis('count', title: nil), text: { field: 'label' })
+          encoding: vert_encoding(y: VegaVisualizer.quantitative_y_axis('count', title: 'Total Items'),
+                                  text: { field: 'label' })
         )
       end
 

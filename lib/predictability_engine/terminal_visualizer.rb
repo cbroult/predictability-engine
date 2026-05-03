@@ -2,6 +2,7 @@
 
 require 'unicode_plot'
 require 'stringio'
+require_relative 'terminal_visualizer/cfd_renderer'
 
 module PredictabilityEngine
   module TerminalVisualizer
@@ -40,6 +41,17 @@ module PredictabilityEngine
       render_to_string(plot, color: color)
     end
 
+    def self.cycle_time_bands(items, title: 'Cycle Time Bands Over Time', color: false, **)
+      completed = PredictabilityEngine.completed_items(items)
+      return 'No completed items to plot.' if completed.empty?
+
+      labels = RawDataExporter::DONE_THRESHOLD_LABELS
+      counts = Array.new(labels.size, 0)
+      completed.each { |item| counts[RawDataExporter.threshold_index(item.cycle_time)] += 1 }
+      plot = UnicodePlot.barplot(labels, counts, title: title, xlabel: 'Items Completed')
+      render_to_string(plot, color: color)
+    end
+
     def self.cfd_plot(work_items, title: 'Cumulative Flow Diagram', color: false, **_opts)
       cfd = Calculators::Cfd.calculate(work_items)
       return 'No CFD data to plot.' if cfd.empty?
@@ -64,64 +76,14 @@ module PredictabilityEngine
       data = Calculators::Cfd.forecast_series(work_items, percentiles: percentiles)
       return cfd_plot(work_items, title: title, color: color) unless data
 
-      params = build_forecast_params(data)
+      params = CfdRenderer.build_forecast_params(data)
       plot = UnicodePlot.stairs(params[:x_coords], params[:arrivals],
                                 title: title, name: 'Arrivals', ylabel: 'Total Items',
                                 xlabel: "Days since #{PredictabilityEngine.format_date(params[:start])}", color: :blue,
                                 xlim: [0, params[:max_x]], ylim: [0, params[:total_items]])
 
-      add_forecast_layers!(plot, data, params, percentiles)
+      CfdRenderer.add_forecast_layers!(plot, data, params, percentiles)
       render_to_string(plot, color: color)
-    end
-
-    def self.build_forecast_params(data)
-      start = data[:dates].first
-      {
-        start: start,
-        x_coords: data[:dates].map { |d| (d - start).to_i },
-        hist_size: data[:departed].size,
-        total_items: data[:summary][:total_items],
-        max_x: data[:dates].map { |d| (d - start).to_i }.max || 0,
-        arrivals: data[:arrivals]
-      }
-    end
-
-    def self.add_forecast_layers!(plot, data, params, percentiles)
-      # Departures next
-      add_historical_departures!(plot, data, params)
-
-      # Forecast confidence paths
-      # Use distinct colors for forecast paths
-      f_colors = { 50 => :yellow, 75 => :red, 85 => :magenta, 95 => :cyan, 98 => :white }
-      sorted_pcts = percentiles.sort
-      sorted_pcts.reverse.each do |p|
-        add_confidence_layer!(plot, data, params, p, sorted_pcts: sorted_pcts, color: f_colors[p] || :white)
-      end
-    end
-
-    def self.add_historical_departures!(plot, data, params)
-      UnicodePlot.stairs!(plot, params[:x_coords].take(params[:hist_size]), data[:departed],
-                          name: 'Departures', color: :green)
-    end
-
-    def self.add_confidence_layer!(plot, data, params, percentile, **opts)
-      sorted_pcts = opts[:sorted_pcts]
-      color = opts[:color]
-      # Slice to only show forecast from the last historical point onwards
-      f_x = params[:x_coords].drop(params[:hist_size] - 1)
-      f_y = data[:forecasts][percentile].drop(params[:hist_size] - 1)
-
-      UnicodePlot.lineplot!(plot, f_x, f_y, name: "#{percentile}% Confidence", color: color)
-
-      # Shift to the next percentile's date for rule alignment, except for the last one
-      idx = sorted_pcts.index(percentile)
-      target_p = idx < sorted_pcts.size - 1 ? sorted_pcts[idx + 1] : percentile
-      deadline_idx = params[:hist_size] - 1 + data[:summary][:"p#{target_p}"]
-      deadline_x = params[:x_coords][deadline_idx]
-      # Use the forecast value at the deadline to hit the corner of the surface
-      forecast_at_deadline = data[:forecasts][percentile][deadline_idx]
-      # Use normal color for vertical lines (neutral); omitted from legend
-      UnicodePlot.lineplot!(plot, [deadline_x, deadline_x], [0, forecast_at_deadline], color: :normal)
     end
 
     def self.render_to_string(plot, color: false)
@@ -130,6 +92,6 @@ module PredictabilityEngine
       sio.string
     end
 
-    private_class_method :render_to_string, :build_forecast_params, :add_forecast_layers!
+    private_class_method :render_to_string
   end
 end

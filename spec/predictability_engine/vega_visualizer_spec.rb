@@ -19,9 +19,17 @@ RSpec.describe PredictabilityEngine::VegaVisualizer do
     spec['layer'].find { |l| l['mark'] && (l['mark'] == mark_type || l['mark']['type'] == mark_type) }
   end
 
+  def all_layer_y_titles(spec)
+    (spec['layer'] || []).filter_map { |l| l.dig('encoding', 'y', 'title') }
+  end
+
   describe '.cycle_time_scatter' do
     let(:scatter_spec) { described_class.cycle_time_scatter(items).spec.deep_stringify_keys }
     let(:cycle_axis) { find_layer(scatter_spec, 'point')['encoding']['x']['axis'] }
+
+    it 'uses a consistent y-axis title across all layers' do
+      expect(all_layer_y_titles(scatter_spec).uniq).to eq(['Cycle Time (days)'])
+    end
 
     it 'generates a spec with correct percentile line styles' do
       rules_layer = find_layer(scatter_spec, 'rule')
@@ -38,9 +46,16 @@ RSpec.describe PredictabilityEngine::VegaVisualizer do
       expect(width_conditions.find { |c| c['test'] == 'datum.p == 85' }['value']).to eq(2.5)
     end
 
-    it 'includes daily markers on the x-axis' do
-      expect(cycle_axis['minorTicks']).to be true
+    it 'includes weekly tick intervals on the x-axis' do
       expect(cycle_axis['tickCount']).to eq({ 'interval' => 'week' })
+    end
+  end
+
+  describe '.aging_wip' do
+    let(:awip_spec) { described_class.aging_wip(items).spec.deep_stringify_keys }
+
+    it 'uses a consistent y-axis title across all layers' do
+      expect(all_layer_y_titles(awip_spec).uniq).to eq(['Age (days)'])
     end
   end
 
@@ -48,10 +63,11 @@ RSpec.describe PredictabilityEngine::VegaVisualizer do
     let(:cfd_spec) { described_class.forecasted_cfd(items).spec.deep_stringify_keys }
     let(:cfd_axis) { cfd_spec['encoding']['x']['axis'] }
 
-    it 'generates a spec with daily markers and minor ticks on x-axis' do
-      expect(cfd_axis['minorTicks']).to be true
-      expect(cfd_axis['minorTickSize']).to eq(4)
-      # In base_cfd_chart, tickCount is not explicitly set, but values are provided
+    it 'uses a consistent y-axis title across all layers' do
+      expect(all_layer_y_titles(cfd_spec).uniq).to eq(['Total Items'])
+    end
+
+    it 'generates a spec with explicit tick values on x-axis' do
       expect(cfd_axis['values']).not_to be_empty
     end
 

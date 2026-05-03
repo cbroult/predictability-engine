@@ -80,6 +80,18 @@ module PredictabilityEngine
     date.to_date.to_s
   end
 
+  def self.format_year_week(date)
+    return nil unless date
+
+    date.to_date.strftime('%G-W%V')
+  end
+
+  def self.format_year_month(date)
+    return nil unless date
+
+    date.to_date.strftime('%Y-%m')
+  end
+
   def self.format_datetime(time)
     return nil unless time
 

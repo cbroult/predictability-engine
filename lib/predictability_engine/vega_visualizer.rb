@@ -76,6 +76,10 @@ module PredictabilityEngine
       BasicCharts.throughput_histogram(items, title: title)
     end
 
+    def self.cycle_time_bands(items, title: 'Cycle Time Bands Over Time', **)
+      BasicCharts.cycle_time_bands(items, title: title)
+    end
+
     def self.aging_wip(items, title: 'Aging Work In Progress',
                        percentiles: PredictabilityEngine::DEFAULT_PERCENTILES, **)
       AgingWipVisualizer.aging_wip(items, title: title, percentiles: percentiles, **)

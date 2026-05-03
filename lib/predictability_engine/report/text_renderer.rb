@@ -31,13 +31,11 @@ module PredictabilityEngine
       end
 
       def self.build_table(fmt, sum, charts)
-        rows = [
-          ["| #{sum} | #{charts[0]} | #{charts[1]} |", "| | #{charts[2]} | #{charts[3]} |"],
-          ["| #{sum} | #{charts[0]} | #{charts[1]} |", "| ^ | #{charts[2]} | #{charts[3]} |"]
-        ]
-        row_set = fmt == :markdown ? rows[0] : rows[1]
-        md_hdr = "| | | |\n| :--- | :--- | :--- |"
-        [(fmt == :markdown ? md_hdr : nil), *row_set].compact.join("\n")
+        row1 = "| #{sum} | #{charts[0]} | #{charts[1]} | #{charts[2]} |"
+        span = fmt == :confluence ? '^' : nil
+        row2 = "| #{span} | #{charts[3]} | #{charts[4]} | #{charts[5]} |"
+        md_hdr = "| | | | |\n| :--- | :--- | :--- | :--- |"
+        [(fmt == :markdown ? md_hdr : nil), row1, row2].compact.join("\n")
       end
 
       def self.render_section(report, chart_id, cfg, fmt, options = {})

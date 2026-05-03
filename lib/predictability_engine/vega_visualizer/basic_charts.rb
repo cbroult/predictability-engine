@@ -19,7 +19,6 @@ module PredictabilityEngine
 
       def self.scatter_points_layer
         x_axis = VegaVisualizer.date_x_axis(title: 'Completion Date',
-                                            minorTicks: true,
                                             tickCount: { interval: 'week' })
         { mark: { type: 'point', opacity: 0.6, size: 20 },
           encoding: { x: x_axis,
@@ -42,7 +41,7 @@ module PredictabilityEngine
 
         { transform: [{ filter: 'datum.type != null' }],
           mark: { type: 'rule' },
-          encoding: { y: VegaVisualizer.quantitative_y_axis('val'),
+          encoding: { y: VegaVisualizer.quantitative_y_axis('val', title: 'Cycle Time (days)'),
                       strokeDash: { condition: dash_condition, value: [4, 4] },
                       strokeWidth: { condition: width_condition, value: 1 },
                       color: { field: 'type', type: 'nominal', title: 'Percentiles',
@@ -54,13 +53,63 @@ module PredictabilityEngine
 
       def self.throughput_histogram(items, title: 'Throughput Histogram')
         data = Calculators::Throughput.daily(items).values.map { |v| { throughput: v } }
+        bar_chart(data, title: title,
+                        x: VegaVisualizer.quantitative_x_axis('throughput', bin: true, title: 'Items per Day'),
+                        y: VegaVisualizer.quantitative_y_axis('count', aggregate: 'count', title: 'Frequency'))
+      end
+
+      BAND_COLORS = %w[#2ca02c #98df8a #ffdd57 #ff7f0e #d62728 #7b0000].freeze
+
+      GRANULARITY_PARAM = {
+        name: 'granularity',
+        value: 'yearweek',
+        bind: { input: 'select',
+                options: %w[yearday yearweek yearmonth],
+                labels: %w[Daily Weekly Monthly],
+                name: 'Group by: ' }
+      }.freeze
+
+      PERIOD_EXPR = "granularity === 'yearmonth' ? datum.date_month : " \
+                    "(granularity === 'yearday' ? datum.date : datum.date_week)"
+
+      def self.cycle_time_bands(items, title: 'Cycle Time Bands Over Time', **)
+        labels = RawDataExporter::DONE_THRESHOLD_LABELS
+        completed = PredictabilityEngine.completed_items(items)
+        return Vega.lite.data([]).title(title) if completed.empty?
+
+        data = completed.map do |item|
+          idx = RawDataExporter.threshold_index(item.cycle_time)
+          { date: PredictabilityEngine.format_date(item.end_date),
+            date_week: PredictabilityEngine.format_year_week(item.end_date),
+            date_month: PredictabilityEngine.format_year_month(item.end_date),
+            band: labels[idx], band_order: idx }
+        end
         VegaVisualizer.apply_standard_dims(
-          Vega.lite.data(data).mark(type: 'bar', tooltip: true)
-              .encoding(x: VegaVisualizer.quantitative_x_axis('throughput', bin: true, title: 'Items per Day'),
-                        y: VegaVisualizer.quantitative_y_axis('count', aggregate: 'count', title: 'Frequency')),
+          Vega.lite.data(data)
+              .params([GRANULARITY_PARAM])
+              .transform([{ calculate: PERIOD_EXPR, as: 'period' }])
+              .mark(type: 'area', tooltip: true)
+              .encoding(
+                x: { field: 'period', type: 'ordinal', sort: 'ascending',
+                     title: nil, axis: { labelAngle: -45, labelOverlap: 'parity' } },
+                y: { aggregate: 'count', type: 'quantitative', title: 'Items Completed' },
+                color: { field: 'band', type: 'ordinal', sort: labels,
+                         scale: { domain: labels, range: BAND_COLORS },
+                         legend: { title: 'Cycle Time', orient: 'bottom', columns: labels.size } },
+                order: { field: 'band_order', type: 'quantitative' }
+              ),
           title: title
         )
       end
+
+      def self.bar_chart(data, title:, **encoding)
+        VegaVisualizer.apply_standard_dims(
+          Vega.lite.data(data).mark(type: 'bar', tooltip: true).encoding(**encoding),
+          title: title
+        )
+      end
+
+      private_class_method :bar_chart
     end
   end
 end

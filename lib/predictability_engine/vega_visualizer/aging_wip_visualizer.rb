@@ -32,7 +32,7 @@ module PredictabilityEngine
         mapped_pcts.map do |p|
           { data: { values: [{ val: p[:val], label: p[:label] }] },
             mark: { type: 'rule', strokeDash: [4, 4] },
-            encoding: { y: VegaVisualizer.quantitative_y_axis('val'),
+            encoding: { y: VegaVisualizer.quantitative_y_axis('val', title: 'Age (days)'),
                         color: { value: '#e45756' },
                         tooltip: [{ field: 'label', type: 'nominal', title: 'Percentile' },
                                   { field: 'val', type: 'quantitative', title: 'Age (days)' }] } }
