@@ -277,10 +277,20 @@ module PredictabilityEngine
       Playwright.create(playwright_cli_executable_path: playwright_bin) do |p|
         p.chromium.launch(**playwright_chromium_launch_opts) do |browser|
           page = browser.new_page(viewport: { width: width, height: height })
+          route_vega_cdn(page)
           page.goto("file://#{File.expand_path(html_path)}")
           sleep 2 # wait for Vega to render
           yield page
         end
+      end
+    end
+
+    def route_vega_cdn(page)
+      js_dir = File.join(Gem.loaded_specs['vega'].gem_dir, 'vendor', 'assets', 'javascripts')
+      { '**/npm/vega@5**' => 'vega.js', '**/npm/vega-lite@5**' => 'vega-lite.js',
+        '**/npm/vega-embed@6**' => 'vega-embed.js' }.each do |pattern, filename|
+        content = File.binread(File.join(js_dir, filename))
+        page.route(pattern, ->(route, _req) { route.fulfill(body: content, contentType: 'application/javascript') })
       end
     end
 
