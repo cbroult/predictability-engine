@@ -6,6 +6,9 @@ clone:
     image: woodpeckerci/plugin-git:2.8.0
     settings:
       skip_verify: true
+    backend_options:
+      docker:
+        network_mode: host
 
 steps:
   - name: verify
