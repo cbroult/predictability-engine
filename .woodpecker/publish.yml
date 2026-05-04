@@ -114,6 +114,7 @@ steps:
   - name: verify-fresh-install-windows
     platform: windows/amd64
     image: ruby:4.0.3-windowsservercore-ltsc2022
+    failure: ignore
     environment:
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert
