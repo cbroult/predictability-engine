@@ -24,12 +24,6 @@
 #   forgejo_push_token    — Forgejo PAT with write on this repo (for auto-bump)
 #   nexus_deploy_key      — SSH private key for root@nexus.cbp-org.internal
 
-variables:
-  - &network_host
-    backend_options:
-      docker:
-        network_mode: host
-
 clone:
   git:
     image: woodpeckerci/plugin-git:2.8.0
@@ -37,7 +31,8 @@ clone:
       skip_verify: true
     backend_options:
       docker:
-        network_mode: host
+        extra_hosts:
+          - "git.cbp-org.internal:192.168.16.23"
 
 when:
   - event: push
@@ -49,7 +44,9 @@ when:
 steps:
   - name: test
     image: ruby:4.0.3-alpine
-    <<: *network_host
+    backend_options:
+      docker:
+        network_mode: host
     environment:
       CUCUMBER_PUBLISH_QUIET: "true"
     commands:
@@ -64,6 +61,11 @@ steps:
     when:
       event: push
       branch: main
+    backend_options:
+      docker:
+        extra_hosts:
+          - "git.cbp-org.internal:192.168.16.23"
+          - "gems.cbp-org.internal:192.168.16.23"
     environment:
       FORGEJO_PUSH_TOKEN:
         from_secret: forgejo_push_token
@@ -81,6 +83,10 @@ steps:
 
   - name: publish-gem
     image: ruby:4.0.3-alpine
+    backend_options:
+      docker:
+        extra_hosts:
+          - "gems.cbp-org.internal:192.168.16.23"
     environment:
       GEM_USER:
         from_secret: gem_user
@@ -94,6 +100,10 @@ steps:
 
   - name: rebuild-image
     image: ruby:4.0.3-alpine
+    backend_options:
+      docker:
+        extra_hosts:
+          - "nexus.cbp-org.internal:192.168.16.23"
     environment:
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert
@@ -107,7 +117,10 @@ steps:
 
   - name: verify-fresh-install
     image: ruby:4.0.3-alpine
-    <<: *network_host
+    backend_options:
+      docker:
+        extra_hosts:
+          - "gems.cbp-org.internal:192.168.16.23"
     environment:
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert
@@ -134,7 +147,10 @@ steps:
     image: docker-registry.cbp-org.internal/badge-reporter:latest
     when:
       status: [success, failure]
-    <<: *network_host
+    backend_options:
+      docker:
+        extra_hosts:
+          - "badge.cbp-org.internal:192.168.16.23"
     environment:
       BADGE_SECRET:
         from_secret: badge_service_token

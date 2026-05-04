@@ -8,7 +8,8 @@ clone:
       skip_verify: true
     backend_options:
       docker:
-        network_mode: host
+        extra_hosts:
+          - "git.cbp-org.internal:192.168.16.23"
 
 steps:
   - name: verify
@@ -31,7 +32,8 @@ steps:
       status: [success, failure]
     backend_options:
       docker:
-        network_mode: host
+        extra_hosts:
+          - "badge.cbp-org.internal:192.168.16.23"
     environment:
       BADGE_SECRET:
         from_secret: badge_service_token
