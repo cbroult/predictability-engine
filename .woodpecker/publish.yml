@@ -133,6 +133,16 @@ steps:
       - PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install playwright
       - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser sh scripts/verify-fresh-install.sh
 
+  - name: verify-fresh-install-windows
+    platform: windows/amd64
+    image: bat
+    failure: ignore
+    environment:
+      CBP_ORG_CA_CERT:
+        from_secret: cbp_org_ca_cert
+    commands:
+      - powershell -File scripts\verify-fresh-install-windows.ps1
+
   - name: badge
     image: docker-registry.cbp-org.internal/badge-reporter:latest
     when:
