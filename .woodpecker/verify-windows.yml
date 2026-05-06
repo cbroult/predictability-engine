@@ -1,0 +1,30 @@
+# verify-windows.yml — Windows smoke test on a native photocenter agent.
+#
+# Runs after the publish workflow (depends_on ensures the gem is already
+# pushed to gems.cbp-org.internal before we try to install it).
+#
+# Agent targeting: photocenter (windows/amd64, local backend).
+# image: powershell selects PowerShell as the local shell.
+# failure: ignore — Windows CI is best-effort; Linux is the release gate.
+
+platform: windows/amd64
+
+when:
+  - event: push
+    branch: main
+  - event: tag
+    ref: refs/tags/v*
+  - event: manual
+
+depends_on:
+  - publish
+
+steps:
+  - name: verify-fresh-install-windows
+    image: powershell
+    failure: ignore
+    environment:
+      CBP_ORG_CA_CERT:
+        from_secret: cbp_org_ca_cert
+    commands:
+      - powershell -File scripts\verify-fresh-install-windows.ps1
