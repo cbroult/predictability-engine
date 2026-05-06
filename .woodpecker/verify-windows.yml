@@ -3,11 +3,13 @@
 # Runs after the publish workflow (depends_on ensures the gem is already
 # pushed to gems.cbp-org.internal before we try to install it).
 #
-# Agent targeting: photocenter (windows/amd64, local backend).
-# image: powershell selects PowerShell as the local shell.
+# Agent targeting: photocenter via labels matching custom_labels {platform: windows}.
+# platform: field is NOT a routing directive — labels: is.
+# image: powershell selects PowerShell as the local shell on the local backend.
 # failure: ignore — Windows CI is best-effort; Linux is the release gate.
 
-platform: windows/amd64
+labels:
+  platform: windows
 
 when:
   - event: push
