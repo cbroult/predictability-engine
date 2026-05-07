@@ -20,8 +20,8 @@
 ### Aging WIP Summary
 
 * **Active WIP:** 50 items
-* **Average WIP Age:** 49.6 days
-* **Oldest Item Age:** 70 days
+* **Average WIP Age:** 50.6 days
+* **Oldest Item Age:** 71 days
 
 ### Cycle Time Percentiles
 
