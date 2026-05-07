@@ -31,17 +31,17 @@ DONE-32,Add automated regression tests for the payment processing flow,Bug,High,
 DONE-87,Refactor the monolithic reporting service into microservices,Task,High,2026-02-26,2026-03-10,Done,2026-W11,2026-03,2026,13,,false,false,true,true,true
 DONE-93,Implement configurable rate limiting for the public REST API,Improvement,High,2026-02-27,2026-03-02,Done,2026-W10,2026-03,2026,4,,false,true,true,true,true
 DONE-130,Fix security vulnerability in the file upload validation logic,Story,High,2026-02-27,2026-03-03,Done,2026-W10,2026-03,2026,5,,false,true,true,true,true
-WIP-15,Implement streaming data pipeline for real-time analytics processing,Bug,High,2026-02-27,,In Progress,,,,,69,,,,,
-WIP-44,Design and build the new multi-region deployment infrastructure,Story,High,2026-02-27,,In Progress,,,,,69,,,,,
-WIP-48,Migrate all frontend components from JavaScript to TypeScript,Bug,High,2026-02-27,,In Progress,,,,,69,,,,,
-WIP-40,Implement distributed caching layer to handle increased traffic load,Story,High,2026-02-28,,In Progress,,,,,68,,,,,
+WIP-15,Implement streaming data pipeline for real-time analytics processing,Bug,High,2026-02-27,,In Progress,,,,,70,,,,,
+WIP-44,Design and build the new multi-region deployment infrastructure,Story,High,2026-02-27,,In Progress,,,,,70,,,,,
+WIP-48,Migrate all frontend components from JavaScript to TypeScript,Bug,High,2026-02-27,,In Progress,,,,,70,,,,,
+WIP-40,Implement distributed caching layer to handle increased traffic load,Story,High,2026-02-28,,In Progress,,,,,69,,,,,
 DONE-10,Implement GDPR-compliant data deletion workflow for user accounts,Bug,High,2026-03-01,2026-03-21,Done,2026-W12,2026-03,2026,21,,false,false,false,true,true
 DONE-83,Implement automated database backup and point-in-time recovery,Bug,High,2026-03-02,2026-03-07,Done,2026-W10,2026-03,2026,6,,false,true,true,true,true
 DONE-55,Add comprehensive API documentation using OpenAPI specification,Bug,High,2026-03-04,2026-03-08,Done,2026-W10,2026-03,2026,5,,false,true,true,true,true
-WIP-33,Build a unified API gateway to consolidate all backend services,Improvement,High,2026-03-11,,In Progress,,,,,57,,,,,
-WIP-12,Migrate the test suite from RSpec 2 to RSpec 3 and fix all failures,Bug,High,2026-03-13,,In Progress,,,,,55,,,,,
-WIP-45,Add comprehensive data lineage tracking for regulatory compliance,Story,High,2026-03-22,,In Progress,,,,,46,,,,,
-WIP-13,Build the comprehensive audit trail for the financial transactions,Task,High,2026-04-04,,In Progress,,,,,33,,,,,
-WIP-6,Implement the new pricing engine with tiered discount calculations,Story,High,2026-04-09,,In Progress,,,,,28,,,,,
-WIP-1,Build the customer health score algorithm for the success team,Bug,High,2026-04-11,,In Progress,,,,,26,,,,,
-WIP-16,Refactor the data anonymisation pipeline for privacy compliance,Task,High,2026-04-11,,In Progress,,,,,26,,,,,
+WIP-33,Build a unified API gateway to consolidate all backend services,Improvement,High,2026-03-11,,In Progress,,,,,58,,,,,
+WIP-12,Migrate the test suite from RSpec 2 to RSpec 3 and fix all failures,Bug,High,2026-03-13,,In Progress,,,,,56,,,,,
+WIP-45,Add comprehensive data lineage tracking for regulatory compliance,Story,High,2026-03-22,,In Progress,,,,,47,,,,,
+WIP-13,Build the comprehensive audit trail for the financial transactions,Task,High,2026-04-04,,In Progress,,,,,34,,,,,
+WIP-6,Implement the new pricing engine with tiered discount calculations,Story,High,2026-04-09,,In Progress,,,,,29,,,,,
+WIP-1,Build the customer health score algorithm for the success team,Bug,High,2026-04-11,,In Progress,,,,,27,,,,,
+WIP-16,Refactor the data anonymisation pipeline for privacy compliance,Task,High,2026-04-11,,In Progress,,,,,27,,,,,

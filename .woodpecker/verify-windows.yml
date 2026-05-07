@@ -7,6 +7,10 @@
 # platform: field is NOT a routing directive — labels: is.
 # image: powershell selects PowerShell as the local shell on the local backend.
 # failure: ignore — Windows CI is best-effort; Linux is the release gate.
+#
+# Clone override: Git Credential Manager (GCM) on Windows intercepts HTTPS auth
+# and requires interactive OAuth (no TTY in CI). We bypass it by disabling
+# credential.helper and embedding the Forgejo PAT directly in the clone URL.
 
 labels:
   platform: windows
@@ -20,6 +24,15 @@ when:
 
 depends_on:
   - publish
+
+clone:
+  git:
+    image: powershell
+    environment:
+      FORGEJO_TOKEN:
+        from_secret: forgejo_push_token
+    commands:
+      - git -c credential.helper="" -c http.sslVerify=false clone --depth 1 "https://oauth2:$($env:FORGEJO_TOKEN)@git.cbp-org.internal/cbp-org/predictability-engine.git" .
 
 steps:
   - name: verify-fresh-install-windows
