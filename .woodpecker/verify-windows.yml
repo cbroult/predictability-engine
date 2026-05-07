@@ -8,11 +8,11 @@
 # image: powershell selects PowerShell as the local shell on the local backend.
 # failure: ignore — Windows CI is best-effort; Linux is the release gate.
 #
-# Clone override: Git Credential Manager (GCM) on Windows intercepts HTTPS auth
-# and requires interactive OAuth (no TTY in CI). We bypass it by disabling
-# credential.helper and embedding the Forgejo PAT directly in the clone URL.
-# SSL trust: woodpecker-windows-agent.ps1 imports the cbp-org CA into
-# LocalMachine\Root and sets git http.sslBackend=schannel so git trusts it.
+# Clone auth: deploy-windows-agent.ps1 stores the Forgejo PAT as
+# git system http.https://git.cbp-org.internal.extraHeader so git authenticates
+# automatically as any user (including SYSTEM) without needing runtime secrets.
+# SSL trust: deploy-windows-agent.ps1 also configures http.sslBackend=schannel
+# so git trusts the cbp-org root CA from LocalMachine\Root.
 
 labels:
   platform: windows
@@ -26,15 +26,6 @@ when:
 
 depends_on:
   - publish
-
-clone:
-  git:
-    image: powershell
-    environment:
-      FORGEJO_TOKEN:
-        from_secret: forgejo_push_token
-    commands:
-      - git -c credential.helper="" clone --depth 1 "https://oauth2:$($env:FORGEJO_TOKEN)@git.cbp-org.internal/cbp-org/predictability-engine.git" .
 
 steps:
   - name: verify-fresh-install-windows
