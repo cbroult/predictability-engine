@@ -42,16 +42,14 @@ module PredictabilityEngine
 
     def self.generate_multi_reports(file, format, reports, **opts)
       fmt = format.to_sym
-      last_msg = ''
-      count = 0
+      msgs = []
       each_facet_entry(reports) do |slot, report|
         generate_images_if_needed(file, fmt, report, **opts)
         links = build_nav_links(fmt, reports, slot)
         content = report.render(fmt, sub_reports: links, **opts)
-        last_msg = write_report(file, format, content, opts[:output], slot: slot, **opts)
-        count += 1
+        msgs << write_report(file, format, content, opts[:output], slot: slot, **opts)
       end
-      "#{count} reports generated. #{last_msg}"
+      "#{msgs.size} reports generated:\n#{msgs.join("\n")}"
     end
 
     def self.generate_images_if_needed(file, format, report, **)

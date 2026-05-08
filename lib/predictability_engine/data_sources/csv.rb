@@ -14,7 +14,7 @@ module PredictabilityEngine
       def perform_load(path)
         @done_statuses = load_done_statuses(path)
         @source_url = "file://#{File.expand_path(path)}"
-        CSV.open(path, headers: true, header_converters: :symbol)
+        CSV.open(path, headers: true, header_converters: :symbol, encoding: 'bom|UTF-8')
            .then { |csv| load_data(csv.map { |row| apply_jira_header_map(row.to_h) }) }
       end
 
