@@ -14,12 +14,11 @@ module PredictabilityEngine
 
     extend TooltipHelpers
 
-    def self.apply_standard_dims(chart, title: nil)
+    def self.apply_standard_dims(chart, title: nil, padding: nil)
       chart = chart.title(title) if title
-      chart.width('container').height('container').config(
-        autosize: { type: 'fit', contains: 'padding' },
-        axis: { grid: false }
-      )
+      cfg = { autosize: { type: 'fit', contains: 'padding' }, axis: { grid: false } }
+      cfg[:padding] = padding if padding
+      chart.width('container').height('container').config(cfg)
     end
 
     def self.date_axis_base(title: 'Date')

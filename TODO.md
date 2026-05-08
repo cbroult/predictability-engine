@@ -42,3 +42,20 @@ Highest 6, High 35, Medium 68, Low 31, Lowest 10
 
 Why not including an issue type breakdown and systematically put information about the facets instead of just including the priority breakdown?.
 
+# Fix warnings
+
+As of 2026-05-08, running `./bin/predictability-engine batch data/samples/sample_data_large.csv` emits this
+warning ~20 times per format that invokes JSON rendering:
+
+```
+/home/cbroult/.rvm/gems/ruby-4.0.3/gems/json-2.19.4/lib/json/common.rb:958: warning: JSON.generate: UTF-8 string passed as BINARY, this will raise an encoding error in json 3.0
+```
+
+The console output also only shows the last report path per format (e.g. `Task.html`, `Task.pdf`), not all 10.
+
+1. Fix the UTF-8 / BINARY encoding warning in JSON generation.
+2. Correct logging so all generated report paths appear, not just the last Task.xxx. Consider terse console output + richer file log.
+
+# Clean up
+
+* Please remove things that have been done from this file.

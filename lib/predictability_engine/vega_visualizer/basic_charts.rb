@@ -89,7 +89,7 @@ module PredictabilityEngine
           Vega.lite.data(data)
               .params([GRANULARITY_PARAM])
               .transform([{ calculate: PERIOD_EXPR, as: 'period' }])
-              .mark(type: 'area', tooltip: true)
+              .mark(type: 'area')
               .encoding(
                 x: { field: 'period', type: 'ordinal', sort: 'ascending',
                      title: nil, axis: { labelAngle: -45, labelOverlap: 'parity' } },
@@ -97,7 +97,12 @@ module PredictabilityEngine
                 color: { field: 'band', type: 'ordinal', sort: labels,
                          scale: { domain: labels, range: BAND_COLORS },
                          legend: { title: 'Cycle Time', orient: 'bottom', columns: labels.size } },
-                order: { field: 'band_order', type: 'quantitative' }
+                order: { field: 'band_order', type: 'quantitative' },
+                tooltip: [
+                  { field: 'period', type: 'ordinal', title: 'Period' },
+                  { field: 'band', type: 'ordinal', title: 'Cycle Time' },
+                  { aggregate: 'count', type: 'quantitative', title: 'Items' }
+                ]
               ),
           title: title
         )

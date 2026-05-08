@@ -24,7 +24,8 @@ module PredictabilityEngine
         chart = base_cfd_chart(data, dom, range)
                 .layer(cfd_layers(percentiles, forecast))
         resolved_title = forecast ? forecast_title(title) : title
-        VegaVisualizer.apply_standard_dims(chart, title: resolved_title)
+        padding = forecast ? { right: 110 } : nil
+        VegaVisualizer.apply_standard_dims(chart, title: resolved_title, padding: padding)
       end
 
       def self.forecast_title(text)

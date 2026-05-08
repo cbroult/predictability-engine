@@ -64,7 +64,8 @@ module PredictabilityEngine
       def self.text_layer(data)
         base_layer(data).merge(
           mark: { type: 'text', align: 'left', baseline: 'middle',
-                  fontWeight: 'bold', fontSize: 10, angle: -45, dx: 5, tooltip: true },
+                  fontWeight: 'bold', fontSize: 10, angle: -45, dx: 5,
+                  clip: false, tooltip: true },
           encoding: vert_encoding(y: VegaVisualizer.quantitative_y_axis('count', title: 'Total Items'),
                                   text: { field: 'label' })
         )
