@@ -24,6 +24,9 @@
 #   forgejo_push_token    — Forgejo PAT with write on this repo (for auto-bump)
 #   nexus_deploy_key      — SSH private key for root@nexus.cbp-org.internal
 
+labels:
+  platform: linux
+
 clone:
   git:
     image: woodpeckerci/plugin-git:2.8.0

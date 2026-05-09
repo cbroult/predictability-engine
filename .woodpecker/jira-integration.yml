@@ -26,6 +26,9 @@
 #   jira_profile_wp       — credentials profile name for wp environment
 #   badge_service_token   — Write token for badge.cbp-org.internal
 
+labels:
+  platform: linux
+
 variables:
   - &network_host
     backend_options:
