@@ -5,9 +5,9 @@ require 'fileutils'
 module PredictabilityEngine
   # Logic for generating and writing reports.
   module ReportGenerator # rubocop:disable Metrics/ModuleLength
-    def self.run_report(file, format, items: nil, **)
-      items ||= PredictabilityEngine.load_items(file)
-      reports = Report.generate_all(items)
+    def self.run_report(file, format, items: nil, reports: nil, **)
+      items   ||= PredictabilityEngine.load_items(file, **)
+      reports ||= Report.generate_all(items)
 
       if facet_total(reports).zero? || format.to_sym == :terminal
         generate_single_report(file, format, reports[:all], **)
@@ -41,15 +41,17 @@ module PredictabilityEngine
     end
 
     def self.generate_multi_reports(file, format, reports, **opts)
-      fmt = format.to_sym
+      fmt  = format.to_sym
       msgs = []
       each_facet_entry(reports) do |slot, report|
         generate_images_if_needed(file, fmt, report, **opts)
-        links = build_nav_links(fmt, reports, slot)
+        links   = build_nav_links(fmt, reports, slot)
         content = report.render(fmt, sub_reports: links, **opts)
-        msgs << write_report(file, format, content, opts[:output], slot: slot, **opts)
+        msg     = write_report(file, format, content, opts[:output], slot: slot, **opts)
+        PredictabilityEngine.logger.info { msg }
+        msgs << msg
       end
-      "#{msgs.size} reports generated:\n#{msgs.join("\n")}"
+      "#{msgs.size} reports generated"
     end
 
     def self.generate_images_if_needed(file, format, report, **)
