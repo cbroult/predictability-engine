@@ -3,15 +3,12 @@
 require 'spec_helper'
 
 RSpec.describe PredictabilityEngine::JiraAuth::Basic do
-  subject(:strategy) { described_class.new(config) }
-
-  include_context 'with jira auth base options'
+  include_context 'with jira auth strategy'
 
   let(:config) { { email: 'user@example.com', token: 'my-token' } }
 
   it 'sets username, password, and auth_type' do
-    result = strategy.jira_options(base)
-    expect(result).to include(
+    expect(strategy.jira_options(base)).to include(
       username: 'user@example.com',
       password: 'my-token',
       auth_type: :basic

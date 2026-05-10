@@ -63,29 +63,35 @@ RSpec.describe PredictabilityEngine::DataSources::Csv do
       YAML
     end
 
-    def load_with_sidecar(sidecar_yaml)
+    def load_with_sidecar(sidecar_yaml, workflow_yaml: nil)
       Dir.mktmpdir do |dir|
         csv_path = File.join(dir, 'issues.csv')
         File.write(csv_path, csv_content)
-        File.write(File.join(dir, 'issues.yml'), sidecar_yaml)
+        if workflow_yaml
+          wf_path = File.join(dir, 'workflow.yml')
+          File.write(wf_path, workflow_yaml)
+          File.write(File.join(dir, 'issues.yml'), "workflow_config_path: #{wf_path}\n")
+        else
+          File.write(File.join(dir, 'issues.yml'), sidecar_yaml)
+        end
         described_class.new.load(csv_path)
+      end
+    end
+
+    shared_examples 'departure statuses mark items done' do
+      it 'treats departure-role statuses as done, non-departure as not done' do
+        aggregate_failures do
+          expect(items[0].end_date).to eq(Date.new(2026, 1, 25))
+          expect(items[1].end_date).to eq(Date.new(2026, 1, 20))
+          expect(items[2].end_date).to be_nil
+        end
       end
     end
 
     context 'with a sidecar YAML' do
       let(:items) { load_with_sidecar("done_statuses:\n  - Done\n") }
 
-      it 'uses Updated as end_date when Status is done and Resolved is blank' do
-        expect(items[0].end_date).to eq(Date.new(2026, 1, 25))
-      end
-
-      it 'keeps explicit Resolved date even when Status is done' do
-        expect(items[1].end_date).to eq(Date.new(2026, 1, 20))
-      end
-
-      it 'returns nil end_date for non-done status with blank Resolved' do
-        expect(items[2].end_date).to be_nil
-      end
+      it_behaves_like 'departure statuses mark items done'
     end
 
     context 'with .predictability_engine.yml fallback' do
@@ -100,16 +106,7 @@ RSpec.describe PredictabilityEngine::DataSources::Csv do
         end
       end
 
-      it 'picks up done_statuses from project config' do
-        expect(items[0].end_date).to eq(Date.new(2026, 1, 25))
-      end
-    end
-
-    shared_examples 'departure statuses mark items done' do
-      it 'treats departure-role statuses as done, non-departure as not done' do
-        expect(items[0].end_date).to eq(Date.new(2026, 1, 25))
-        expect(items[2].end_date).to be_nil
-      end
+      it_behaves_like 'departure statuses mark items done'
     end
 
     context 'with statuses: in workflow format in sidecar' do
@@ -119,16 +116,7 @@ RSpec.describe PredictabilityEngine::DataSources::Csv do
     end
 
     context 'with workflow_config_path: pointing to a workflow file' do
-      let(:items) do
-        Dir.mktmpdir do |dir|
-          wf_path = File.join(dir, 'workflow.yml')
-          csv_path = File.join(dir, 'issues.csv')
-          File.write(wf_path, workflow_yaml)
-          File.write(csv_path, csv_content)
-          File.write(File.join(dir, 'issues.yml'), "workflow_config_path: #{wf_path}\n")
-          described_class.new.load(csv_path)
-        end
-      end
+      let(:items) { load_with_sidecar(nil, workflow_yaml: workflow_yaml) }
 
       it_behaves_like 'departure statuses mark items done'
     end

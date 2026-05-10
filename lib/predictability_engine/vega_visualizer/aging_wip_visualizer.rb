@@ -20,7 +20,7 @@ module PredictabilityEngine
       def self.aging_bar_layer
         { mark: { type: 'bar', stroke: 'white', strokeWidth: 0.2 },
           encoding: { x: { field: 'id', type: 'nominal', title: 'Work Item ID', sort: '-y',
-                           axis: { labelAngle: -45, labelOverlap: 'parity' } },
+                           axis: VegaVisualizer::LABEL_AXIS },
                       y: VegaVisualizer.quantitative_y_axis('age', title: 'Age (days)'),
                       color: { field: 'age', type: 'quantitative', scale: { scheme: 'yelloworangered' },
                                legend: { orient: 'bottom', title: 'Age' } },

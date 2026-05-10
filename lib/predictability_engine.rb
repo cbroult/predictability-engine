@@ -99,6 +99,10 @@ module PredictabilityEngine
     time.to_time.strftime('%Y-%m-%d %H:%M')
   end
 
+  def self.warn_chart_failure(error, context:)
+    logger.warn { "Chart image generation failed: #{error.message}. #{context}" }
+  end
+
   def self.write_file(path, content)
     FileUtils.mkdir_p(File.dirname(path))
     File.write(path, content)

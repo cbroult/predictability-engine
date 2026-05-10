@@ -11,6 +11,7 @@ module PredictabilityEngine
   module VegaVisualizer
     CHART_WIDTH = 500
     CHART_HEIGHT = 300
+    LABEL_AXIS = { labelAngle: -45, labelOverlap: 'parity' }.freeze
 
     extend TooltipHelpers
 

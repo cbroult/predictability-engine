@@ -72,14 +72,18 @@ module PredictabilityEngine
     def self.view_nav_section(view_items)
       return '' unless view_items.any?
 
-      "<li><strong>View:</strong></li>#{view_items.map { |r| nav_item(r) }.join}"
+      "<li><strong>View:</strong></li>#{render_nav_items(view_items)}"
     end
 
     def self.export_nav_section(dl_items, has_view)
       return '' unless dl_items.any?
 
       sep = has_view ? "<li class='nav-sep' aria-hidden='true'>|</li>" : ''
-      "#{sep}<li><strong>Export:</strong></li>#{dl_items.map { |r| nav_item(r) }.join}"
+      "#{sep}<li><strong>Export:</strong></li>#{render_nav_items(dl_items)}"
+    end
+
+    def self.render_nav_items(items)
+      items.map { |r| nav_item(r) }.join
     end
 
     def self.nav_item(entry)
@@ -105,6 +109,6 @@ module PredictabilityEngine
       end
     end
 
-    private_class_method :prepare_html_content, :view_nav_section, :export_nav_section
+    private_class_method :prepare_html_content, :view_nav_section, :export_nav_section, :render_nav_items
   end
 end

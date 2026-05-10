@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 RSpec.describe PredictabilityEngine::JiraAuth::MfaApi do
-  subject(:strategy) { described_class.new(config) }
+  include_context 'with jira auth strategy'
 
   let(:config) do
     {
@@ -14,7 +14,6 @@ RSpec.describe PredictabilityEngine::JiraAuth::MfaApi do
       mfa_token_field: 'access_token'
     }
   end
-  let(:base) { { site: 'https://jira.corp.com', context_path: nil, default_headers: {} } }
 
   def stub_totp(otp = '123456')
     totp = instance_double(ROTP::TOTP, now: otp)
@@ -35,6 +34,10 @@ RSpec.describe PredictabilityEngine::JiraAuth::MfaApi do
     response = instance_double(Net::HTTPResponse, is_a?: false, body: body, code: code)
     allow(response).to receive(:is_a?).with(Net::HTTPOK).and_return(false)
     stub_http(response)
+  end
+
+  def assert_mfa_error(pattern)
+    expect { strategy.jira_options(base) }.to raise_error(PredictabilityEngine::Error, pattern)
   end
 
   describe '#jira_options' do
@@ -68,25 +71,20 @@ RSpec.describe PredictabilityEngine::JiraAuth::MfaApi do
       before { stub_http_ok('{"access_token":"mfa-bearer-tok"}') }
 
       it 'defaults to access_token field' do
-        result = strategy.jira_options(base)
-        expect(result[:default_headers]['Authorization']).to eq('Bearer mfa-bearer-tok')
+        expect(strategy.jira_options(base)[:default_headers]['Authorization']).to eq('Bearer mfa-bearer-tok')
       end
     end
 
     context 'when the MFA login fails' do
       before { stub_http_error('401', 'Unauthorized') }
 
-      it 'raises an error' do
-        expect { strategy.jira_options(base) }.to raise_error(PredictabilityEngine::Error, /MFA login failed/)
-      end
+      it { assert_mfa_error(/MFA login failed/) }
     end
 
     context 'when the token field is missing from response' do
       before { stub_http_ok('{"other_field":"value"}') }
 
-      it 'raises an error' do
-        expect { strategy.jira_options(base) }.to raise_error(PredictabilityEngine::Error, /missing field/)
-      end
+      it { assert_mfa_error(/missing field/) }
     end
   end
 end

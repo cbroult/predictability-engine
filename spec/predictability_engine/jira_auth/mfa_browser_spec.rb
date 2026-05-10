@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 RSpec.describe PredictabilityEngine::JiraAuth::MfaBrowser do
-  let(:base) { { site: 'https://jira.corp.com', context_path: nil, default_headers: {} } }
+  include_context 'with jira auth base options'
 
   def bearer_auth_header
     strategy.jira_options(base)[:default_headers]['Authorization']

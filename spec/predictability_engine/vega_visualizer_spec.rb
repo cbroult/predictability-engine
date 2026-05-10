@@ -4,6 +4,7 @@ require 'spec_helper'
 
 RSpec.describe PredictabilityEngine::VegaVisualizer do
   let(:today) { Date.new(2026, 4, 17) }
+  let(:url_href_encoding) { { 'field' => 'url', 'type' => 'nominal' } }
   let(:items) do
     [
       PredictabilityEngine::Models::WorkItem.new(item_id: 'T1', type: 'Task', title: 'T1', start_date: today - 10,
@@ -21,6 +22,10 @@ RSpec.describe PredictabilityEngine::VegaVisualizer do
 
   def all_layer_y_titles(spec)
     (spec['layer'] || []).filter_map { |l| l.dig('encoding', 'y', 'title') }
+  end
+
+  def assert_url_href_encoding(layer)
+    expect(layer['encoding']['href']).to eq(url_href_encoding)
   end
 
   describe '.cycle_time_scatter' do
@@ -52,7 +57,7 @@ RSpec.describe PredictabilityEngine::VegaVisualizer do
     end
 
     it 'includes href encoding on the points layer for URL clickability' do
-      expect(scatter_points['encoding']['href']).to eq({ 'field' => 'url', 'type' => 'nominal' })
+      assert_url_href_encoding(scatter_points)
     end
   end
 
@@ -65,7 +70,7 @@ RSpec.describe PredictabilityEngine::VegaVisualizer do
     end
 
     it 'includes href encoding on the bar layer for URL clickability' do
-      expect(awip_bar['encoding']['href']).to eq({ 'field' => 'url', 'type' => 'nominal' })
+      assert_url_href_encoding(awip_bar)
     end
   end
 

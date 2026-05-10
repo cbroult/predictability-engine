@@ -8,11 +8,7 @@ module PredictabilityEngine
   module JiraAuth
     class MfaApi < Base
       def jira_options(base_options)
-        base_options.merge(
-          auth_type: :basic,
-          default_headers: base_options[:default_headers]
-                           .merge('Authorization' => "Bearer #{fetch_token}")
-        )
+        bearer_merge(base_options, fetch_token)
       end
 
       private

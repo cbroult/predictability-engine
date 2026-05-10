@@ -94,8 +94,10 @@ If either fails, fix the **code** (typically `lib/predictability_engine/vega_vis
 
 ## jscpd configuration invariant
 
-`.jscpd.json`: threshold 0.8%, minLines 2, minTokens 16 (ruby/yaml/etc, no gherkin).
-`.jscpd.gherkin.json`: threshold 5%, minLines 5, minTokens 50 (gherkin only).
+`.jscpd.json`: threshold **0%**, minLines 2, minTokens 16 (ruby/yaml/etc, no gherkin).
+`.jscpd.gherkin.json`: threshold **0%**, minLines 5, minTokens 50 (gherkin only).
+
+Both thresholds are intentionally zero — **any duplication is a build failure**. Any PR that introduces clones must refactor before merging; raising the threshold is never an acceptable fix.
 
 Do NOT change these values without an explicit `[unlock-jscpd]` token in the commit message. When the token is absent, Claude MUST refuse the edit and cite this section.
 

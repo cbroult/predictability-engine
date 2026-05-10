@@ -12,6 +12,15 @@ module PredictabilityEngine
       end
 
       def post_init(_client); end
+
+      protected
+
+      def bearer_merge(base_options, token)
+        base_options.merge(
+          auth_type: :basic,
+          default_headers: base_options[:default_headers].merge('Authorization' => "Bearer #{token}")
+        )
+      end
     end
   end
 end

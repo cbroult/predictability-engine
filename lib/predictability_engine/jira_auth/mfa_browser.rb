@@ -21,12 +21,7 @@ module PredictabilityEngine
       CALLBACK_TIMEOUT = 120
 
       def jira_options(base_options)
-        token = @config[:idp_callback_port] ? callback_server_flow : manual_paste_flow
-        base_options.merge(
-          auth_type: :basic,
-          default_headers: base_options[:default_headers]
-                           .merge('Authorization' => "Bearer #{token}")
-        )
+        bearer_merge(base_options, @config[:idp_callback_port] ? callback_server_flow : manual_paste_flow)
       end
 
       private

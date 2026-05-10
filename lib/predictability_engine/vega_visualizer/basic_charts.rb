@@ -92,7 +92,7 @@ module PredictabilityEngine
               .mark(type: 'area')
               .encoding(
                 x: { field: 'period', type: 'ordinal', sort: 'ascending',
-                     title: nil, axis: { labelAngle: -45, labelOverlap: 'parity' } },
+                     title: nil, axis: VegaVisualizer::LABEL_AXIS },
                 y: { aggregate: 'count', type: 'quantitative', title: 'Items Completed' },
                 color: { field: 'band', type: 'ordinal', sort: labels,
                          scale: { domain: labels, range: BAND_COLORS },
