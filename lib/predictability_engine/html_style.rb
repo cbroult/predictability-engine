@@ -33,13 +33,14 @@ module PredictabilityEngine
       }
 
       @media print {
-        body { height: auto; overflow: visible; padding: 5px; background: white; }
-        .dashboard-container { grid-template-columns: 220px 1fr 1fr; gap: 10px; }
-        .chart-panel, .summary-panel { box-shadow: none; border: 1px solid #eee; padding: 10px; }
-        header { margin-bottom: 10px; padding-bottom: 5px; }
+        body { height: 100vh; overflow: hidden; padding: 5px; background: white; }
+        .dashboard-container { min-width: 0; gap: 8px; }
+        .chart-panel, .summary-panel { box-shadow: none; border: 1px solid #eee; padding: 8px; }
+        header { margin-bottom: 8px; padding-bottom: 5px; }
         h1 { font-size: 1.2rem; }
         .vega-bindings { display: none; }
         .chart-expand { display: none; }
+        .nav-links { display: none; }
       }
 
       .vega-bindings { font-size: 0.85rem; }

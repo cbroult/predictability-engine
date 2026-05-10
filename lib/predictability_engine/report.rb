@@ -161,7 +161,7 @@ module PredictabilityEngine
     def generate_chart_images_or_warn(base_dir, **)
       generate_chart_images(base_dir, **)
     rescue StandardError => e
-      PredictabilityEngine.logger.warn { "Chart image generation failed: #{e.message}. Slides will be text-only." }
+      PredictabilityEngine.warn_chart_failure(e, context: 'Slides will be text-only.')
       @images_path = nil
     end
 
@@ -253,20 +253,9 @@ module PredictabilityEngine
       w, h = pdf_viewport_size(format, landscape)
       pdf_data = nil
       with_playwright_page(html_path, width: w, height: h) do |page|
-        pdf_opts = { landscape: landscape, printBackground: true,
-                     pageRanges: '1',
-                     margin: { top: '0', right: '0', bottom: '0', left: '0' } }
-
-        standard_formats = %w[Letter Legal Tabloid Ledger A0 A1 A2 A3 A4 A5 A6]
-        if standard_formats.include?(format.to_s.capitalize)
-          pdf_opts[:format] = format.to_s.capitalize
-        elsif standard_formats.include?(format.to_s.upcase)
-          pdf_opts[:format] = format.to_s.upcase
-        else
-          pdf_opts[:width] = "#{w}px"
-          pdf_opts[:height] = "#{h}px"
-        end
-
+        pdf_opts = { printBackground: true,
+                     margin: { top: '0', right: '0', bottom: '0', left: '0' },
+                     width: "#{w}px", height: "#{h}px" }
         pdf_data = page.pdf(**pdf_opts)
       end
       pdf_data
