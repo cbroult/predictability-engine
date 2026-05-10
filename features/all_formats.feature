@@ -13,13 +13,12 @@ Feature: All formats report generation
     And the output should contain "Forecasted Cumulative Flow Diagram"
     And the output should not contain "Report generated at reports/sample_data/dashboard.terminal"
     And the following files should exist in "reports/sample_data":
-      | dashboard.html   |
-      | dashboard.pdf    |
-      | dashboard.png    |
-      | dashboard.md     |
-      | dashboard.conf   |
-      | dashboard_a3.pdf |
-      | dashboard.pptx   |
+      | dashboard.html  |
+      | dashboard.pdf   |
+      | dashboard.png   |
+      | dashboard.md    |
+      | dashboard.conf  |
+      | dashboard.pptx  |
 
   Scenario: Cleaning up old reports to prevent cruft
     Given a file named "reports/sample_data/old_cruft.txt" with "old content"

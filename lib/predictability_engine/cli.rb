@@ -159,7 +159,7 @@ module PredictabilityEngine
       ReportGenerator.clean_report_dir(source, **options)
       items   = PredictabilityEngine.load_items(source, url_prefix: options[:url_prefix])
       reports = Report.generate_all(items)
-      %i[terminal html pdf png md conf a3_landscape ppt raw_csv xlsx].each do |fmt|
+      %i[terminal html pdf png md conf ppt raw_csv xlsx].each do |fmt|
         PredictabilityEngine.run_and_print_report(source, fmt, options, items: items, reports: reports)
       rescue StandardError => e
         PredictabilityEngine.logger.warn { "Failed to generate #{fmt} report: #{e.message}" }
