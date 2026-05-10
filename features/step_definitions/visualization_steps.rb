@@ -138,6 +138,16 @@ def extract_vega_specs(content)
   specs
 end
 
+def all_spec_nodes(spec)
+  [spec, *(spec['vconcat'] || []), *(spec['layer'] || [])]
+end
+
+def all_vega_data_values(content)
+  extract_vega_specs(content).flat_map do |spec|
+    all_spec_nodes(spec).flat_map { |node| node.dig('data', 'values') || [] }
+  end
+end
+
 def extract_balanced_json(content, start_pos)
   brace_count = 0
   end_pos = -1
@@ -244,11 +254,7 @@ Then(
   /^the HTML file "([^"]*)" should have a date on the x-axis within (\d+) days? of "([^"]*)" as the first date$/
 ) do |filename, tolerance, expected|
   content = read_html(filename)
-  dates = extract_vega_specs(content).flat_map do |spec|
-    [spec, *(spec['vconcat'] || []), *(spec['layer'] || [])].flat_map do |node|
-      (node.dig('data', 'values') || []).map { |v| v['date'] }
-    end
-  end.compact.uniq.sort
+  dates = all_vega_data_values(content).map { |v| v['date'] }.compact.uniq.sort
   raise "No date values found in #{filename}" if dates.empty?
 
   actual = Date.parse(dates.first)
@@ -269,7 +275,7 @@ Then(/^the HTML file "([^"]*)" should have "([^"]*)" as a labeled x-axis tick$/)
   content = read_html(filename)
   specs = extract_vega_specs(content)
   all_values = specs.flat_map do |s|
-    [s, *(s['vconcat'] || []), *(s['layer'] || [])].flat_map do |n|
+    all_spec_nodes(s).flat_map do |n|
       n.dig('encoding', 'x', 'axis', 'values') || []
     end
   end.uniq
@@ -306,12 +312,7 @@ end
 
 Then('the HTML file {string} should embed url {string} for item {string}') do |filename, url, item_id|
   content = read_html(filename)
-  specs = extract_vega_specs(content)
-  all_data = specs.flat_map do |spec|
-    [spec, *(spec['vconcat'] || []), *(spec['layer'] || [])].flat_map do |node|
-      node.dig('data', 'values') || []
-    end
-  end
+  all_data = all_vega_data_values(content)
   item_data = all_data.find { |v| v['id'] == item_id }
   expect(item_data).not_to be_nil, "No Vega data found for item '#{item_id}'"
   expect(item_data['url']).to eq(url)

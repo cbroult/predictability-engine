@@ -10,6 +10,8 @@ RSpec.describe PredictabilityEngine::Config do
   after { FileUtils.rm_f(config_file) }
 
   describe '.jira' do
+    subject(:context_path) { described_class.jira[:context_path] }
+
     def clean_env
       ENV.to_h.reject { |k, _| k.start_with?('JIRA_') }
     end
@@ -62,8 +64,6 @@ RSpec.describe PredictabilityEngine::Config do
     end
 
     context 'when context_path is set via global config file' do
-      subject(:context_path) { described_class.jira[:context_path] }
-
       before do
         write_config({ 'jira' => { 'site' => 'https://host.net', 'context_path' => '/jira' } })
         stub_const('ENV', clean_env)
@@ -73,16 +73,12 @@ RSpec.describe PredictabilityEngine::Config do
     end
 
     context 'when context_path is set via JIRA_CONTEXT_PATH env var' do
-      subject(:context_path) { described_class.jira[:context_path] }
-
       before { stub_const('ENV', clean_env.merge('JIRA_SITE' => 'https://host.net', 'JIRA_CONTEXT_PATH' => '/jira')) }
 
       it { is_expected.to eq('/jira') }
     end
 
     context 'when context_path is not configured' do
-      subject(:context_path) { described_class.jira[:context_path] }
-
       before { stub_const('ENV', clean_env.merge('JIRA_SITE' => 'https://cloud.atlassian.net')) }
 
       it { is_expected.to be_nil }
