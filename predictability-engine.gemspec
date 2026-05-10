@@ -15,7 +15,7 @@ Gem::Specification.new do |spec|
   spec.executables   = ['predictability-engine']
   spec.require_paths = ['lib']
 
-  spec.required_ruby_version = ">= #{File.read(File.join(__dir__, '.ruby-version')).strip}"
+  spec.required_ruby_version = ">= #{File.read(File.join(__dir__, '.ruby-version')).strip.split('-').last}"
 
   spec.add_dependency 'activesupport'
   spec.add_dependency 'caxlsx'
