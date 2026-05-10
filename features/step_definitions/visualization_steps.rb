@@ -303,3 +303,29 @@ Then(/^the HTML file "([^"]*)" should have (\d+) distinct confidence rules$/) do
   expect(vert_data.size).to eq(count.to_i),
                             "Expected #{count} rules, got #{vert_data.size}: #{vert_data.map { |v| v['label'] }}"
 end
+
+Then('the HTML file {string} should embed url {string} for item {string}') do |filename, url, item_id|
+  content = read_html(filename)
+  specs = extract_vega_specs(content)
+  all_data = specs.flat_map do |spec|
+    [spec, *(spec['vconcat'] || []), *(spec['layer'] || [])].flat_map do |node|
+      node.dig('data', 'values') || []
+    end
+  end
+  item_data = all_data.find { |v| v['id'] == item_id }
+  expect(item_data).not_to be_nil, "No Vega data found for item '#{item_id}'"
+  expect(item_data['url']).to eq(url)
+end
+
+Then('the HTML file {string} should have {int} chart panels') do |filename, expected_count|
+  content = read_html(filename)
+  actual_count = content.scan("class='chart-panel'").size
+  expect(actual_count).to eq(expected_count),
+                          "Expected #{expected_count} chart panels but found #{actual_count}"
+end
+
+Then('the file {string} should have a size greater than {int} KB') do |filename, min_kb|
+  size = File.size(check_file_path(filename))
+  expect(size).to be > min_kb * 1024,
+                  "Expected #{filename} to be > #{min_kb} KB but was #{size / 1024} KB"
+end
