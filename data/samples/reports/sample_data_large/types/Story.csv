@@ -1,51 +1,51 @@
-ID,Title,Type,Priority,Start Date,End Date,Status,YYYY-Week,YYYY-MM,YYYY,Cycle Time (days),Current Age (days),Done ≤ 1 day,Done ≤ 7 days,Done ≤ 14 days,Done ≤ 21 days,Done ≤ 28 days
-DONE-37,Implement user authentication and session management for the API,Story,Medium,2025-10-14,2025-10-19,Done,2025-W42,2025-10,2025,6,,false,true,true,true,true
-DONE-99,Migrate database schema to support multi-tenancy architecture,Story,High,2025-10-20,2025-10-30,Done,2025-W44,2025-10,2025,11,,false,false,true,true,true
-DONE-104,Add support for OAuth2 single sign-on provider integration,Story,Low,2025-10-25,2025-11-02,Done,2025-W44,2025-11,2025,9,,false,false,true,true,true
-DONE-92,Add role-based access control to the admin management panel,Story,Medium,2025-10-28,2025-11-11,Done,2025-W46,2025-11,2025,15,,false,false,false,true,true
-DONE-42,Implement pagination for the product catalogue endpoint,Story,Low,2025-11-05,2025-11-13,Done,2025-W46,2025-11,2025,9,,false,false,true,true,true
-DONE-101,Implement bulk import feature for CSV product data uploads,Story,Medium,2025-11-10,2025-11-28,Done,2025-W48,2025-11,2025,19,,false,false,false,true,true
-DONE-136,Optimize image processing pipeline to reduce storage costs,Story,Highest,2025-11-13,2025-11-24,Done,2025-W48,2025-11,2025,12,,false,false,true,true,true
-DONE-6,Create dashboard for monitoring real-time system health metrics,Story,Medium,2025-11-17,2025-11-23,Done,2025-W47,2025-11,2025,7,,false,true,true,true,true
-DONE-3,Fix data inconsistency bug in the inventory synchronization job,Story,Low,2025-11-22,2025-12-04,Done,2025-W49,2025-12,2025,13,,false,false,true,true,true
-DONE-5,Fix security vulnerability in the file upload validation logic,Story,Lowest,2025-11-23,2025-12-09,Done,2025-W50,2025-12,2025,17,,false,false,false,true,true
-DONE-120,Fix broken pagination on the search results listing page,Story,Medium,2025-11-29,2025-11-30,Done,2025-W48,2025-11,2025,2,,false,true,true,true,true
-DONE-64,Fix incorrect date timezone handling in the scheduling module,Story,High,2025-12-04,2025-12-07,Done,2025-W49,2025-12,2025,4,,false,true,true,true,true
-DONE-49,Add accessibility improvements to comply with WCAG 2.1 standards,Story,Medium,2025-12-06,2025-12-21,Done,2025-W51,2025-12,2025,16,,false,false,false,true,true
-DONE-149,Refactor the legacy payment gateway integration module,Story,Medium,2025-12-07,2025-12-12,Done,2025-W50,2025-12,2025,6,,false,true,true,true,true
-DONE-68,Implement real-time notifications using WebSockets,Story,Medium,2025-12-13,2025-12-14,Done,2025-W50,2025-12,2025,2,,false,true,true,true,true
-DONE-67,Optimize SQL queries causing slow response times in production,Story,High,2025-12-16,2025-12-25,Done,2025-W52,2025-12,2025,10,,false,false,true,true,true
-DONE-140,Refactor authentication middleware to use JWT token validation,Story,Medium,2025-12-17,2026-01-06,Done,2026-W02,2026-01,2026,21,,false,false,false,true,true
-DONE-23,Fix race condition in the concurrent order processing service,Story,High,2025-12-20,2025-12-24,Done,2025-W52,2025-12,2025,5,,false,true,true,true,true
-DONE-132,Resolve CSS layout issues on mobile devices in Safari,Story,Medium,2025-12-23,2026-01-04,Done,2026-W01,2026-01,2026,13,,false,false,true,true,true
-DONE-147,Fix incorrect tax calculation for cross-border transactions,Story,Medium,2025-12-31,2026-01-04,Done,2026-W01,2026-01,2026,5,,false,true,true,true,true
-DONE-33,Migrate from deprecated authentication library to current version,Story,Medium,2026-01-03,2026-01-13,Done,2026-W03,2026-01,2026,11,,false,false,true,true,true
-DONE-22,Refactor the monolithic reporting service into microservices,Story,Low,2026-01-05,2026-01-13,Done,2026-W03,2026-01,2026,9,,false,false,true,true,true
-DONE-44,Optimize the recommendation engine for better response times,Story,Medium,2026-01-13,2026-01-22,Done,2026-W04,2026-01,2026,10,,false,false,true,true,true
-DONE-109,Implement automated database backup and point-in-time recovery,Story,Medium,2026-01-17,2026-02-02,Done,2026-W06,2026-02,2026,17,,false,false,false,true,true
-DONE-20,Implement feature flag system for gradual feature rollouts,Story,Medium,2026-01-22,2026-02-03,Done,2026-W06,2026-02,2026,13,,false,false,true,true,true
-DONE-54,Implement user authentication and session management for the API,Story,Highest,2026-01-25,2026-01-27,Done,2026-W05,2026-01,2026,3,,false,true,true,true,true
-DONE-106,Migrate database schema to support multi-tenancy architecture,Story,Medium,2026-01-31,2026-02-14,Done,2026-W07,2026-02,2026,15,,false,false,false,true,true
-DONE-90,Add support for OAuth2 single sign-on provider integration,Story,Low,2026-02-03,2026-02-20,Done,2026-W08,2026-02,2026,18,,false,false,false,true,true
-DONE-4,Add role-based access control to the admin management panel,Story,High,2026-02-10,2026-02-27,Done,2026-W09,2026-02,2026,18,,false,false,false,true,true
-DONE-89,Implement pagination for the product catalogue endpoint,Story,Medium,2026-02-13,2026-02-18,Done,2026-W08,2026-02,2026,6,,false,true,true,true,true
-DONE-134,Implement bulk import feature for CSV product data uploads,Story,High,2026-02-17,2026-03-01,Done,2026-W09,2026-03,2026,13,,false,false,true,true,true
-DONE-51,Optimize image processing pipeline to reduce storage costs,Story,Medium,2026-02-21,2026-02-26,Done,2026-W09,2026-02,2026,6,,false,true,true,true,true
-DONE-63,Create dashboard for monitoring real-time system health metrics,Story,Low,2026-02-24,2026-03-15,Done,2026-W11,2026-03,2026,20,,false,false,false,true,true
-DONE-27,Fix data inconsistency bug in the inventory synchronization job,Story,High,2026-02-26,2026-03-07,Done,2026-W10,2026-03,2026,10,,false,false,true,true,true
-DONE-130,Fix security vulnerability in the file upload validation logic,Story,High,2026-02-27,2026-03-03,Done,2026-W10,2026-03,2026,5,,false,true,true,true,true
-WIP-44,Design and build the new multi-region deployment infrastructure,Story,High,2026-02-27,,In Progress,,,,,73,,,,,
-WIP-40,Implement distributed caching layer to handle increased traffic load,Story,High,2026-02-28,,In Progress,,,,,72,,,,,
-DONE-70,Add support for multiple currency display in the pricing tables,Story,Medium,2026-03-02,2026-03-12,Done,2026-W11,2026-03,2026,11,,false,false,true,true,true
-WIP-37,Redesign the database schema to support hierarchical data structures,Story,Medium,2026-03-03,,In Progress,,,,,69,,,,,
-DONE-110,Resolve slow startup time caused by heavy dependency loading,Story,Medium,2026-03-07,2026-03-09,Done,2026-W11,2026-03,2026,3,,false,true,true,true,true
-WIP-23,Refactor the legacy report generation engine for better performance,Story,Medium,2026-03-10,,In Progress,,,,,62,,,,,
-WIP-5,Add deep-linking support for the single-page application router,Story,Medium,2026-03-12,,In Progress,,,,,60,,,,,
-WIP-25,Build the new customer analytics reporting portal from scratch,Story,Medium,2026-03-15,,In Progress,,,,,57,,,,,
-WIP-42,Implement fine-grained authorization using attribute-based policies,Story,Medium,2026-03-17,,In Progress,,,,,55,,,,,
-WIP-22,Implement the new subscription billing model with proration support,Story,Low,2026-03-19,,In Progress,,,,,53,,,,,
-WIP-45,Add comprehensive data lineage tracking for regulatory compliance,Story,High,2026-03-22,,In Progress,,,,,50,,,,,
-WIP-36,Add support for custom branding and white-labelling for enterprise,Story,Low,2026-03-25,,In Progress,,,,,47,,,,,
-WIP-31,Implement idempotent API endpoints to handle duplicate client requests,Story,Low,2026-04-01,,In Progress,,,,,40,,,,,
-WIP-27,Add multi-language support for the automated email templates,Story,Medium,2026-04-05,,In Progress,,,,,36,,,,,
-WIP-6,Implement the new pricing engine with tiered discount calculations,Story,High,2026-04-09,,In Progress,,,,,32,,,,,
+ID,Title,Type,Priority,Start Date,End Date,Status,YYYY-Week,YYYY-MM,YYYY,Cycle Time (days),Current Age (days),URL,Done ≤ 1 day,Done ≤ 7 days,Done ≤ 14 days,Done ≤ 21 days,Done ≤ 28 days
+DONE-37,Implement user authentication and session management for the API,Story,Medium,2025-10-14,2025-10-19,Done,2025-W42,2025-10,2025,6,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,true,true,true,true
+DONE-99,Migrate database schema to support multi-tenancy architecture,Story,High,2025-10-20,2025-10-30,Done,2025-W44,2025-10,2025,11,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,true,true,true
+DONE-104,Add support for OAuth2 single sign-on provider integration,Story,Low,2025-10-25,2025-11-02,Done,2025-W44,2025-11,2025,9,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,true,true,true
+DONE-92,Add role-based access control to the admin management panel,Story,Medium,2025-10-28,2025-11-11,Done,2025-W46,2025-11,2025,15,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,false,true,true
+DONE-42,Implement pagination for the product catalogue endpoint,Story,Low,2025-11-05,2025-11-13,Done,2025-W46,2025-11,2025,9,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,true,true,true
+DONE-101,Implement bulk import feature for CSV product data uploads,Story,Medium,2025-11-10,2025-11-28,Done,2025-W48,2025-11,2025,19,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,false,true,true
+DONE-136,Optimize image processing pipeline to reduce storage costs,Story,Highest,2025-11-13,2025-11-24,Done,2025-W48,2025-11,2025,12,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,true,true,true
+DONE-6,Create dashboard for monitoring real-time system health metrics,Story,Medium,2025-11-17,2025-11-23,Done,2025-W47,2025-11,2025,7,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,true,true,true,true
+DONE-3,Fix data inconsistency bug in the inventory synchronization job,Story,Low,2025-11-22,2025-12-04,Done,2025-W49,2025-12,2025,13,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,true,true,true
+DONE-5,Fix security vulnerability in the file upload validation logic,Story,Lowest,2025-11-23,2025-12-09,Done,2025-W50,2025-12,2025,17,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,false,true,true
+DONE-120,Fix broken pagination on the search results listing page,Story,Medium,2025-11-29,2025-11-30,Done,2025-W48,2025-11,2025,2,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,true,true,true,true
+DONE-64,Fix incorrect date timezone handling in the scheduling module,Story,High,2025-12-04,2025-12-07,Done,2025-W49,2025-12,2025,4,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,true,true,true,true
+DONE-49,Add accessibility improvements to comply with WCAG 2.1 standards,Story,Medium,2025-12-06,2025-12-21,Done,2025-W51,2025-12,2025,16,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,false,true,true
+DONE-149,Refactor the legacy payment gateway integration module,Story,Medium,2025-12-07,2025-12-12,Done,2025-W50,2025-12,2025,6,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,true,true,true,true
+DONE-68,Implement real-time notifications using WebSockets,Story,Medium,2025-12-13,2025-12-14,Done,2025-W50,2025-12,2025,2,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,true,true,true,true
+DONE-67,Optimize SQL queries causing slow response times in production,Story,High,2025-12-16,2025-12-25,Done,2025-W52,2025-12,2025,10,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,true,true,true
+DONE-140,Refactor authentication middleware to use JWT token validation,Story,Medium,2025-12-17,2026-01-06,Done,2026-W02,2026-01,2026,21,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,false,true,true
+DONE-23,Fix race condition in the concurrent order processing service,Story,High,2025-12-20,2025-12-24,Done,2025-W52,2025-12,2025,5,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,true,true,true,true
+DONE-132,Resolve CSS layout issues on mobile devices in Safari,Story,Medium,2025-12-23,2026-01-04,Done,2026-W01,2026-01,2026,13,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,true,true,true
+DONE-147,Fix incorrect tax calculation for cross-border transactions,Story,Medium,2025-12-31,2026-01-04,Done,2026-W01,2026-01,2026,5,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,true,true,true,true
+DONE-33,Migrate from deprecated authentication library to current version,Story,Medium,2026-01-03,2026-01-13,Done,2026-W03,2026-01,2026,11,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,true,true,true
+DONE-22,Refactor the monolithic reporting service into microservices,Story,Low,2026-01-05,2026-01-13,Done,2026-W03,2026-01,2026,9,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,true,true,true
+DONE-44,Optimize the recommendation engine for better response times,Story,Medium,2026-01-13,2026-01-22,Done,2026-W04,2026-01,2026,10,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,true,true,true
+DONE-109,Implement automated database backup and point-in-time recovery,Story,Medium,2026-01-17,2026-02-02,Done,2026-W06,2026-02,2026,17,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,false,true,true
+DONE-20,Implement feature flag system for gradual feature rollouts,Story,Medium,2026-01-22,2026-02-03,Done,2026-W06,2026-02,2026,13,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,true,true,true
+DONE-54,Implement user authentication and session management for the API,Story,Highest,2026-01-25,2026-01-27,Done,2026-W05,2026-01,2026,3,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,true,true,true,true
+DONE-106,Migrate database schema to support multi-tenancy architecture,Story,Medium,2026-01-31,2026-02-14,Done,2026-W07,2026-02,2026,15,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,false,true,true
+DONE-90,Add support for OAuth2 single sign-on provider integration,Story,Low,2026-02-03,2026-02-20,Done,2026-W08,2026-02,2026,18,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,false,true,true
+DONE-4,Add role-based access control to the admin management panel,Story,High,2026-02-10,2026-02-27,Done,2026-W09,2026-02,2026,18,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,false,true,true
+DONE-89,Implement pagination for the product catalogue endpoint,Story,Medium,2026-02-13,2026-02-18,Done,2026-W08,2026-02,2026,6,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,true,true,true,true
+DONE-134,Implement bulk import feature for CSV product data uploads,Story,High,2026-02-17,2026-03-01,Done,2026-W09,2026-03,2026,13,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,true,true,true
+DONE-51,Optimize image processing pipeline to reduce storage costs,Story,Medium,2026-02-21,2026-02-26,Done,2026-W09,2026-02,2026,6,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,true,true,true,true
+DONE-63,Create dashboard for monitoring real-time system health metrics,Story,Low,2026-02-24,2026-03-15,Done,2026-W11,2026-03,2026,20,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,false,true,true
+DONE-27,Fix data inconsistency bug in the inventory synchronization job,Story,High,2026-02-26,2026-03-07,Done,2026-W10,2026-03,2026,10,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,true,true,true
+DONE-130,Fix security vulnerability in the file upload validation logic,Story,High,2026-02-27,2026-03-03,Done,2026-W10,2026-03,2026,5,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,true,true,true,true
+WIP-44,Design and build the new multi-region deployment infrastructure,Story,High,2026-02-27,,In Progress,,,,,73,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,,,,,
+WIP-40,Implement distributed caching layer to handle increased traffic load,Story,High,2026-02-28,,In Progress,,,,,72,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,,,,,
+DONE-70,Add support for multiple currency display in the pricing tables,Story,Medium,2026-03-02,2026-03-12,Done,2026-W11,2026-03,2026,11,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,false,true,true,true
+WIP-37,Redesign the database schema to support hierarchical data structures,Story,Medium,2026-03-03,,In Progress,,,,,69,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,,,,,
+DONE-110,Resolve slow startup time caused by heavy dependency loading,Story,Medium,2026-03-07,2026-03-09,Done,2026-W11,2026-03,2026,3,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,false,true,true,true,true
+WIP-23,Refactor the legacy report generation engine for better performance,Story,Medium,2026-03-10,,In Progress,,,,,62,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,,,,,
+WIP-5,Add deep-linking support for the single-page application router,Story,Medium,2026-03-12,,In Progress,,,,,60,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,,,,,
+WIP-25,Build the new customer analytics reporting portal from scratch,Story,Medium,2026-03-15,,In Progress,,,,,57,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,,,,,
+WIP-42,Implement fine-grained authorization using attribute-based policies,Story,Medium,2026-03-17,,In Progress,,,,,55,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,,,,,
+WIP-22,Implement the new subscription billing model with proration support,Story,Low,2026-03-19,,In Progress,,,,,53,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,,,,,
+WIP-45,Add comprehensive data lineage tracking for regulatory compliance,Story,High,2026-03-22,,In Progress,,,,,50,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,,,,,
+WIP-36,Add support for custom branding and white-labelling for enterprise,Story,Low,2026-03-25,,In Progress,,,,,47,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,,,,,
+WIP-31,Implement idempotent API endpoints to handle duplicate client requests,Story,Low,2026-04-01,,In Progress,,,,,40,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,,,,,
+WIP-27,Add multi-language support for the automated email templates,Story,Medium,2026-04-05,,In Progress,,,,,36,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,,,,,
+WIP-6,Implement the new pricing engine with tiered discount calculations,Story,High,2026-04-09,,In Progress,,,,,32,file:///home/cbroult/work/ruby/predictability-engine/data/samples/sample_data_large.csv,,,,,

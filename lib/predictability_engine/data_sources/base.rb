@@ -1,9 +1,17 @@
 # frozen_string_literal: true
 
+require 'yaml'
+
 module PredictabilityEngine
   module DataSources
     class Base
+      def configure(opts)
+        @url_prefix = opts[:url_prefix]
+        self
+      end
+
       def load(source_spec)
+        apply_project_config_defaults
         perform_load(source_spec)
       rescue StandardError => e
         raise Error, "Failed to load from #{source_name}: #{e.message}"
@@ -44,15 +52,20 @@ module PredictabilityEngine
       end
 
       def map_row(row)
+        raw_id = row[:id] || row[:key] || row[:item_id]
         {
-          id: row[:id] || row[:key] || row[:item_id],
+          id: raw_id,
           title: row[:title] || row[:summary],
           type: row[:type] || row[:issuetype],
           priority: normalize_priority(row[:priority]),
           start_date: parse_date(row[:start_date] || row[:created]),
           end_date: parse_date(row[:end_date] || row[:resolutiondate] || row[:resolved]),
-          url: row[:url]
+          url: item_url(row[:url], raw_id)
         }
+      end
+
+      def item_url(url, item_id)
+        url.presence || (@url_prefix && "#{@url_prefix}#{item_id}")
       end
 
       def normalize_priority(name)
@@ -64,6 +77,16 @@ module PredictabilityEngine
       def mock_data(env_key)
         json = ENV.fetch(env_key, '[]')
         JSON.parse(json, symbolize_names: true)
+      end
+
+      private
+
+      def apply_project_config_defaults
+        return if @url_prefix
+        return unless File.exist?(Config::CONFIG_FILE)
+
+        config = YAML.load_file(Config::CONFIG_FILE) || {}
+        @url_prefix = config['url_prefix']
       end
     end
   end

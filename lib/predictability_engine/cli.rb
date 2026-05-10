@@ -21,6 +21,8 @@ module PredictabilityEngine
       base.class_option :log_level, type: :string, default: 'info',
                                     desc: 'Logging level (debug, info, warn, error)'
       base.class_option :log_file, type: :string, desc: 'Log file path'
+      base.class_option :url_prefix, type: :string,
+                                     desc: 'URL prefix for constructing item URLs from IDs (e.g. https://jira.example.com/browse/)'
     end
 
     module ClassMethods
@@ -155,9 +157,10 @@ module PredictabilityEngine
     desc 'all_formats SOURCE', 'Generate all report formats at once'
     def all_formats(source)
       ReportGenerator.clean_report_dir(source, **options)
-      items = PredictabilityEngine.load_items(source)
+      items   = PredictabilityEngine.load_items(source, url_prefix: options[:url_prefix])
+      reports = Report.generate_all(items)
       %i[terminal html pdf png md conf a3_landscape ppt raw_csv xlsx].each do |fmt|
-        PredictabilityEngine.run_and_print_report(source, fmt, options, items: items)
+        PredictabilityEngine.run_and_print_report(source, fmt, options, items: items, reports: reports)
       rescue StandardError => e
         PredictabilityEngine.logger.warn { "Failed to generate #{fmt} report: #{e.message}" }
       end

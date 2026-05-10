@@ -12,7 +12,9 @@ module PredictabilityEngine
       }.freeze
 
       def perform_load(path)
-        @done_statuses = load_done_statuses(path)
+        config = load_csv_config(path)
+        @url_prefix ||= config['url_prefix']
+        @done_statuses = load_done_statuses(config)
         @source_url = "file://#{File.expand_path(path)}"
         CSV.open(path, headers: true, header_converters: :symbol, encoding: 'bom|UTF-8')
            .then { |csv| load_data(csv.map { |row| apply_jira_header_map(row.to_h) }) }
@@ -26,7 +28,7 @@ module PredictabilityEngine
 
       def map_row(row)
         super.tap do |mapped|
-          mapped[:url] ||= @source_url
+          mapped[:url] ||= @source_url unless @url_prefix
           next if mapped[:end_date]
           next unless @done_statuses.include?(row[:status].to_s.downcase)
 
@@ -34,8 +36,7 @@ module PredictabilityEngine
         end
       end
 
-      def load_done_statuses(csv_path)
-        config = load_csv_config(csv_path)
+      def load_done_statuses(config)
         if (wf_path = config['workflow_config_path'])
           JiraWorkflow.load(File.expand_path(wf_path))&.departure_names.to_a.map(&:downcase)
         elsif config.key?('statuses')

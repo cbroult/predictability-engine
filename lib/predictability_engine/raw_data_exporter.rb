@@ -12,7 +12,7 @@ module PredictabilityEngine
       'ID', 'Title', 'Type', 'Priority',
       'Start Date', 'End Date', 'Status',
       'YYYY-Week', 'YYYY-MM', 'YYYY',
-      'Cycle Time (days)', 'Current Age (days)',
+      'Cycle Time (days)', 'Current Age (days)', 'URL',
       'Done ≤ 1 day', 'Done ≤ 7 days', 'Done ≤ 14 days',
       'Done ≤ 21 days', 'Done ≤ 28 days'
     ].freeze
@@ -29,7 +29,7 @@ module PredictabilityEngine
        PredictabilityEngine.format_year_week(date),
        PredictabilityEngine.format_year_month(date),
        date&.to_date&.year,
-       ct, age, *flags]
+       ct, age, item.url.to_s, *flags]
     end
 
     def self.threshold_index(cycle_time)

@@ -109,7 +109,8 @@ RSpec.describe PredictabilityEngine::Cli do
     subject(:viz) { described_class.new([], { color: true }) }
 
     before do
-      allow(PredictabilityEngine).to receive(:load_items).with(source).and_return(items)
+      allow(PredictabilityEngine).to receive(:load_items).with(source, url_prefix: nil).and_return(items)
+      allow(PredictabilityEngine::Report).to receive(:generate_all).with(items).and_return({})
     end
 
     describe '#all_formats' do

@@ -54,9 +54,9 @@ module PredictabilityEngine
     end.compact
   end
 
-  def self.load_items(spec)
+  def self.load_items(spec, **)
     manager = DataManager.new
-    manager.load(spec)
+    manager.load(spec, **)
     manager.work_items
   end
 
@@ -68,9 +68,10 @@ module PredictabilityEngine
     ReportGenerator.write_report(input_file, format, content, output, type: type)
   end
 
-  def self.run_and_print_report(file, format, options, output: nil, items: nil)
+  def self.run_and_print_report(file, format, options, items: nil, **extra)
+    output = extra.delete(:output)
     opts = options.to_h.symbolize_keys.merge(output: output)
-    message = run_report(file, format, items: items, **opts)
+    message = run_report(file, format, items: items, **opts, **extra)
     logger.info { message }
   end
 

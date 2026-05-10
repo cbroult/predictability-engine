@@ -9,9 +9,9 @@ module PredictabilityEngine
       @source = nil
     end
 
-    def load(spec)
+    def load(spec, **)
       @source = spec
-      @work_items = DataSources::Factory.for(spec).load(spec)
+      @work_items = DataSources::Factory.for(spec, **).load(spec)
     end
 
     # Backward compatibility
