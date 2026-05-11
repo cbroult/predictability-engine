@@ -47,7 +47,7 @@ predictability-engine forecast "$WORK\wip_data.csv" 10
 $fail = 0
 $artefacts = @(
   'dashboard.html', 'dashboard.md', 'dashboard.conf',
-  'dashboard.pdf', 'dashboard.pptx', 'dashboard.png', 'dashboard_a3.pdf',
+  'dashboard.pdf', 'dashboard.pptx', 'dashboard.png',
   'dashboard.csv', 'dashboard.xlsx'
 )
 foreach ($base in @('sample_data', 'sample_data_large', 'wip_data', 'xl_data')) {

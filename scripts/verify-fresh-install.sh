@@ -57,7 +57,6 @@ for base in sample_data sample_data_large wip_data xl_data; do
     dashboard.pdf \
     dashboard.pptx \
     dashboard.png \
-    dashboard_a3.pdf \
     dashboard.csv \
     dashboard.xlsx; do
     path="$WORK/reports/$base/$artefact"
