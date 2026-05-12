@@ -147,34 +147,34 @@ if ($pwshCmd) {
     Info "Installed PowerShell 7 via Chocolatey"
 }
 
-# ── Step 3: Ensure Ruby is installed and in the Machine PATH ─────────────────
+# ── Step 3: Ensure Ruby 4.0.3 (rvm-windows) is installed and in Machine PATH ──
 # Ruby must be in the Machine PATH so the SYSTEM account (which runs the agent
 # and therefore all CI steps) can invoke ruby/gem/predictability-engine.
 # User-level PATH entries are invisible to SYSTEM.
+# rvm-windows stores each Ruby version under C:\ProgramData\rvm\envs\ruby-X.Y.Z\
+# which is machine-wide, so SYSTEM can read binaries directly from there.
+# The rvm wrapper scripts (C:\ProgramData\rvm\wrapper\ruby.bat) resolve via
+# Node.js scripts in cbrou's user profile and therefore cannot be used by SYSTEM.
+$RubyVersion    = "ruby-4.0.3"
+$RvmEnvBin      = "C:\ProgramData\rvm\envs\$RubyVersion\bin"
 Write-Host ""
-Write-Host "==> Ensuring Ruby is installed and in Machine PATH..."
-$rubyCmd = Get-Command ruby -ErrorAction SilentlyContinue
-if ($rubyCmd) {
-    Info "Already available: $(& ruby --version)"
+Write-Host "==> Ensuring $RubyVersion is installed and in Machine PATH..."
+if (Test-Path "$RvmEnvBin\ruby.exe") {
+    Info "$RubyVersion already installed at $RvmEnvBin"
 } else {
-    # Not in PATH at all - install via Chocolatey (adds to Machine PATH).
-    choco install -y ruby --no-progress
-    $env:PATH = [System.Environment]::GetEnvironmentVariable('PATH','Machine') + ';' +
-                [System.Environment]::GetEnvironmentVariable('PATH','User')
-    Info "Installed Ruby via Chocolatey"
+    Info "Installing $RubyVersion via rvm-windows..."
+    cmd /c "rvm install $RubyVersion" 2>&1 | ForEach-Object { Info $_ }
+    cmd /c "rvm use $RubyVersion --default" 2>&1 | ForEach-Object { Info $_ }
 }
-# Ensure Ruby bin dir is in Machine PATH even when Ruby was installed outside choco.
-$rubyExe = Get-Command ruby -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
-if ($rubyExe) {
-    $rubyBin = Split-Path $rubyExe
-    $machinePath = [System.Environment]::GetEnvironmentVariable('PATH','Machine')
-    if ($machinePath -notmatch [regex]::Escape($rubyBin)) {
-        [System.Environment]::SetEnvironmentVariable('PATH', "$machinePath;$rubyBin", 'Machine')
-        Info "Added $rubyBin to Machine PATH"
-    } else {
-        Info "Machine PATH already contains $rubyBin"
-    }
-}
+# Pin the rvm-managed bin dir directly in Machine PATH (bypasses the wrapper).
+$machinePath = [System.Environment]::GetEnvironmentVariable('PATH', 'Machine')
+# Remove any other Ruby bin entries to avoid version conflicts.
+$machinePath = ($machinePath -split ';' | Where-Object { $_ -notmatch '\\rvm\\envs\\ruby-' -and $_ -notmatch '\\Ruby\d' }) -join ';'
+$machinePath = "$machinePath;$RvmEnvBin"
+[System.Environment]::SetEnvironmentVariable('PATH', $machinePath, 'Machine')
+$env:PATH = $machinePath
+Info "Machine PATH set to use $RvmEnvBin"
+Info "Ruby: $(& "$RvmEnvBin\ruby.exe" --version)"
 
 # ── Step 4: Create agent directory ────────────────────────────────────────────
 Write-Host ""
