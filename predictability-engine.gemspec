@@ -57,18 +57,14 @@ Gem::Specification.new do |spec|
     ─────────────────────────────────────────────────────────────────
     predictability-engine installed.
 
-    Run the one-time setup to install Playwright + Chromium (required
-    for PDF, PNG, and PPTX report generation):
+    Run the idempotent setup to install Node.js, Playwright, and
+    Chromium (required for PDF, PNG, and PPTX report generation):
 
       predictability-engine setup
 
-    On Linux/macOS you can also use the bundled script:
+    Re-run at any time to upgrade dependencies. On a fresh checkout:
 
       ./bin/setup
-
-    To skip Playwright (e.g. headless CI where Chromium is pre-baked):
-
-      predictability-engine setup --skip-playwright
     ─────────────────────────────────────────────────────────────────
   MSG
 end

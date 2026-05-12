@@ -221,19 +221,9 @@ module PredictabilityEngine
       Viz.new([], options).all_formats(source)
     end
 
-    desc 'setup', 'Install/update all dependencies (Ruby gems + Playwright + Chromium)'
-    method_option :skip_playwright, type: :boolean, default: false, desc: 'Skip Playwright/Chromium install'
-    method_option :skip_bundle, type: :boolean, default: false, desc: 'Skip bundle install'
+    desc 'setup', 'Install/update all dependencies (Ruby gems + Node.js + Playwright + Chromium)'
     def setup
-      unless options[:skip_bundle]
-        PredictabilityEngine.logger.info { '==> Installing Ruby dependencies' }
-        Bundler.with_unbundled_env do
-          system('bundle', 'install', '--jobs', '4', '--retry', '3') || abort('bundle install failed')
-        end
-      end
-      install_playwright unless options[:skip_playwright]
-      PredictabilityEngine.logger.info { 'Setup complete. Try:' }
-      PredictabilityEngine.logger.info { '  predictability-engine summary data/samples/sample_data.csv' }
+      SetupManager.new.run
     end
 
     desc 'init FILENAME', 'Create a template YAML file for JIRA source'
@@ -354,17 +344,6 @@ module PredictabilityEngine
     end
 
     private
-
-    def install_playwright
-      unless system('npm', '--version', out: File::NULL, err: File::NULL)
-        PredictabilityEngine.logger.error { 'npm not found — install Node.js and re-run.' }
-        exit 1
-      end
-      PredictabilityEngine.logger.info { '==> Installing / updating Playwright + Chromium' }
-      system('npm', 'install') || abort('npm install failed')
-      system('npm', 'update', 'playwright') || abort('npm update playwright failed')
-      system('npx', 'playwright', 'install', 'chromium', '--with-deps') || abort('playwright install failed')
-    end
 
     def ask_secret(prompt)
       if $stdin.isatty
