@@ -1,4 +1,4 @@
-# verify-fresh-install.ps1 — Windows equivalent of verify-fresh-install.sh.
+# verify-fresh-install.ps1 - Windows equivalent of verify-fresh-install.sh.
 #
 # Run by .woodpecker/publish.yml (verify-fresh-install-windows step) after
 # `gem install predictability-engine` against gems.cbp-org.internal.

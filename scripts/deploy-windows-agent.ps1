@@ -1,4 +1,4 @@
-﻿# deploy-windows-agent.ps1 — install Woodpecker exec agent on this Windows machine
+﻿# deploy-windows-agent.ps1 - install Woodpecker exec agent on this Windows machine
 #
 # Scenario: Woodpecker exec agent running on a Windows host for Windows gem testing
 #   Given  This script runs as Administrator on a Windows host on the cbp-org LAN
@@ -41,7 +41,7 @@ param(
     [int]$GrpcPort          = 9000,
     [int]$MaxWorkflows      = 2,
     [string]$AgentVersion   = "v3.14.0",  # must match server version exactly
-    # Hostname reported to Woodpecker CI — defaults to the machine's own name.
+    # Hostname reported to Woodpecker CI - defaults to the machine's own name.
     # Override with -AgentHostname when deploying a second Windows agent.
     [string]$AgentHostname  = $env:COMPUTERNAME,
     # Optional: path to the LAN IP of nexus for hosts-file injection.
@@ -63,14 +63,14 @@ function Summary {
     Write-Host ""
     $total = $script:Pass + $script:Fail
     if ($script:Fail -eq 0) {
-        Write-Host "  RESULT: PASS — $($script:Pass)/$total checks passed"
+        Write-Host "  RESULT: PASS - $($script:Pass)/$total checks passed"
     } else {
-        Write-Host "  RESULT: FAIL — $($script:Pass)/$total passed, $($script:Fail) failed"
+        Write-Host "  RESULT: FAIL - $($script:Pass)/$total passed, $($script:Fail) failed"
     }
 }
 
 Write-Host "══════════════════════════════════════════════════════════════════════════"
-Write-Host "  Woodpecker Windows Agent Deploy — $env:COMPUTERNAME"
+Write-Host "  Woodpecker Windows Agent Deploy - $env:COMPUTERNAME"
 Write-Host "  Server: ${ServerHost}:${GrpcPort}   Version: ${AgentVersion}"
 Write-Host "══════════════════════════════════════════════════════════════════════════"
 Write-Host ""
@@ -189,7 +189,7 @@ if ($cert) {
     [System.IO.File]::WriteAllText($caCertPath, $pem)
     Info "Exported CBP-Org CA to $caCertPath"
 } else {
-    Write-Error "CBP-Org root CA not found in Cert:\LocalMachine\Root — run setup-windows-firefox-trust.ps1 first."
+    Write-Error "CBP-Org root CA not found in Cert:\LocalMachine\Root - run setup-windows-firefox-trust.ps1 first."
 }
 
 # ── Step 5: Write agent configuration file ────────────────────────────────────
@@ -219,7 +219,7 @@ Info "  WOODPECKER_AGENT_CONFIG_FILE=$AgentDir\agent.conf"
 Info "  SSL_CERT_FILE=$caCertPath"
 
 # ── Step 6: Create launcher wrapper script ────────────────────────────────────
-# The woodpecker-agent binary is a plain Go console process — it does not implement
+# The woodpecker-agent binary is a plain Go console process - it does not implement
 # the Windows Service Control Manager API, so sc.exe create fails with error 1053.
 # A PowerShell wrapper launched by a Scheduled Task is the native alternative:
 # the task reads agent.env, sets all env vars, then exec's the agent binary.
@@ -306,7 +306,7 @@ try {
     $addrs = [System.Net.Dns]::GetHostAddresses($ServerHost)
     Ok "DNS: $ServerHost resolves to $($addrs[0].IPAddressToString)"
 } catch {
-    Fail "DNS: $ServerHost does not resolve — hosts file entry may be missing"
+    Fail "DNS: $ServerHost does not resolve - hosts file entry may be missing"
 }
 
 # 2. Binary exists and is non-zero
@@ -350,7 +350,7 @@ $conn = Test-NetConnection -ComputerName $ServerHost -Port $GrpcPort -WarningAct
 if ($conn.TcpTestSucceeded) {
     Ok "TCP ${ServerHost}:${GrpcPort} reachable (gRPC)"
 } else {
-    Fail "TCP ${ServerHost}:${GrpcPort} NOT reachable — check firewall / Docker port mapping"
+    Fail "TCP ${ServerHost}:${GrpcPort} NOT reachable - check firewall / Docker port mapping"
 }
 
 # 7. ACLs: no broad read access (WOODPECKER_AGENT_SECRET must not be world-readable)
@@ -358,7 +358,7 @@ $aclString = (Get-Acl $AgentDir).AccessToString
 if ($aclString -notmatch "BUILTIN\\Users" -and $aclString -notmatch "Authenticated Users") {
     Ok "agent directory locked to SYSTEM + Administrators (secret not world-readable)"
 } else {
-    Fail "Broad group still in ACL — WOODPECKER_AGENT_SECRET may be readable by all users"
+    Fail "Broad group still in ACL - WOODPECKER_AGENT_SECRET may be readable by all users"
 }
 
 Summary

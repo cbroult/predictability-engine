@@ -1,5 +1,5 @@
 ID,Title,Type,Priority,Start Date,End Date,Status,YYYY-Week,YYYY-MM,YYYY,Cycle Time (days),Current Age (days),URL,Done ≤ 1 day,Done ≤ 7 days,Done ≤ 14 days,Done ≤ 21 days,Done ≤ 28 days
 PROJ-1,Done 1,,,2026-03-01,2026-03-05,Done,2026-W10,2026-03,2026,5,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/wip_data.csv,false,true,true,true,true
 PROJ-2,Done 2,,,2026-03-02,2026-03-04,Done,2026-W10,2026-03,2026,3,,file:///home/cbroult/work/ruby/predictability-engine/data/samples/wip_data.csv,false,true,true,true,true
-PROJ-3,WIP 1,,,2026-03-05,,In Progress,,,,,68,file:///home/cbroult/work/ruby/predictability-engine/data/samples/wip_data.csv,,,,,
-PROJ-4,WIP 2,,,2026-03-06,,In Progress,,,,,67,file:///home/cbroult/work/ruby/predictability-engine/data/samples/wip_data.csv,,,,,
+PROJ-3,WIP 1,,,2026-03-05,,In Progress,,,,,69,file:///home/cbroult/work/ruby/predictability-engine/data/samples/wip_data.csv,,,,,
+PROJ-4,WIP 2,,,2026-03-06,,In Progress,,,,,68,file:///home/cbroult/work/ruby/predictability-engine/data/samples/wip_data.csv,,,,,
