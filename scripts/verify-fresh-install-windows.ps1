@@ -49,4 +49,4 @@ npm.cmd install playwright
 npx.cmd playwright install chromium
 
 # Run the platform-neutral verification script.
-powershell -ExecutionPolicy Bypass -File scripts\verify-fresh-install.ps1
+pwsh -ExecutionPolicy Bypass -File scripts\verify-fresh-install.ps1

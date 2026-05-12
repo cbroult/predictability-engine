@@ -5,7 +5,8 @@
 #
 # Agent targeting: photocenter via labels matching custom_labels {platform: windows}.
 # platform: field is NOT a routing directive — labels: is.
-# image: powershell selects PowerShell as the local shell on the local backend.
+# image: powershell selects PowerShell as the local shell on the local backend;
+# the command itself uses pwsh (PowerShell 7) which reads scripts as UTF-8 by default.
 # failure: ignore — Windows CI is best-effort; Linux is the release gate.
 #
 # Clone auth: deploy-windows-agent.ps1 stores the Forgejo PAT as
@@ -32,4 +33,4 @@ steps:
     image: powershell
     failure: ignore
     commands:
-      - powershell -ExecutionPolicy Bypass -File scripts\verify-fresh-install-windows.ps1
+      - pwsh -ExecutionPolicy Bypass -File scripts\verify-fresh-install-windows.ps1
