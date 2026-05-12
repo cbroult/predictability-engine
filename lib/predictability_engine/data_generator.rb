@@ -12,7 +12,7 @@ module PredictabilityEngine
     }.freeze
 
     def self.generate(output:, size: :medium, completed: nil, wip: nil)
-      File.write(output, content(size: size, completed: completed, wip: wip))
+      File.binwrite(output, content(size: size, completed: completed, wip: wip))
       output
     end
 

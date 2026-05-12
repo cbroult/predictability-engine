@@ -122,6 +122,17 @@ RSpec.describe PredictabilityEngine::DataSources::Csv do
     end
   end
 
+  context 'with CRLF line endings' do
+    let(:items) do
+      load_csv("id,title,start_date,end_date\r\nITEM-1,Task,2026-01-10,2026-01-20\r\n")
+    end
+
+    it 'parses correctly despite CRLF' do
+      expect(items[0].id).to eq('ITEM-1')
+      expect(items[0].end_date).to eq(Date.new(2026, 1, 20))
+    end
+  end
+
   context 'with Jira CSV export headers' do
     let(:items) do
       load_csv(<<~CSV)
