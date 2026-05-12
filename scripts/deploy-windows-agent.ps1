@@ -147,7 +147,36 @@ if ($pwshCmd) {
     Info "Installed PowerShell 7 via Chocolatey"
 }
 
-# ── Step 3: Create agent directory ────────────────────────────────────────────
+# ── Step 3: Ensure Ruby is installed and in the Machine PATH ─────────────────
+# Ruby must be in the Machine PATH so the SYSTEM account (which runs the agent
+# and therefore all CI steps) can invoke ruby/gem/predictability-engine.
+# User-level PATH entries are invisible to SYSTEM.
+Write-Host ""
+Write-Host "==> Ensuring Ruby is installed and in Machine PATH..."
+$rubyCmd = Get-Command ruby -ErrorAction SilentlyContinue
+if ($rubyCmd) {
+    Info "Already available: $(& ruby --version)"
+} else {
+    # Not in PATH at all - install via Chocolatey (adds to Machine PATH).
+    choco install -y ruby --no-progress
+    $env:PATH = [System.Environment]::GetEnvironmentVariable('PATH','Machine') + ';' +
+                [System.Environment]::GetEnvironmentVariable('PATH','User')
+    Info "Installed Ruby via Chocolatey"
+}
+# Ensure Ruby bin dir is in Machine PATH even when Ruby was installed outside choco.
+$rubyExe = Get-Command ruby -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+if ($rubyExe) {
+    $rubyBin = Split-Path $rubyExe
+    $machinePath = [System.Environment]::GetEnvironmentVariable('PATH','Machine')
+    if ($machinePath -notmatch [regex]::Escape($rubyBin)) {
+        [System.Environment]::SetEnvironmentVariable('PATH', "$machinePath;$rubyBin", 'Machine')
+        Info "Added $rubyBin to Machine PATH"
+    } else {
+        Info "Machine PATH already contains $rubyBin"
+    }
+}
+
+# ── Step 4: Create agent directory ────────────────────────────────────────────
 Write-Host ""
 Write-Host "==> Creating agent directory: $AgentDir"
 if (-not (Test-Path $AgentDir)) {
@@ -157,7 +186,7 @@ if (-not (Test-Path $AgentDir)) {
     Info "$AgentDir already exists"
 }
 
-# ── Step 4: Download woodpecker-agent binary ──────────────────────────────────
+# ── Step 5: Download woodpecker-agent binary ──────────────────────────────────
 $agentExe = "$AgentDir\woodpecker-agent.exe"
 $downloadUrl = "https://github.com/woodpecker-ci/woodpecker/releases/download/${AgentVersion}/woodpecker-agent_windows_amd64.zip"
 $zipPath    = "$AgentDir\woodpecker-agent_windows_amd64.zip"
@@ -188,7 +217,7 @@ try {
     Write-Error "Download/extract failed from $downloadUrl : $_"
 }
 
-# ── Step 5: Export CBP-Org root CA to PEM for Ruby SSL ────────────────────────
+# ── Step 6: Export CBP-Org root CA to PEM for Ruby SSL ────────────────────────
 $caCertPath = "$AgentDir\cbp-org-root-ca.pem"
 Write-Host ""
 Write-Host "==> Exporting CBP-Org root CA to $caCertPath..."
@@ -206,7 +235,7 @@ if ($cert) {
     Write-Error "CBP-Org root CA not found in Cert:\LocalMachine\Root - run setup-windows-firefox-trust.ps1 first."
 }
 
-# ── Step 6: Write agent configuration file ────────────────────────────────────
+# ── Step 7: Write agent configuration file ────────────────────────────────────
 $envFile = "$AgentDir\agent.env"
 Write-Host ""
 Write-Host "==> Writing agent configuration to $envFile..."
@@ -232,7 +261,7 @@ Info "  WOODPECKER_FILTER_LABELS=platform=windows"
 Info "  WOODPECKER_AGENT_CONFIG_FILE=$AgentDir\agent.conf"
 Info "  SSL_CERT_FILE=$caCertPath"
 
-# ── Step 7: Create launcher wrapper script ────────────────────────────────────
+# ── Step 8: Create launcher wrapper script ────────────────────────────────────
 # The woodpecker-agent binary is a plain Go console process - it does not implement
 # the Windows Service Control Manager API, so sc.exe create fails with error 1053.
 # A PowerShell wrapper launched by a Scheduled Task is the native alternative:
@@ -253,7 +282,7 @@ Get-Content "$envFile" | ForEach-Object {
 [System.IO.File]::WriteAllText($launcherPath, $launcherContent)
 Info "Launcher written to $launcherPath"
 
-# ── Step 8: Lock down file permissions ───────────────────────────────────────
+# ── Step 9: Lock down file permissions ───────────────────────────────────────
 # By default C:\ propagates BUILTIN\Users:(RX) and Authenticated Users:(M) to all
 # sub-directories. Both must be removed: Users can read WOODPECKER_AGENT_SECRET and
 # Authenticated Users can replace woodpecker-agent.exe or inject code into agent-start.ps1.
@@ -274,7 +303,7 @@ icacls $AgentDir /grant:r "NT AUTHORITY\SYSTEM:(OI)(CI)(F)" | Out-Null
 icacls $AgentDir /grant:r "BUILTIN\Administrators:(OI)(CI)(F)" | Out-Null
 Info "Permissions locked: SYSTEM + Administrators only (WOODPECKER_AGENT_SECRET protected)"
 
-# ── Step 9: Register / update Scheduled Task ─────────────────────────────────
+# ── Step 10: Register / update Scheduled Task ────────────────────────────────
 Write-Host ""
 Write-Host "==> Registering WoodpeckerAgent scheduled task..."
 
@@ -305,7 +334,7 @@ Register-ScheduledTask `
     -Force | Out-Null
 Info "Scheduled task registered (runs at startup as SYSTEM)"
 
-# ── Step 10: Start the task immediately ──────────────────────────────────────
+# ── Step 11: Start the task immediately ──────────────────────────────────────
 Write-Host ""
 Write-Host "==> Starting WoodpeckerAgent task..."
 Start-ScheduledTask -TaskName $taskName
