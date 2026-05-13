@@ -9,6 +9,7 @@ AllCops:
     - "Dockerfile*"
     - ".githooks/*"
     - "scripts/*.ps1"
+    - "scripts/*.sh"
 
 # --- Style ---
 

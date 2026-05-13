@@ -7,7 +7,6 @@ Gem::Specification.new do |spec|
   spec.version       = PredictabilityEngine::VERSION
   spec.authors       = ['cbp-org']
   spec.summary       = 'Actionable Agile Metrics and Monte Carlo forecasting engine'
-  spec.homepage      = 'https://git.cbp-org.internal/cbp-org/predictability-engine'
   spec.license       = 'MIT'
 
   spec.files         = Dir['lib/**/*.rb', 'bin/*', 'data/samples/*.csv']
@@ -62,9 +61,9 @@ Gem::Specification.new do |spec|
 
       predictability-engine setup
 
-    Re-run at any time to upgrade dependencies. On a fresh checkout:
+    Re-run at any time to upgrade dependencies. On a fresh machine:
 
-      ./bin/setup
+      gem install predictability-engine && predictability-engine setup
     ─────────────────────────────────────────────────────────────────
   MSG
 end

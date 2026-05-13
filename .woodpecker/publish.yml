@@ -4,7 +4,8 @@
 #   1. test                    bundle exec rake verify (the release gate)
 #   2. auto-bump               patch-bump version, commit+tag+push (unless [skip bump] / [skip ci])
 #   3. build-gem               gem build predictability-engine.gemspec
-#   4. publish-gem             push to gems.cbp-org.internal
+#   4. publish-gem             push to gems.cbp-org.internal (internal registry)
+#   4b. publish-rubygems       gem push to rubygems.org (public registry)
 #   5. rebuild-image           rebuild docker-registry.cbp-org.internal/predictability-engine
 #                              at :v<new-version> and :latest
 #   6. verify-fresh-install    gem install predictability-engine on a clean image,
@@ -23,6 +24,8 @@
 #   badge_service_token   — Write token for badge.cbp-org.internal
 #   forgejo_push_token    — Forgejo PAT with write on this repo (for auto-bump)
 #   nexus_deploy_key      — SSH private key for root@nexus.cbp-org.internal
+#   rubygems_api_key      — rubygems.org API key with "Push gem" scope
+#                           Generate: https://rubygems.org/profile/api_keys
 
 labels:
   platform: linux
@@ -99,6 +102,15 @@ steps:
     commands:
       - apk add --no-cache curl
       - sh scripts/publish-gem.sh
+
+  - name: publish-rubygems
+    image: ruby:4.0.3-alpine
+    environment:
+      GEM_HOST_API_KEY:
+        from_secret: rubygems_api_key
+    commands:
+      - export GEM_FILE=$(ls predictability-engine-*.gem | head -1)
+      - gem push "$GEM_FILE"
 
   - name: rebuild-image
     image: ruby:4.0.3-alpine
