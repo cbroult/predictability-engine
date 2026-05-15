@@ -109,8 +109,9 @@ steps:
       GEM_HOST_API_KEY:
         from_secret: rubygems_api_key
     commands:
-      - export GEM_FILE=$(ls predictability-engine-*.gem | head -1)
-      - gem push "$GEM_FILE"
+      - apk add --no-cache build-base
+      - bundle install --jobs 4 --retry 3
+      - bundle exec rake publish:rubygems
 
   - name: rebuild-image
     image: ruby:4.0.3-alpine
