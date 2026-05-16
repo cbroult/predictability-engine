@@ -12,6 +12,11 @@ When('I run {command} with PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD set') do |cmd|
   run_command_and_stop("bash #{script}", exit_timeout: 120)
 end
 
+When('I run setup with PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD set') do
+  set_environment_variable('PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD', '1')
+  run_command_and_stop('predictability-engine setup', exit_timeout: 120)
+end
+
 Given('Playwright is already installed and current') do
   # Run npm install in the Aruba working dir so node_modules/.bin/playwright
   # exists before the setup command checks playwright_installed?.

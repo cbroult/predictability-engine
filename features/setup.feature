@@ -34,6 +34,19 @@ Feature: predictability-engine setup command
     Then the output should contain "already up to date"
     And the output should contain "Setup complete"
 
+  # ─── Chromium browser presence ───────────────────────────────────────────────
+  # The npm package being current and the browser binary being present are
+  # independent states. Setup must ensure the browser is installed regardless
+  # of whether Playwright itself needed updating.
+
+  @npm_required
+  Scenario: setup installs Chromium even when Playwright npm package is already current
+    Given Playwright is already installed and current
+    When I run setup with PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD set
+    Then the exit status should be 0
+    And the output should contain "already up to date"
+    And the output should contain "Chromium install skipped"
+
   # ─── Node.js absent ──────────────────────────────────────────────────────────
   # When neither node nor npm is on PATH, setup exits non-zero so the user
   # knows the prerequisite is missing.

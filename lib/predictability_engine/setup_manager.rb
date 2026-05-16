@@ -77,20 +77,16 @@ module PredictabilityEngine
     end
 
     def install_or_update_playwright
-      unless playwright_installed?
+      if !playwright_installed?
         PredictabilityEngine.logger.info { '==> Installing Playwright (first run)' }
         system('npm', 'install') || raise(Error, 'npm install failed')
-        install_chromium_browser
-        return
-      end
-
-      if playwright_outdated?
+      elsif playwright_outdated?
         PredictabilityEngine.logger.info { '==> Updating Playwright' }
         system('npm', 'update', 'playwright') || raise(Error, 'npm update playwright failed')
-        install_chromium_browser
       else
         PredictabilityEngine.logger.info { '==> Playwright — already up to date' }
       end
+      install_chromium_browser
     end
 
     def playwright_installed?
