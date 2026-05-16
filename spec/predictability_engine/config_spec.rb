@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'tempfile'
 
 RSpec.describe PredictabilityEngine::Config do
   include_context 'with isolated home'
@@ -86,6 +87,25 @@ RSpec.describe PredictabilityEngine::Config do
 
     def write_config(data)
       File.write(config_file, data.to_yaml)
+    end
+  end
+
+  describe '.load_yaml_file' do
+    it 'parses a valid YAML file' do
+      Tempfile.create(['cfg', '.yml']) do |f|
+        f.write("key: value\n")
+        f.flush
+        expect(described_class.load_yaml_file(f.path)).to eq('key' => 'value')
+      end
+    end
+
+    it 'raises Error with file path and Psych message on invalid YAML' do
+      Tempfile.create(['bad', '.yml']) do |f|
+        f.write("key: : :\n")
+        f.flush
+        expect { described_class.load_yaml_file(f.path) }
+          .to raise_error(PredictabilityEngine::Error, /Invalid YAML.*#{Regexp.escape(f.path)}/)
+      end
     end
   end
 

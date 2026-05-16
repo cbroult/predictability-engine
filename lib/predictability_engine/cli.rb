@@ -254,7 +254,7 @@ module PredictabilityEngine
       path = Config.jira_credentials_file
       FileUtils.mkdir_p(File.dirname(path))
 
-      config = File.exist?(path) ? YAML.load_file(path) : {}
+      config = File.exist?(path) ? Config.load_yaml_file(path) : {}
       config ||= {}
       config['profiles'] ||= {}
       config['profiles'][profile] = profile_data

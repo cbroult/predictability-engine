@@ -135,8 +135,14 @@ module PredictabilityEngine
       load_jira_file(CONFIG_FILE, global: false)
     end
 
+    def self.load_yaml_file(path)
+      YAML.load_file(path)
+    rescue Psych::SyntaxError => e
+      raise Error, "Invalid YAML in #{path}: #{e.message}"
+    end
+
     def self.load_jira_file(path, global: true)
-      raw = File.exist?(path) ? YAML.load_file(path) : {}
+      raw = File.exist?(path) ? load_yaml_file(path) : {}
       raw ||= {}
       config = global ? (raw['jira'] || raw) : raw.fetch('jira', {})
       extract_fields(config).merge(profiles: config.fetch('profiles', {}))

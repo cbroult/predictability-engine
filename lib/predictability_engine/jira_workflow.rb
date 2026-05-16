@@ -27,7 +27,7 @@ module PredictabilityEngine
     def self.load(path)
       return nil unless path && File.exist?(path)
 
-      raw = YAML.load_file(path) || {}
+      raw = Config.load_yaml_file(path) || {}
       new(profile: raw['profile'], project: raw['project'], statuses: raw['statuses'] || [])
     end
 

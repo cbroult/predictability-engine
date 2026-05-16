@@ -100,13 +100,6 @@ To embed in an application's Gemfile:
 gem 'predictability-engine'
 ```
 
-### 🎭 Playwright Setup
-High-fidelity PDF / PNG / PPTX rendering uses Playwright + Chromium. Running `./bin/setup` after a clone installs both automatically (also available via `bundle exec rake setup`). If you need to reinstall only the browser:
-
-```bash
-npx playwright install chromium --with-deps
-```
-
 ---
 
 ## 📈 Usage

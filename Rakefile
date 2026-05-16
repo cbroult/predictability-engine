@@ -83,8 +83,8 @@ namespace :publish do
     gem_file = Dir.glob('*.gem').first
     raise 'No .gem file found — run gem build first' unless gem_file
 
-    Rake::GemMaintenance::GemPublisher.new(
-      Rake::GemMaintenance::Repos.rubygems
+    Rake::Gem::Maintenance::GemPublisher.new(
+      Rake::Gem::Maintenance::Repos.rubygems
     ).publish(gem_file)
   end
 end
@@ -106,7 +106,7 @@ task default: %i[verify docs bench]
 begin
   require 'rake/gem/maintenance/install_tasks'
   require 'rake/gem/maintenance/renew_api_key_task'
-  Rake::GemMaintenance::RenewApiKeyTask.new
+  Rake::Gem::Maintenance::RenewApiKeyTask.new
 rescue LoadError
   # Will be available after bundle install
 end
