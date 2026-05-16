@@ -92,6 +92,22 @@ Run the `/verify-alignment` slash-command for the same checks with diagnostics.
 
 If either fails, fix the **code** (typically `lib/predictability_engine/vega_visualizer/cfd_layout.rb`), not the verification. The verification files may be edited freely for refactoring — keep the suite green.
 
+## BDD/TDD discipline
+
+**Tests come before or alongside implementation — never after.**
+
+Every `lib/` file must have a corresponding `spec/` unit test and/or a `features/` scenario before it is committed. This is enforced by a PreToolUse hook (`.claude/hooks/require-tests-before-impl.sh`) that warns when a `lib/**/*.rb` file is edited without a matching spec or feature.
+
+Rules:
+- **New class or module**: write the spec first (`spec/predictability_engine/<name>_spec.rb`), verify it fails, then implement.
+- **New behaviour on an existing class**: add an example to the existing spec (or a scenario) before editing the implementation.
+- **Bug fix**: add a failing test that reproduces the bug, confirm it fails on the old code, then fix.
+- **Refactor** (no behaviour change): existing green suite is sufficient — no new test required.
+
+The spec must exercise the specific behaviour being added or fixed. Asserting "it does not raise" or testing unrelated paths is not a substitute.
+
+The hook prints a warning and lets the edit proceed. Ignoring the warning and committing without tests is a process violation — do NOT do it.
+
 ## jscpd configuration invariant
 
 `.jscpd.json`: threshold **0%**, minLines 2, minTokens 16 (ruby/yaml/etc, no gherkin).
