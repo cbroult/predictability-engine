@@ -5,6 +5,13 @@
 # *before* the predictability-engine CLI is invoked — the bug this guards
 # against is calling `bundle exec predictability-engine` before `bundle install`
 # on a fresh clone, which produces "command not found: predictability-engine".
+When('I run {command} with an unsatisfiable Ruby version requirement') do |cmd|
+  project_root = File.expand_path('../..', __dir__)
+  script = File.join(project_root, cmd.to_s)
+  set_environment_variable('REQUIRED_RUBY_MAJOR', '99')
+  run_command("bash #{script}")
+end
+
 When('I run {command} with PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD set') do |cmd|
   project_root = File.expand_path('../..', __dir__)
   script = File.join(project_root, cmd.to_s)

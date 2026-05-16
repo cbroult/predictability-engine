@@ -56,14 +56,17 @@ Gem::Specification.new do |spec|
     ─────────────────────────────────────────────────────────────────
     predictability-engine installed.
 
+    Requires Ruby >= 4.0.3. If not installed yet:
+      macOS:   brew install rbenv && rbenv install 4.0.3
+      Linux:   curl -fsSL https://mise.run | sh && mise install
+      Windows: https://rubyinstaller.org
+
     Run the idempotent setup to install Node.js, Playwright, and
     Chromium (required for PDF, PNG, and PPTX report generation):
 
       predictability-engine setup
 
-    Re-run at any time to upgrade dependencies. On a fresh machine:
-
-      gem install predictability-engine && predictability-engine setup
+    Re-run at any time to upgrade dependencies.
     ─────────────────────────────────────────────────────────────────
   MSG
 end

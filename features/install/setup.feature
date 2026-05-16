@@ -16,6 +16,12 @@ Feature: predictability-engine setup command
     And the output should contain "Installing Ruby dependencies"
     And the output should contain "Setup complete"
 
+  Scenario: bin/setup fails with a clear message when Ruby is too old or missing
+    When I run `bin/setup` with an unsatisfiable Ruby version requirement
+    Then the exit status should not be 0
+    And the output should contain "is required"
+    And the output should contain "rubyinstaller.org"
+
   # ─── Help text ───────────────────────────────────────────────────────────────
 
   Scenario: setup --help documents the command

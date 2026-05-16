@@ -1,6 +1,46 @@
 #!/usr/bin/env bash
-# bin/setup — bootstraps Bundler then delegates everything to the PE CLI.
+# bin/setup — ensures Ruby, then bootstraps Bundler and delegates to the PE CLI.
 set -euo pipefail
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# ── Ruby version guard ────────────────────────────────────────────────────────
+REQUIRED_RUBY_MAJOR=4
+
+ensure_ruby() {
+  if command -v ruby &>/dev/null; then
+    major=$(ruby -e 'puts RUBY_VERSION.split(".").first')
+    [ "$major" -ge "$REQUIRED_RUBY_MAJOR" ] && return 0
+    echo "==> Ruby ${major}.x found but Ruby >= ${REQUIRED_RUBY_MAJOR}.0 is required."
+  else
+    echo "==> Ruby not found. Ruby >= ${REQUIRED_RUBY_MAJOR}.0 is required."
+  fi
+
+  echo "==> Trying version managers..."
+  if command -v mise &>/dev/null;  then mise install && return 0; fi
+  if command -v asdf &>/dev/null;  then asdf install && return 0; fi
+  if command -v rbenv &>/dev/null; then rbenv install --skip-existing && return 0; fi
+  if command -v rvm  &>/dev/null;  then
+    rvm install "$(cat .ruby-version)" && rvm use "$(cat .ruby-version)" && return 0
+  fi
+
+  ruby_version=$(sed 's/ruby-//' .ruby-version)
+  echo ""
+  echo "ERROR: No Ruby version manager found. Install Ruby ${ruby_version} manually:"
+  echo ""
+  echo "  macOS:   brew install rbenv && rbenv install ${ruby_version}"
+  echo "  Linux:   curl -fsSL https://mise.run | sh && mise install"
+  echo "           -- or --"
+  echo "           curl -fsSL https://rvm.io/install | bash && rvm install ${ruby_version}"
+  echo "  Windows: https://rubyinstaller.org"
+  echo "           -- or -- winget install RubyInstallerTeam.Ruby"
+  echo "  Docker:  FROM ruby:${ruby_version}-alpine"
+  echo ""
+  echo "  Then re-run: ./bin/setup"
+  exit 1
+}
+
+ensure_ruby
+# ─────────────────────────────────────────────────────────────────────────────
+
 gem install bundler --conservative
 bundle exec predictability-engine setup

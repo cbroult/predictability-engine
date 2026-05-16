@@ -20,6 +20,7 @@ The **Predictability Engine** is designed to help teams and organizations move f
 
 ## 📖 Table of Contents
 
+- [💎 Prerequisites: Ruby](#-prerequisites-ruby)
 - [🚀 Quick Start](#-quick-start)
 - [✨ Key Features](#-key-features)
 - [📦 Installation](#-installation)
@@ -34,6 +35,22 @@ The **Predictability Engine** is designed to help teams and organizations move f
 - [🛠️ Development & Testing](#%EF%B8%8F-development--testing)
 - [📚 Documentation & Methodology](#-documentation--methodology)
 - [📜 License](#-license)
+
+---
+
+## 💎 Prerequisites: Ruby
+
+The engine requires **Ruby >= 4.0.3**. Most systems do not ship this version by default — use a version manager or the platform installer below.
+
+| Platform | Recommended method |
+|----------|--------------------|
+| **macOS** | `brew install rbenv && rbenv install 4.0.3 && rbenv global 4.0.3` |
+| **Linux** | `curl -fsSL https://mise.run \| sh && mise install` |
+| **Windows** | [RubyInstaller for Windows](https://rubyinstaller.org) (select Ruby+Devkit 4.0.x) |
+| **Docker** | `FROM ruby:4.0.3-alpine` |
+| **Any OS** | [asdf](https://asdf-vm.com) or [mise](https://mise.jdx.dev) with the `.tool-versions` file in this repo |
+
+`./bin/setup` auto-detects mise / asdf / rbenv / rvm and calls the appropriate install command. If none are present it prints the above options and exits with a clear error.
 
 ---
 
