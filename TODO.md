@@ -59,3 +59,11 @@ The console output also only shows the last report path per format (e.g. `Task.h
 # Clean up
 
 * Please remove things that have been done from this file.
+
+# Remove obsolete README sections
+
+* Playwright Setup seems obsolete
+
+# Packwerk
+
+Please look into implementing Packwerk so we enfore better modularity if that makes sense here.

@@ -39,24 +39,31 @@ The **Predictability Engine** is designed to help teams and organizations move f
 
 ## 🚀 Quick Start
 
-Get up and running in minutes:
+**Global install (recommended):**
+```bash
+gem install predictability-engine
+predictability-engine setup   # installs Playwright + Chromium
+predictability-engine summary data/samples/sample_data.csv
+```
 
-1.  **Install Dependencies**:
-    ```bash
-    ./bin/setup
-    ```
-    This runs `bundle install` and installs Playwright + Chromium (needed for PDF / PNG / PPTX rendering). Set `SKIP_PLAYWRIGHT=1` to skip the browser install on systems where Chromium is already provisioned.
-2.  **Setup AI (Optional)**:
+**If cloning the repo:**
+```bash
+./bin/setup                   # bundle install + Playwright + Chromium
+                              # Set PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 to skip browser on pre-provisioned systems
+```
+
+Then:
+1.  **Setup AI (Optional)**:
     ```bash
     echo "OPENAI_API_KEY=your_key" > .env
     ```
-3.  **Run a Summary**:
+2.  **Run a Summary**:
     ```bash
-    ./bin/predictability-engine summary data/samples/sample_data.csv
+    predictability-engine summary data/samples/sample_data.csv
     ```
-4.  **Generate a Dashboard**:
+3.  **Generate a Dashboard**:
     ```bash
-    ./bin/predictability-engine batch data/samples/sample_data.csv
+    predictability-engine batch data/samples/sample_data.csv
     ```
 
 ---
@@ -82,22 +89,15 @@ A single `./bin/predictability-engine batch <source>` produces a full responsive
 
 ## 📦 Installation
 
-Add this line to your application's Gemfile:
+```bash
+gem install predictability-engine
+predictability-engine setup   # installs Playwright + Chromium for PDF/PNG/PPTX
+```
+
+To embed in an application's Gemfile:
 
 ```ruby
 gem 'predictability-engine'
-```
-
-And then execute:
-
-```bash
-$ bundle install
-```
-
-Or install it yourself as:
-
-```bash
-$ gem install predictability-engine
 ```
 
 ### 🎭 Playwright Setup
@@ -172,9 +172,14 @@ The engine expects a standard CSV with the following headers:
 - `end_date`: When work finished (YYYY-MM-DD). Use an empty value for items in progress.
 
 ### JIRA Integration
-The engine supports sophisticated JIRA integration with profile management and JQL/Filter support. It automatically detects start dates from issue changelogs.
 
-See the [JIRA Integration Guide](documentation/jira.md) for detailed setup instructions.
+Four steps to connect to Jira:
+1. **Store credentials**: `predictability-engine jira_config my-team` (once per instance)
+2. **Create a source config**: `predictability-engine init my-team.MYPROJ` (once per project)
+3. **Map workflow statuses**: `predictability-engine jira_workflow my-team` (recommended)
+4. **Run analysis**: `predictability-engine summary my-team.MYPROJ.yml`
+
+See the [JIRA Integration Guide](documentation/jira.md) for the full walkthrough with example output at every step.
 
 ---
 
@@ -185,11 +190,21 @@ We maintain high code quality standards using a robust testing suite:
 - **BDD/Acceptance**: `bundle exec cucumber` (Using Aruba for CLI verification).
 - **Unit Testing**: `bundle exec rspec` (Logic validation).
 - **Style Enforcement**: `bundle exec rubocop` (0 offenses target).
-- **Duplication Detection**: `npx jscpd .` (Target: < 0.8% duplication).
+- **Duplication Detection**: `npx jscpd .` (0% threshold — any clone is a build failure).
 
-To run the full validation suite:
+Fast CI gate (what `.woodpecker/verify.yml` runs):
+```bash
+bundle exec rake verify
+```
+
+Full local suite (verify + YARD docs + benchmarks):
 ```bash
 bundle exec rake
+```
+
+Single chart only:
+```bash
+predictability-engine viz --help
 ```
 
 ---
