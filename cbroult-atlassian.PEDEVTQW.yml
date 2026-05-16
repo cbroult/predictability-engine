@@ -1,0 +1,6 @@
+# JIRA Data Source Configuration
+# jira_profile: prod-instance # Optional: profile name from ~/.config/jira/jira_credentials.yml
+# project: PEDEVTQW            # Optional: JIRA Project Key
+# filter_id: "12345"         # Optional: JIRA Filter ID
+# filter_name: "My Filter"   # Optional: JIRA Filter Name
+# query: "project = PROJ"    # Optional: Direct JQL query
