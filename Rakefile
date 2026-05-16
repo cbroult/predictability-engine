@@ -107,6 +107,11 @@ begin
   require 'rake/gem/maintenance/install_tasks'
   require 'rake/gem/maintenance/renew_api_key_task'
   Rake::Gem::Maintenance::RenewApiKeyTask.new
+  # detect_version_file uses gem-name → path heuristics that don't match our
+  # predictability-engine → lib/predictability_engine/ convention; override it.
+  Rake::Gem::Maintenance::VersionBumpTask.prepend(Module.new do
+    def detect_version_file = 'lib/predictability_engine/version.rb'
+  end)
 rescue LoadError
   # Will be available after bundle install
 end
