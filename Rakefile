@@ -102,9 +102,11 @@ task ci: :verify
 # Default is everything (including slow benchmarks and docs)
 task default: %i[verify docs bench]
 
-# Gem maintenance (provides version:bump etc.)
+# Gem maintenance (provides version:bump, upgrade:renew_api_key, etc.)
 begin
   require 'rake/gem/maintenance/install_tasks'
+  require 'rake/gem/maintenance/renew_api_key_task'
+  Rake::GemMaintenance::RenewApiKeyTask.new
 rescue LoadError
   # Will be available after bundle install
 end

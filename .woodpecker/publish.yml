@@ -26,6 +26,14 @@
 #   nexus_deploy_key      — SSH private key for root@nexus.cbp-org.internal
 #   rubygems_api_key      — rubygems.org API key with "Push gem" scope
 #                           Generate: https://rubygems.org/profile/api_keys
+#   rubygems_otp_seed     — TOTP seed (base-32) for rubygems.org MFA; used by
+#                           OtpProvider to generate a one-time code on each push
+#   rubygems_username     — rubygems.org username; used by ApiKeyRenewer to
+#                           request a fresh API key when the current one expires
+#   rubygems_password     — rubygems.org password; paired with rubygems_username
+#                           for unattended key renewal via the rubygems.org API
+#   woodpecker_token      — Woodpecker API token; ApiKeyRenewer writes the new
+#                           key back to the rubygems_api_key org secret automatically
 
 labels:
   platform: linux
@@ -108,6 +116,17 @@ steps:
     environment:
       GEM_HOST_API_KEY:
         from_secret: rubygems_api_key
+      RUBYGEMS_OTP_SEED:
+        from_secret: rubygems_otp_seed
+      RUBYGEMS_USERNAME:
+        from_secret: rubygems_username
+      RUBYGEMS_PASSWORD:
+        from_secret: rubygems_password
+      WOODPECKER_TOKEN:
+        from_secret: woodpecker_token
+      WOODPECKER_SERVER: https://ci.cbp-org.internal
+      WOODPECKER_ORG: cbp-org
+      CI: "true"
     commands:
       - apk add --no-cache build-base
       - bundle install --jobs 4 --retry 3
