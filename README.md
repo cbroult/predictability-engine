@@ -38,6 +38,7 @@ The **Predictability Engine** is designed to help teams and organizations move f
 
 ---
 
+<!-- RUBY_PREREQUISITES_START -->
 ## 💎 Prerequisites: Ruby
 
 The engine requires **Ruby >= 4.0.3**. Most systems do not ship this version by default — use a version manager or the platform installer below.
@@ -51,6 +52,7 @@ The engine requires **Ruby >= 4.0.3**. Most systems do not ship this version by 
 | **Any OS** | [asdf](https://asdf-vm.com) or [mise](https://mise.jdx.dev) with the `.tool-versions` file in this repo |
 
 `./bin/setup` auto-detects mise / asdf / rbenv / rvm and calls the appropriate install command. If none are present it prints the above options and exits with a clear error.
+<!-- RUBY_PREREQUISITES_END -->
 
 ---
 

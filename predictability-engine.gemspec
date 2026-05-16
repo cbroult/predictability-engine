@@ -14,7 +14,8 @@ Gem::Specification.new do |spec|
   spec.executables   = ['predictability-engine']
   spec.require_paths = ['lib']
 
-  spec.required_ruby_version = ">= #{File.read(File.join(__dir__, '.ruby-version')).strip.split('-').last}"
+  ruby_version = File.read(File.join(__dir__, '.ruby-version')).strip.split('-').last
+  spec.required_ruby_version = ">= #{ruby_version}"
 
   spec.add_dependency 'activesupport'
   spec.add_dependency 'caxlsx'
@@ -56,8 +57,8 @@ Gem::Specification.new do |spec|
     ─────────────────────────────────────────────────────────────────
     predictability-engine installed.
 
-    Requires Ruby >= 4.0.3. If not installed yet:
-      macOS:   brew install rbenv && rbenv install 4.0.3
+    Requires Ruby >= #{ruby_version}. If not installed yet:
+      macOS:   brew install rbenv && rbenv install #{ruby_version}
       Linux:   curl -fsSL https://mise.run | sh && mise install
       Windows: https://rubyinstaller.org
 

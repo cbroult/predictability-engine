@@ -5,18 +5,18 @@
 # *before* the predictability-engine CLI is invoked — the bug this guards
 # against is calling `bundle exec predictability-engine` before `bundle install`
 # on a fresh clone, which produces "command not found: predictability-engine".
+def resolve_bin_script(cmd)
+  File.join(File.expand_path('../..', __dir__), cmd.to_s)
+end
+
 When('I run {command} with an unsatisfiable Ruby version requirement') do |cmd|
-  project_root = File.expand_path('../..', __dir__)
-  script = File.join(project_root, cmd.to_s)
   set_environment_variable('REQUIRED_RUBY_MAJOR', '99')
-  run_command("bash #{script}")
+  run_command("bash #{resolve_bin_script(cmd)}")
 end
 
 When('I run {command} with PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD set') do |cmd|
-  project_root = File.expand_path('../..', __dir__)
-  script = File.join(project_root, cmd.to_s)
   set_environment_variable('PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD', '1')
-  run_command_and_stop("bash #{script}", exit_timeout: 120)
+  run_command_and_stop("bash #{resolve_bin_script(cmd)}", exit_timeout: 120)
 end
 
 When('I run setup with PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD set') do
