@@ -88,61 +88,64 @@ RSpec.describe PredictabilityEngine::SetupManager do
   end
 
   describe '#install_or_update_playwright' do
-    before { allow(manager).to receive(:install_chromium_browser) }
+    subject(:install_or_update!) { manager.send(:install_or_update_playwright) }
+
+    let(:npm_update_args) { %w[npm update playwright] }
+
+    before do
+      allow(manager).to receive(:install_chromium_browser)
+      allow(manager).to receive(:playwright_installed?).and_return(true)
+    end
+
+    shared_examples 'installs Chromium browser' do
+      it 'calls install_chromium_browser' do
+        expect(manager).to receive(:install_chromium_browser)
+        install_or_update!
+      end
+    end
 
     context 'when Playwright is not installed' do
       before { allow(manager).to receive(:playwright_installed?).and_return(false) }
 
       it 'runs npm install' do
         expect(manager).to receive(:system).with('npm', 'install')
-        manager.send(:install_or_update_playwright)
+        install_or_update!
       end
 
-      it 'installs the Chromium browser' do
-        expect(manager).to receive(:install_chromium_browser)
-        manager.send(:install_or_update_playwright)
-      end
+      it_behaves_like 'installs Chromium browser'
     end
 
     context 'when Playwright is installed and outdated' do
-      before do
-        allow(manager).to receive_messages(playwright_installed?: true, playwright_outdated?: true)
-      end
+      before { allow(manager).to receive(:playwright_outdated?).and_return(true) }
 
       it 'updates Playwright via npm' do
-        expect(manager).to receive(:system).with('npm', 'update', 'playwright')
-        manager.send(:install_or_update_playwright)
+        expect(manager).to receive(:system).with(*npm_update_args)
+        install_or_update!
       end
 
-      it 'installs the Chromium browser after updating' do
-        expect(manager).to receive(:install_chromium_browser)
-        manager.send(:install_or_update_playwright)
-      end
+      it_behaves_like 'installs Chromium browser'
     end
 
     context 'when Playwright is installed and current' do
-      before do
-        allow(manager).to receive_messages(playwright_installed?: true, playwright_outdated?: false)
-      end
+      before { allow(manager).to receive(:playwright_outdated?).and_return(false) }
 
       it 'does not run npm update' do
-        expect(manager).not_to receive(:system).with('npm', 'update', 'playwright')
-        manager.send(:install_or_update_playwright)
-      end
-
-      it 'still installs the Chromium browser' do
-        expect(manager).to receive(:install_chromium_browser)
-        manager.send(:install_or_update_playwright)
+        expect(manager).not_to receive(:system).with(*npm_update_args)
+        install_or_update!
       end
 
       it 'logs that Playwright is already up to date' do
-        manager.send(:install_or_update_playwright)
+        install_or_update!
         expect(log_output.string).to include('already up to date')
       end
+
+      it_behaves_like 'installs Chromium browser'
     end
   end
 
   describe '#install_chromium_browser' do
+    subject(:install_chromium!) { manager.send(:install_chromium_browser) }
+
     let(:chromium_cmd) { ['npx', 'playwright', 'install', 'chromium', '--with-deps'] }
 
     context 'when PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD is set' do
@@ -155,11 +158,11 @@ RSpec.describe PredictabilityEngine::SetupManager do
 
       it 'skips the download' do
         expect(manager).not_to receive(:system).with(*chromium_cmd)
-        manager.send(:install_chromium_browser)
+        install_chromium!
       end
 
       it 'logs that the install was skipped' do
-        manager.send(:install_chromium_browser)
+        install_chromium!
         expect(log_output.string).to include('Chromium install skipped')
       end
     end
@@ -173,12 +176,14 @@ RSpec.describe PredictabilityEngine::SetupManager do
 
       it 'runs playwright install chromium' do
         expect(manager).to receive(:system).with(*chromium_cmd)
-        manager.send(:install_chromium_browser)
+        install_chromium!
       end
     end
   end
 
   describe '#configure_git_hooks' do
+    subject(:configure_hooks!) { manager.send(:configure_git_hooks) }
+
     let(:git_check) { ['git', 'rev-parse', '--is-inside-work-tree', { out: File::NULL, err: File::NULL }] }
     let(:git_config) { ['git', 'config', 'core.hooksPath', '.githooks'] }
 
@@ -187,11 +192,11 @@ RSpec.describe PredictabilityEngine::SetupManager do
 
       it 'sets core.hooksPath to .githooks' do
         expect(manager).to receive(:system).with(*git_config)
-        manager.send(:configure_git_hooks)
+        configure_hooks!
       end
 
       it 'logs that hooks are configured' do
-        manager.send(:configure_git_hooks)
+        configure_hooks!
         expect(log_output.string).to include('Git hooks configured')
       end
     end
@@ -201,11 +206,11 @@ RSpec.describe PredictabilityEngine::SetupManager do
 
       it 'does not configure hooks' do
         expect(manager).not_to receive(:system).with(*git_config)
-        manager.send(:configure_git_hooks)
+        configure_hooks!
       end
 
       it 'logs that hooks are skipped' do
-        manager.send(:configure_git_hooks)
+        configure_hooks!
         expect(log_output.string).to include('Git hooks skipped')
       end
     end

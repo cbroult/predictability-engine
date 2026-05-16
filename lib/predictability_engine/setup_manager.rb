@@ -70,9 +70,9 @@ module PredictabilityEngine
     end
 
     def linux_node_package_manager
-      return 'apt-get' if system('apt-get', '--version', out: File::NULL, err: File::NULL)
-      return 'dnf'     if system('dnf', '--version', out: File::NULL, err: File::NULL)
-
+      %w[apt-get dnf].each do |pm|
+        return pm if system(pm, '--version', out: File::NULL, err: File::NULL)
+      end
       raise Error, 'No supported package manager found (tried apt-get, dnf) — install Node.js manually'
     end
 

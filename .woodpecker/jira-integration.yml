@@ -80,7 +80,7 @@ steps:
       - apk add --no-cache build-base nodejs npm
       - npm install playwright && npx playwright install chromium --with-deps
       - bundle install --jobs 4 --retry 3
-      - bundle exec cucumber features/jira_pipeline.feature --tags @real_jira
+      - bundle exec cucumber features/jira/jira_pipeline.feature --tags @real_jira
 
   - name: badge
     image: docker-registry.cbp-org.internal/badge-reporter:latest

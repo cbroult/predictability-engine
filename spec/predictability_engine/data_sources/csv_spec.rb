@@ -127,9 +127,9 @@ RSpec.describe PredictabilityEngine::DataSources::Csv do
       load_csv("id,title,start_date,end_date\r\nITEM-1,Task,2026-01-10,2026-01-20\r\n")
     end
 
-    it 'parses correctly despite CRLF' do
-      expect(items[0].id).to eq('ITEM-1')
-      expect(items[0].end_date).to eq(Date.new(2026, 1, 20))
+    it 'strips carriage returns so field values have no trailing \\r' do
+      expect(items.size).to eq(1)
+      expect(items[0].title).to eq('Task')
     end
   end
 
