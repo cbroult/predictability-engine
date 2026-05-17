@@ -127,6 +127,7 @@ steps:
       WOODPECKER_SERVER: https://ci.cbp-org.internal
       WOODPECKER_ORG: cbp-org
       CI: "true"
+      JIRA_ENV: gha
     commands:
       - apk add --no-cache build-base
       - bundle install --jobs 4 --retry 3

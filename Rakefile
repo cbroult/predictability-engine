@@ -78,14 +78,8 @@ end
 namespace :publish do
   desc 'Push the built .gem file to rubygems.org'
   task :rubygems do
-    require 'rake/gem/maintenance/gem_publisher'
-    require 'rake/gem/maintenance/repos'
-    gem_file = Dir.glob('*.gem').first
-    raise 'No .gem file found — run gem build first' unless gem_file
-
-    Rake::Gem::Maintenance::GemPublisher.new(
-      Rake::Gem::Maintenance::Repos.rubygems
-    ).publish(gem_file)
+    require_relative 'rakelib/rubygems_publisher'
+    RubygemsPublisher.publish
   end
 end
 
