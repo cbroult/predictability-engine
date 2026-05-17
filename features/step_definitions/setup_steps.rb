@@ -9,8 +9,16 @@ def resolve_bin_script(cmd)
   File.join(File.expand_path('../..', __dir__), cmd.to_s)
 end
 
+def path_without_commands(commands)
+  ENV.fetch('PATH', '')
+     .split(File::PATH_SEPARATOR)
+     .reject { |dir| commands.any? { |cmd| File.exist?(File.join(dir, cmd)) } }
+     .join(File::PATH_SEPARATOR)
+end
+
 When('I run {command} with an unsatisfiable Ruby version requirement') do |cmd|
   set_environment_variable('REQUIRED_RUBY_MAJOR', '99')
+  set_environment_variable('PATH', path_without_commands(%w[mise asdf rbenv rvm]))
   run_command("bash #{resolve_bin_script(cmd)}")
 end
 
@@ -32,11 +40,7 @@ Given('Playwright is already installed and current') do
 end
 
 Given('the PATH does not include npm or node') do
-  path_without_node = ENV.fetch('PATH', '')
-                         .split(File::PATH_SEPARATOR)
-                         .reject { |dir| File.exist?(File.join(dir, 'npm')) || File.exist?(File.join(dir, 'node')) }
-                         .join(File::PATH_SEPARATOR)
-  set_environment_variable('PATH', path_without_node)
+  set_environment_variable('PATH', path_without_commands(%w[npm node]))
 end
 
 Given('the gemspec post-install message is loaded') do
