@@ -4,11 +4,11 @@ set -euo pipefail
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # ── Ruby version guard ────────────────────────────────────────────────────────
-REQUIRED_RUBY_MAJOR=4
+REQUIRED_RUBY_MAJOR=${REQUIRED_RUBY_MAJOR:-4}
 
 ensure_ruby() {
   if command -v ruby &>/dev/null; then
-    major=$(ruby -e 'puts RUBY_VERSION.split(".").first')
+    major=$(RUBYOPT= ruby -e 'puts RUBY_VERSION.split(".").first')
     [ "$major" -ge "$REQUIRED_RUBY_MAJOR" ] && return 0
     echo "==> Ruby ${major}.x found but Ruby >= ${REQUIRED_RUBY_MAJOR}.0 is required."
   else
