@@ -5,6 +5,7 @@ require 'predictability_engine/setup_manager'
 
 RSpec.describe PredictabilityEngine::SetupManager do
   let(:manager) { described_class.new }
+  let(:gem_root) { manager.send(:gem_root) }
 
   include_context 'with captured logger'
 
@@ -38,18 +39,41 @@ RSpec.describe PredictabilityEngine::SetupManager do
   end
 
   describe '#install_ruby_dependencies' do
-    let(:bundle_args) { ['bundle', 'install', '--jobs', '4', '--retry', '3'] }
+    subject(:install_ruby_deps!) { manager.send(:install_ruby_dependencies) }
 
-    it 'runs bundle install inside an unbundled env' do
-      expect(Bundler).to receive(:with_unbundled_env).and_yield
-      expect(manager).to receive(:system).with(*bundle_args)
-      manager.send(:install_ruby_dependencies)
+    let(:bundle_args) { ['bundle', 'install', '--jobs', '4', '--retry', '3'] }
+    let(:gemfile_path) { File.join(gem_root, 'Gemfile') }
+
+    before { allow(File).to receive(:exist?).and_call_original }
+
+    context 'when no Gemfile exists in gem_root' do
+      before { allow(File).to receive(:exist?).with(gemfile_path).and_return(false) }
+
+      it 'skips bundle install' do
+        expect(manager).not_to receive(:system).with(*bundle_args)
+        install_ruby_deps!
+      end
+
+      it 'logs that bundle install was skipped' do
+        install_ruby_deps!
+        expect(log_output.string).to include('Skipping bundle install')
+      end
     end
 
-    it 'raises Error when bundle install fails' do
-      allow(manager).to receive(:system).with(*bundle_args).and_return(false)
-      expect { manager.send(:install_ruby_dependencies) }
-        .to raise_error(PredictabilityEngine::Error, /bundle install failed/)
+    context 'when Gemfile exists in gem_root' do
+      before { allow(File).to receive(:exist?).with(gemfile_path).and_return(true) }
+
+      it 'runs bundle install inside an unbundled env' do
+        expect(Bundler).to receive(:with_unbundled_env).and_yield
+        expect(manager).to receive(:system).with(*bundle_args)
+        install_ruby_deps!
+      end
+
+      it 'raises when bundle install fails' do
+        allow(manager).to receive(:system).with(*bundle_args).and_return(false)
+        expect { install_ruby_deps! }
+          .to raise_error(PredictabilityEngine::Error, /bundle install failed/)
+      end
     end
   end
 
@@ -90,7 +114,7 @@ RSpec.describe PredictabilityEngine::SetupManager do
   describe '#install_or_update_playwright' do
     subject(:install_or_update!) { manager.send(:install_or_update_playwright) }
 
-    let(:npm_update_args) { %w[npm update playwright] }
+    let(:npm_update_args) { ['npm', 'update', 'playwright', { chdir: gem_root }] }
 
     before do
       allow(manager).to receive(:install_chromium_browser)
@@ -107,8 +131,8 @@ RSpec.describe PredictabilityEngine::SetupManager do
     context 'when Playwright is not installed' do
       before { allow(manager).to receive(:playwright_installed?).and_return(false) }
 
-      it 'runs npm install' do
-        expect(manager).to receive(:system).with('npm', 'install')
+      it 'runs npm install in gem_root' do
+        expect(manager).to receive(:system).with('npm', 'install', chdir: gem_root)
         install_or_update!
       end
 
@@ -118,7 +142,7 @@ RSpec.describe PredictabilityEngine::SetupManager do
     context 'when Playwright is installed and outdated' do
       before { allow(manager).to receive(:playwright_outdated?).and_return(true) }
 
-      it 'updates Playwright via npm' do
+      it 'updates Playwright via npm in gem_root' do
         expect(manager).to receive(:system).with(*npm_update_args)
         install_or_update!
       end
@@ -146,7 +170,7 @@ RSpec.describe PredictabilityEngine::SetupManager do
   describe '#install_chromium_browser' do
     subject(:install_chromium!) { manager.send(:install_chromium_browser) }
 
-    let(:chromium_cmd) { ['npx', 'playwright', 'install', 'chromium', '--with-deps'] }
+    let(:chromium_cmd) { ['npx', 'playwright', 'install', 'chromium', '--with-deps', { chdir: gem_root }] }
 
     context 'when PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD is set' do
       around do |example|

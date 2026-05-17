@@ -277,7 +277,7 @@ module PredictabilityEngine
       PredictabilityEngine.logger.info { "Review #{path} and set role: arrival / departure / null per status." }
     end
 
-    desc 'jira_workflow_merge OUTPUT SOURCE1 [SOURCE2 ...]',
+    desc 'jira_workflow_merge OUTPUT SOURCES...',
          'Merge multiple workflow configs into a shared config. Each SOURCE is ' \
          'either a profile name (resolved to ~/.config/jira/<profile>.workflow.yml) ' \
          'or an explicit path to a workflow YAML file.'

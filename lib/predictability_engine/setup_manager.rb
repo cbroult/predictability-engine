@@ -22,6 +22,10 @@ module PredictabilityEngine
     private
 
     def install_ruby_dependencies
+      unless File.exist?(File.join(gem_root, 'Gemfile'))
+        PredictabilityEngine.logger.info { '==> Skipping bundle install (no Gemfile — gem install mode)' }
+        return
+      end
       PredictabilityEngine.logger.info { '==> Installing Ruby dependencies' }
       Bundler.with_unbundled_env do
         system('bundle', 'install', '--jobs', '4', '--retry', '3') || raise(Error, 'bundle install failed')
@@ -79,10 +83,10 @@ module PredictabilityEngine
     def install_or_update_playwright
       if !playwright_installed?
         PredictabilityEngine.logger.info { '==> Installing Playwright (first run)' }
-        system('npm', 'install') || raise(Error, 'npm install failed')
+        system('npm', 'install', chdir: gem_root) || raise(Error, 'npm install failed')
       elsif playwright_outdated?
         PredictabilityEngine.logger.info { '==> Updating Playwright' }
-        system('npm', 'update', 'playwright') || raise(Error, 'npm update playwright failed')
+        system('npm', 'update', 'playwright', chdir: gem_root) || raise(Error, 'npm update playwright failed')
       else
         PredictabilityEngine.logger.info { '==> Playwright — already up to date' }
       end
@@ -94,7 +98,7 @@ module PredictabilityEngine
     end
 
     def playwright_outdated?
-      raw = IO.popen(%w[npm outdated --json], err: File::NULL, &:read)
+      raw = IO.popen(%w[npm outdated --json], chdir: gem_root, err: File::NULL, &:read)
       JSON.parse(raw).key?('playwright')
     rescue JSON::ParserError
       false
@@ -106,7 +110,7 @@ module PredictabilityEngine
         return
       end
 
-      system('npx', 'playwright', 'install', 'chromium', '--with-deps') ||
+      system('npx', 'playwright', 'install', 'chromium', '--with-deps', chdir: gem_root) ||
         raise(Error, 'playwright install chromium failed')
     end
 

@@ -278,7 +278,7 @@ module PredictabilityEngine
       js_dir = File.join(Gem.loaded_specs['vega'].gem_dir, 'vendor', 'assets', 'javascripts')
       { '**/npm/vega@5**' => 'vega.js', '**/npm/vega-lite@5**' => 'vega-lite.js',
         '**/npm/vega-embed@6**' => 'vega-embed.js' }.each do |pattern, filename|
-        content = File.binread(File.join(js_dir, filename)).force_encoding('UTF-8')
+        content = File.read(File.join(js_dir, filename), encoding: 'UTF-8')
         page.route(pattern, ->(route, _req) { route.fulfill(body: content, contentType: 'application/javascript') })
       end
     end
