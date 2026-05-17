@@ -43,4 +43,5 @@ ensure_ruby
 # ─────────────────────────────────────────────────────────────────────────────
 
 gem install bundler --conservative
+bundle install --jobs 4 --retry 3
 bundle exec predictability-engine setup

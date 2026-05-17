@@ -20,17 +20,6 @@ Expectations:
 * No scenario should be excluded because of platform limitations in the CI. 
 * A scenario that is not systematically run is no longer relevant.
 
-# Dead program tell no lies
-
-Please review the of the following pattern in the code:
-```ruby
-      rescue StandardError
-        {}
-      end
-```
-
-For example, I see a high risk of ignoring errors in configuration files and then having the user confused when the configuration is not working due to a syntax error.
-
 # Review the formatting of the following on the dashboard
 
 It looks cramped together.
@@ -55,10 +44,6 @@ The console output also only shows the last report path per format (e.g. `Task.h
 
 1. Fix the UTF-8 / BINARY encoding warning in JSON generation.
 2. Correct logging so all generated report paths appear, not just the last Task.xxx. Consider terse console output + richer file log.
-
-# Clean up
-
-* Please remove things that have been done from this file.
 
 # Remove obsolete README sections
 
