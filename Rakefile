@@ -87,8 +87,8 @@ end
 desc 'Run rubocop + bundler-audit + jscpd'
 task lint: %i[rubocop audit jscpd]
 
-desc 'Run lint + spec + features + jira_integrated_tests (fail-fast: style/audit before slow suites)'
-task verify: %i[rubocop audit spec features jscpd jira_integrated_tests]
+desc 'Run lint + spec + features (default + npm) + jira_integrated_tests (fail-fast: style/audit before slow suites)'
+task verify: %i[rubocop audit spec features features_npm jscpd jira_integrated_tests]
 
 desc 'Alias for verify — mirrors exactly what verify.yml CI runs'
 task ci: :verify

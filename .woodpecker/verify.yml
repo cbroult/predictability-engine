@@ -22,11 +22,13 @@ steps:
         network_mode: host
     environment:
       CUCUMBER_PUBLISH_QUIET: "true"
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+      PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: /usr/bin/chromium-browser
     commands:
       - apk add --no-cache build-base nodejs npm bash chromium
       - mkdir -p /root/.local/share/ruby-advisory-db/gems
-      - PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 ./bin/setup
-      - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser bundle exec rake verify
+      - ./bin/setup
+      - bundle exec rake verify
 
   - name: badge
     image: docker-registry.cbp-org.internal/badge-reporter:latest
