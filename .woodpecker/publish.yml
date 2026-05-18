@@ -57,22 +57,20 @@ when:
 
 steps:
   - name: test
-    image: ruby:4.0.3-alpine
+    image: ruby:4.0.3
     backend_options:
       docker:
         network_mode: host
     environment:
       CUCUMBER_PUBLISH_QUIET: "true"
-      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
-      PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: /usr/bin/chromium-browser
     commands:
-      - apk add --no-cache build-base nodejs npm git bash chromium
+      - apt-get update -qq && apt-get install -y --no-install-recommends nodejs npm && rm -rf /var/lib/apt/lists/*
       - mkdir -p /root/.local/share/ruby-advisory-db/gems
       - ./bin/setup
       - bundle exec rake verify
 
   - name: auto-bump
-    image: ruby:4.0.3-alpine
+    image: ruby:4.0.3
     when:
       event: push
       branch: main
@@ -87,17 +85,15 @@ steps:
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert
     commands:
-      - apk add --no-cache build-base curl git
       - sh scripts/auto-bump.sh
 
   - name: build-gem
-    image: ruby:4.0.3-alpine
+    image: ruby:4.0.3
     commands:
-      - apk add --no-cache build-base
       - gem build predictability-engine.gemspec
 
   - name: publish-gem
-    image: ruby:4.0.3-alpine
+    image: ruby:4.0.3
     backend_options:
       docker:
         extra_hosts:
@@ -110,11 +106,10 @@ steps:
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert
     commands:
-      - apk add --no-cache curl
       - sh scripts/publish-gem.sh
 
   - name: publish-rubygems
-    image: ruby:4.0.3-alpine
+    image: ruby:4.0.3
     environment:
       GEM_HOST_API_KEY:
         from_secret: rubygems_api_key
@@ -131,12 +126,11 @@ steps:
       CI: "true"
       JIRA_ENV: gha
     commands:
-      - apk add --no-cache build-base
       - bundle install --jobs 4 --retry 3
       - bundle exec rake publish:rubygems
 
   - name: rebuild-image
-    image: ruby:4.0.3-alpine
+    image: ruby:4.0.3
     backend_options:
       docker:
         extra_hosts:
@@ -147,13 +141,13 @@ steps:
       NEXUS_DEPLOY_KEY:
         from_secret: nexus_deploy_key
     commands:
-      - apk add --no-cache openssh-client
+      - apt-get update -qq && apt-get install -y --no-install-recommends openssh-client && rm -rf /var/lib/apt/lists/*
       - export GEM_VERSION=$(ruby -e "load 'lib/predictability_engine/version.rb'; puts PredictabilityEngine::VERSION")
       - export IMAGE_TAG=v$GEM_VERSION
       - sh scripts/build-engine-image.sh
 
   - name: verify-fresh-install
-    image: ruby:4.0.3-alpine
+    image: ruby:4.0.3
     backend_options:
       docker:
         extra_hosts:
@@ -162,13 +156,13 @@ steps:
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert
     commands:
-      - apk add --no-cache build-base ca-certificates curl nodejs npm chromium
+      - apt-get update -qq && apt-get install -y --no-install-recommends nodejs npm && rm -rf /var/lib/apt/lists/*
       - printf '%s' "$CBP_ORG_CA_CERT" | base64 -d > /usr/local/share/ca-certificates/cbp-org.crt
       - update-ca-certificates
       - export GEM_VERSION=$(ruby -e "load 'lib/predictability_engine/version.rb'; puts PredictabilityEngine::VERSION")
       - gem install predictability-engine --version "$GEM_VERSION" --source https://gems.cbp-org.internal --no-document
-      - PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install playwright
-      - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser sh scripts/verify-fresh-install.sh
+      - predictability-engine setup
+      - sh scripts/verify-fresh-install.sh
 
   - name: badge
     image: docker-registry.cbp-org.internal/badge-reporter:latest

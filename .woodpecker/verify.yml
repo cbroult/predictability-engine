@@ -16,16 +16,14 @@ clone:
 
 steps:
   - name: verify
-    image: ruby:4.0.3-alpine
+    image: ruby:4.0.3
     backend_options:
       docker:
         network_mode: host
     environment:
       CUCUMBER_PUBLISH_QUIET: "true"
-      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
-      PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: /usr/bin/chromium-browser
     commands:
-      - apk add --no-cache build-base nodejs npm bash chromium
+      - apt-get update -qq && apt-get install -y --no-install-recommends nodejs npm && rm -rf /var/lib/apt/lists/*
       - mkdir -p /root/.local/share/ruby-advisory-db/gems
       - ./bin/setup
       - bundle exec rake verify
