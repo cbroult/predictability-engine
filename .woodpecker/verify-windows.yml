@@ -7,7 +7,6 @@
 # platform: field is NOT a routing directive — labels: is.
 # image: powershell selects PowerShell as the local shell on the local backend;
 # the command itself uses pwsh (PowerShell 7) which reads scripts as UTF-8 by default.
-# failure: ignore — Windows CI is best-effort; Linux is the release gate.
 #
 # Clone auth: deploy-windows-agent.ps1 stores the Forgejo PAT as
 # git system http.https://git.cbp-org.internal.extraHeader so git authenticates
@@ -31,6 +30,5 @@ depends_on:
 steps:
   - name: verify-fresh-install-windows
     image: powershell
-    failure: ignore
     commands:
       - pwsh -ExecutionPolicy Bypass -File scripts\verify-fresh-install-windows.ps1
