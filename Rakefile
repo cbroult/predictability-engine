@@ -75,14 +75,6 @@ namespace :reports do
   end
 end
 
-namespace :publish do
-  desc 'Push the built .gem file to rubygems.org'
-  task :rubygems do
-    require_relative 'rakelib/rubygems_publisher'
-    RubygemsPublisher.publish
-  end
-end
-
 # Aggregation tasks
 desc 'Run rubocop + bundler-audit + jscpd'
 task lint: %i[rubocop audit jscpd]
