@@ -40,13 +40,12 @@ $env:GEM_VERSION = (ruby -e "load 'lib/predictability_engine/version.rb'; puts P
 # Install the freshly-published gem from the internal registry.
 gem install predictability-engine --version $env:GEM_VERSION --source https://gems.cbp-org.internal --no-document
 
-# Install Playwright and download the bundled Chromium browser.
-# Use npm.cmd/npx.cmd - npm.ps1 is blocked by execution policy on unmanaged machines.
-# PLAYWRIGHT_BROWSERS_PATH is a fixed shared location so the browser persists across CI runs
-# and is the same path regardless of which Windows account runs the step (cbrou vs SYSTEM).
+# Pin Chromium to a shared location so it persists across CI runs regardless of user account.
 $env:PLAYWRIGHT_BROWSERS_PATH = 'C:\ProgramData\ms-playwright'
-npm.cmd install playwright
-npx.cmd playwright install chromium
+
+# One command installs Node modules (npm.cmd) and Playwright Chromium (npx.cmd) — the same
+# flow an end user runs after `gem install predictability-engine`.
+predictability-engine setup
 
 # Run the platform-neutral verification script.
 pwsh -ExecutionPolicy Bypass -File scripts\verify-fresh-install.ps1
