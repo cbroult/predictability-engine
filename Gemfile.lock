@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    predictability-engine (0.7.1)
+    predictability-engine (0.7.2)
       activesupport
       caxlsx
       dotenv
@@ -361,7 +361,7 @@ CHECKSUMS
   powerpoint (1.8) sha256=c1da53d96265a09ffb86fdebf8da63abd776cf9ab1a140ea19c55a955e9b0c1a
   pragmatic_segmenter (0.3.24) sha256=3c3709953efc06cd6a81c26bf7eeb083ace6f116932799b77f83b17aef4534c9
   prawn (2.5.0) sha256=f4e20e3b4f30bf5b9ae37dad15eb421831594553aa930b2391b0fa0a99c43cb6
-  predictability-engine (0.7.1)
+  predictability-engine (0.7.2)
   prism (1.9.0) sha256=7b530c6a9f92c24300014919c9dcbc055bf4cdf51ec30aed099b06cd6674ef85
   public_suffix (7.0.5) sha256=1a8bb08f1bbea19228d3bed6e5ed908d1cb4f7c2726d18bd9cadf60bc676f623
   racc (1.8.1) sha256=4a7f6929691dbec8b5209a0b373bc2614882b55fc5d2e447a21aaa691303d62f
