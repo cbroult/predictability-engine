@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'json'
+require 'open3'
 require 'bundler'
 
 module PredictabilityEngine
@@ -46,11 +47,12 @@ module PredictabilityEngine
     end
 
     def node_major_version
-      raw = `node --version 2>/dev/null`.strip
+      out, = Open3.capture2('node', '--version')
+      raw = out.strip
       return nil if raw.empty?
 
       raw.delete_prefix('v').split('.').first.to_i
-    rescue Errno::ENOENT
+    rescue Errno::ENOENT, Errno::EACCES
       nil
     end
 
@@ -83,10 +85,10 @@ module PredictabilityEngine
     def install_or_update_playwright
       if !playwright_installed?
         PredictabilityEngine.logger.info { '==> Installing Playwright (first run)' }
-        system('npm', 'install', chdir: gem_root) || raise(Error, 'npm install failed')
+        system(npm_cmd, 'install', chdir: gem_root) || raise(Error, 'npm install failed')
       elsif playwright_outdated?
         PredictabilityEngine.logger.info { '==> Updating Playwright' }
-        system('npm', 'update', 'playwright', chdir: gem_root) || raise(Error, 'npm update playwright failed')
+        system(npm_cmd, 'update', 'playwright', chdir: gem_root) || raise(Error, 'npm update playwright failed')
       else
         PredictabilityEngine.logger.info { '==> Playwright — already up to date' }
       end
@@ -94,11 +96,11 @@ module PredictabilityEngine
     end
 
     def playwright_installed?
-      File.exist?(File.join(gem_root, 'node_modules', '.bin', 'playwright'))
+      File.exist?(File.join(gem_root, 'node_modules', 'playwright', 'package.json'))
     end
 
     def playwright_outdated?
-      raw = IO.popen(%w[npm outdated --json], chdir: gem_root, err: File::NULL, &:read)
+      raw = IO.popen([npm_cmd, 'outdated', '--json'], chdir: gem_root, err: File::NULL, &:read)
       JSON.parse(raw).key?('playwright')
     rescue JSON::ParserError
       false
@@ -110,9 +112,23 @@ module PredictabilityEngine
         return
       end
 
-      system('npx', 'playwright', 'install', 'chromium', '--with-deps', chdir: gem_root) ||
-        raise(Error, 'playwright install chromium failed')
+      args = [npx_cmd, 'playwright', 'install', 'chromium']
+      args << '--with-deps' if with_deps?
+      system(*args, chdir: gem_root) || raise(Error, 'playwright install chromium failed')
     end
+
+    def windows?
+      !!(Gem::Platform.local.os =~ /mingw|mswin/)
+    end
+
+    # --with-deps installs OS-level libraries via apt-get/dnf and requires root.
+    # Only enable it when running as root (e.g. CI Docker containers).
+    def with_deps?
+      !windows? && Process.euid.zero?
+    end
+
+    def npm_cmd = windows? ? 'npm.cmd' : 'npm'
+    def npx_cmd = windows? ? 'npx.cmd' : 'npx'
 
     def gem_root
       File.expand_path('../..', __dir__)

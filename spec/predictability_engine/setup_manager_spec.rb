@@ -11,7 +11,7 @@ RSpec.describe PredictabilityEngine::SetupManager do
 
   before do
     allow(Bundler).to receive(:with_unbundled_env).and_yield
-    allow(manager).to receive(:system).and_return(true)
+    allow(manager).to receive_messages(system: true, windows?: false, with_deps?: false)
   end
 
   describe '#run' do
@@ -74,6 +74,51 @@ RSpec.describe PredictabilityEngine::SetupManager do
         expect { install_ruby_deps! }
           .to raise_error(PredictabilityEngine::Error, /bundle install failed/)
       end
+    end
+  end
+
+  describe '#windows?' do
+    before { allow(manager).to receive(:windows?).and_call_original }
+
+    it 'returns false on the current (Linux) test platform' do
+      expect(manager.send(:windows?)).to be(false)
+    end
+  end
+
+  describe '#with_deps?' do
+    before { allow(manager).to receive(:with_deps?).and_call_original }
+
+    it 'returns false on the current (non-root Linux) test platform' do
+      expect(manager.send(:with_deps?)).to be(false)
+    end
+  end
+
+  describe '#npm_cmd' do
+    it 'returns npm on non-Windows' do
+      expect(manager.send(:npm_cmd)).to eq('npm')
+    end
+  end
+
+  describe '#npx_cmd' do
+    it 'returns npx on non-Windows' do
+      expect(manager.send(:npx_cmd)).to eq('npx')
+    end
+  end
+
+  describe '#node_major_version' do
+    it 'returns the major version number' do
+      allow(Open3).to receive(:capture2).with('node', '--version').and_return(["v20.11.0\n", nil])
+      expect(manager.send(:node_major_version)).to eq(20)
+    end
+
+    it 'returns nil when node is not on PATH' do
+      allow(Open3).to receive(:capture2).with('node', '--version').and_raise(Errno::ENOENT)
+      expect(manager.send(:node_major_version)).to be_nil
+    end
+
+    it 'returns nil when node outputs nothing' do
+      allow(Open3).to receive(:capture2).with('node', '--version').and_return(['', nil])
+      expect(manager.send(:node_major_version)).to be_nil
     end
   end
 
@@ -170,8 +215,6 @@ RSpec.describe PredictabilityEngine::SetupManager do
   describe '#install_chromium_browser' do
     subject(:install_chromium!) { manager.send(:install_chromium_browser) }
 
-    let(:chromium_cmd) { ['npx', 'playwright', 'install', 'chromium', '--with-deps', { chdir: gem_root }] }
-
     context 'when PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD is set' do
       around do |example|
         old = ENV.fetch('PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD', nil)
@@ -181,7 +224,7 @@ RSpec.describe PredictabilityEngine::SetupManager do
       end
 
       it 'skips the download' do
-        expect(manager).not_to receive(:system).with(*chromium_cmd)
+        expect(manager).not_to receive(:system)
         install_chromium!
       end
 
@@ -192,14 +235,18 @@ RSpec.describe PredictabilityEngine::SetupManager do
     end
 
     context 'when PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD is not set' do
-      around do |example|
-        old = ENV.delete('PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD')
-        example.run
-        ENV['PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD'] = old if old
+      include_context 'with cleared PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD'
+
+      it 'runs playwright install chromium without --with-deps when not root' do
+        chromium_args = ['npx', 'playwright', 'install', 'chromium', { chdir: gem_root }]
+        expect(manager).to receive(:system).with(*chromium_args)
+        install_chromium!
       end
 
-      it 'runs playwright install chromium' do
-        expect(manager).to receive(:system).with(*chromium_cmd)
+      it 'adds --with-deps when running as root' do
+        allow(manager).to receive(:with_deps?).and_return(true)
+        expect(manager).to receive(:system)
+          .with('npx', 'playwright', 'install', 'chromium', '--with-deps', chdir: gem_root)
         install_chromium!
       end
     end
@@ -237,6 +284,42 @@ RSpec.describe PredictabilityEngine::SetupManager do
         configure_hooks!
         expect(log_output.string).to include('Git hooks skipped')
       end
+    end
+  end
+
+  context 'when on Windows' do
+    include_context 'with cleared PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD'
+
+    before do
+      allow(manager).to receive(:windows?).and_return(true)
+      allow(manager).to receive(:install_chromium_browser)
+    end
+
+    it 'npm_cmd returns npm.cmd' do
+      expect(manager.send(:npm_cmd)).to eq('npm.cmd')
+    end
+
+    it 'npx_cmd returns npx.cmd' do
+      expect(manager.send(:npx_cmd)).to eq('npx.cmd')
+    end
+
+    it 'install_or_update_playwright uses npm.cmd for initial install' do
+      install_args = ['npm.cmd', 'install', { chdir: gem_root }]
+      allow(manager).to receive(:playwright_installed?).and_return(false)
+      expect(manager).to receive(:system).with(*install_args)
+      manager.send(:install_or_update_playwright)
+    end
+
+    it 'install_or_update_playwright uses npm.cmd for update' do
+      allow(manager).to receive_messages(playwright_installed?: true, playwright_outdated?: true)
+      expect(manager).to receive(:system).with('npm.cmd', 'update', 'playwright', chdir: gem_root)
+      manager.send(:install_or_update_playwright)
+    end
+
+    it 'install_chromium_browser omits --with-deps and uses npx.cmd' do
+      allow(manager).to receive(:install_chromium_browser).and_call_original
+      expect(manager).to receive(:system).with('npx.cmd', 'playwright', 'install', 'chromium', chdir: gem_root)
+      manager.send(:install_chromium_browser)
     end
   end
 end

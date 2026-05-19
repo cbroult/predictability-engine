@@ -53,19 +53,20 @@ module PredictabilityEngine
     # INFO or higher.
     module JiraHttpLogger
       def make_request(http_method, url, body = '', headers = {})
-        log = SemanticLogger['JIRA::HTTP']
+        log = ::SemanticLogger['JIRA::HTTP']
         log.debug { "→ #{http_method.upcase} #{url}" }
         result = super
         log.debug { "← #{result.code} #{result.message}" }
         result
       rescue StandardError => e
-        SemanticLogger['JIRA::HTTP'].debug { "✗ #{http_method.upcase} #{url} (#{e.class}: #{e.message})" }
+        ::SemanticLogger['JIRA::HTTP'].debug { "✗ #{http_method.upcase} #{url} (#{e.class}: #{e.message})" }
         raise
       end
     end
     private_constant :JiraHttpLogger
 
     def self.instrument_jira_http!
+      require 'semantic_logger'
       ::JIRA::HttpClient.prepend(JiraHttpLogger)
     end
     private_class_method :instrument_jira_http!

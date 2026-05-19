@@ -73,7 +73,7 @@ Feature: Jira data source journey
   @jira_live
   Scenario: Phase 3 — jira_workflow extracts workflow statuses for a profile
     Given the JIRA_PROFILE environment variable is set
-    When I successfully run `predictability-engine jira_workflow $JIRA_PROFILE`
+    When I run the jira_workflow command for the current profile
     Then the exit status should be 0
     And the output should contain "workflow"
     And a workflow file should exist at "$HOME/.config/jira/$JIRA_PROFILE.workflow.yml"
@@ -91,6 +91,6 @@ Feature: Jira data source journey
     And the output should contain "<expected>"
 
     Examples:
-      | command | expected    |
-      | summary | Total Items |
-      | batch   | terminal    |
+      | command | expected              |
+      | summary | Total Items           |
+      | batch   | Full Predictability   |

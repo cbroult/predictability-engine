@@ -40,6 +40,14 @@ RSpec.shared_context 'with captured logger' do
   end
 end
 
+RSpec.shared_context 'with cleared PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD' do
+  around do |example|
+    old = ENV.delete('PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD')
+    example.run
+    ENV['PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD'] = old if old
+  end
+end
+
 RSpec.shared_context 'with sample work items' do
   let(:items) do
     [
