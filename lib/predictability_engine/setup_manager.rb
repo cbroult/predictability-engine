@@ -124,7 +124,11 @@ module PredictabilityEngine
     # --with-deps installs OS-level libraries via apt-get/dnf and requires root.
     # Only enable it when running as root (e.g. CI Docker containers).
     def with_deps?
-      !windows? && Process.euid.zero?
+      !windows? && root?
+    end
+
+    def root?
+      Process.euid.zero?
     end
 
     def npm_cmd = windows? ? 'npm.cmd' : 'npm'

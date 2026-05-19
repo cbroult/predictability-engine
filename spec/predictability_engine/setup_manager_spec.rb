@@ -88,8 +88,15 @@ RSpec.describe PredictabilityEngine::SetupManager do
   describe '#with_deps?' do
     before { allow(manager).to receive(:with_deps?).and_call_original }
 
-    it 'returns false on the current (non-root Linux) test platform' do
-      expect(manager.send(:with_deps?)).to be(false)
+    {
+      'Windows (root)' => [{ windows?: true,  root?: true  }, false],
+      'Linux non-root' => [{ windows?: false, root?: false }, false],
+      'Linux root' => [{ windows?: false, root?: true }, true]
+    }.each do |desc, (stubs, expected)|
+      it "returns #{expected} when #{desc}" do
+        allow(manager).to receive_messages(**stubs)
+        expect(manager.send(:with_deps?)).to be(expected)
+      end
     end
   end
 
