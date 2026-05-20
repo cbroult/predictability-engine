@@ -9,7 +9,8 @@ Gem::Specification.new do |spec|
   spec.summary       = 'Actionable Agile Metrics and Monte Carlo forecasting engine'
   spec.license       = 'MIT'
 
-  spec.files         = Dir['lib/**/*.rb', 'bin/*', 'data/samples/*.csv']
+  spec.files         = Dir['lib/**/*.rb', 'bin/*', 'data/samples/*.csv'] +
+                       %w[package.json package-lock.json]
   spec.bindir        = 'bin'
   spec.executables   = ['predictability-engine']
   spec.require_paths = ['lib']
