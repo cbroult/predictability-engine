@@ -183,7 +183,7 @@ GEM
     racc (1.8.1)
     rainbow (3.1.1)
     rake (13.4.2)
-    rake-gem-maintenance (0.2.0)
+    rake-gem-maintenance (0.2.2)
       bundler-audit
       gem-release
       rake
@@ -367,7 +367,7 @@ CHECKSUMS
   racc (1.8.1) sha256=4a7f6929691dbec8b5209a0b373bc2614882b55fc5d2e447a21aaa691303d62f
   rainbow (3.1.1) sha256=039491aa3a89f42efa1d6dec2fc4e62ede96eb6acd95e52f1ad581182b79bc6a
   rake (13.4.2) sha256=cb825b2bd5f1f8e91ca37bddb4b9aaf345551b4731da62949be002fa89283701
-  rake-gem-maintenance (0.2.0) sha256=d43f2c0387377eb9be78594c7420518379e184a601581506562b3e5fa0f9d89b
+  rake-gem-maintenance (0.2.2) sha256=bb423aaecf3a177a990f20bb7e0854b6fbc1694b9e53133e40e166321a835b23
   redcarpet (3.6.1) sha256=d444910e6aa55480c6bcdc0cdb057626e8a32c054c29e793fa642ba2f155f445
   regexp_parser (2.12.0) sha256=35a916a1d63190ab5c9009457136ae5f3c0c7512d60291d0d1378ba18ce08ebb
   roo (2.10.1) sha256=cbb43bc955f9c110e74b721c835fb9bd3515b63af88ec709ac87fbf30f8be70e
