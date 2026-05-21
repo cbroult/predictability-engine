@@ -52,7 +52,10 @@ RSpec.describe PredictabilityEngine::SetupManager do
       ENV['BUNDLE_WITHOUT'] = old
     end
 
-    before { allow(File).to receive(:exist?).and_call_original }
+    before do
+      allow(File).to receive(:exist?).and_call_original
+      allow(manager).to receive(:bundle_check).and_return(false)
+    end
 
     context 'when no Gemfile exists in gem_root' do
       before { allow(File).to receive(:exist?).with(gemfile_path).and_return(false) }
@@ -70,6 +73,12 @@ RSpec.describe PredictabilityEngine::SetupManager do
 
     context 'when Gemfile exists in gem_root' do
       before { allow(File).to receive(:exist?).with(gemfile_path).and_return(true) }
+
+      it 'skips bundle install when dependencies are already satisfied' do
+        allow(manager).to receive(:bundle_check).and_return(true)
+        expect(manager).not_to receive(:system).with(*bundle_args)
+        install_ruby_deps!
+      end
 
       it 'runs bundle install inside an unbundled env' do
         expect(Bundler).to receive(:with_unbundled_env).and_yield

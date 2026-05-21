@@ -28,9 +28,17 @@ module PredictabilityEngine
         return
       end
       PredictabilityEngine.logger.info { '==> Installing Ruby dependencies' }
+      return if bundle_check
+
       Bundler.with_unbundled_env do
         bundle_install || raise(Error, 'bundle install failed')
       end
+    end
+
+    def bundle_check
+      env = bundle_install_env
+      args = ['bundle', 'check', { out: File::NULL, err: File::NULL }]
+      env.empty? ? system(*args) : system(env, *args)
     end
 
     def bundle_install
