@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CUCUMBER_PUBLISH_QUIET: "true"
+  JIRA_ENV: gha
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/ruby-setup
+
+      - name: Show runtime versions
+        run: |
+          ruby --version
+          bundle --version
+          node --version
+          npm --version
+
+      - name: Prepare bundler-audit database directory
+        run: mkdir -p ~/.local/share/ruby-advisory-db/gems
+
+      - name: Run verification suite
+        run: bundle exec rake verify
