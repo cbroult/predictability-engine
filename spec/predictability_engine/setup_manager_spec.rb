@@ -76,7 +76,7 @@ RSpec.describe PredictabilityEngine::SetupManager do
 
       it 'skips bundle install when dependencies are already satisfied' do
         allow(manager).to receive(:bundle_check).and_return(true)
-        expect(manager).not_to receive(:system).with(*bundle_args)
+        expect(manager).not_to receive(:bundle_install)
         install_ruby_deps!
       end
 

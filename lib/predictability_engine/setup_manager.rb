@@ -35,16 +35,14 @@ module PredictabilityEngine
       end
     end
 
-    def bundle_check
-      env = bundle_install_env
-      args = ['bundle', 'check', { out: File::NULL, err: File::NULL }]
-      env.empty? ? system(*args) : system(env, *args)
-    end
+    def bundle_check = run_bundle_command('check', out: File::NULL, err: File::NULL)
 
-    def bundle_install
+    def bundle_install = run_bundle_command('install', '--jobs', '4', '--retry', '3')
+
+    def run_bundle_command(*args)
       env = bundle_install_env
-      args = ['bundle', 'install', '--jobs', '4', '--retry', '3']
-      env.empty? ? system(*args) : system(env, *args)
+      command = ['bundle', *args]
+      env.empty? ? system(*command) : system(env, *command)
     end
 
     def bundle_install_env
