@@ -29,8 +29,19 @@ module PredictabilityEngine
       end
       PredictabilityEngine.logger.info { '==> Installing Ruby dependencies' }
       Bundler.with_unbundled_env do
-        system('bundle', 'install', '--jobs', '4', '--retry', '3') || raise(Error, 'bundle install failed')
+        bundle_install || raise(Error, 'bundle install failed')
       end
+    end
+
+    def bundle_install
+      env = bundle_install_env
+      args = ['bundle', 'install', '--jobs', '4', '--retry', '3']
+      env.empty? ? system(*args) : system(env, *args)
+    end
+
+    def bundle_install_env
+      without = ENV.fetch('BUNDLE_WITHOUT', nil)
+      without.to_s.empty? ? {} : { 'BUNDLE_WITHOUT' => without }
     end
 
     def ensure_node

@@ -69,6 +69,17 @@ RSpec.describe PredictabilityEngine::SetupManager do
         install_ruby_deps!
       end
 
+      it 'preserves BUNDLE_WITHOUT for nested bundle installs' do
+        env = { 'BUNDLE_WITHOUT' => 'internal_ci' }
+        old = ENV.fetch('BUNDLE_WITHOUT', nil)
+        ENV['BUNDLE_WITHOUT'] = env.fetch('BUNDLE_WITHOUT')
+
+        expect(manager).to receive(:system).with(env, *bundle_args)
+        install_ruby_deps!
+      ensure
+        ENV['BUNDLE_WITHOUT'] = old
+      end
+
       it 'raises when bundle install fails' do
         allow(manager).to receive(:system).with(*bundle_args).and_return(false)
         expect { install_ruby_deps! }
