@@ -1,39 +1,26 @@
-# publish.yml — build → test → publish → rebuild image → verify on clean install.
+# publish.yml — RC phase: test → auto-bump → build X.Y.Z.rc1 → publish RC to internal registry.
 #
-# Chained pipeline (mirrors multi-mail-archiver/.woodpecker/publish.yml):
-#   1. test                    bundle exec rake verify (the release gate)
-#   2. auto-bump               patch-bump version, commit+tag+push (unless [skip bump] / [skip ci])
-#   3. build-gem               gem build predictability-engine.gemspec
-#   4. publish-gem             push to gems.cbp-org.internal (internal registry)
-#   4b. publish-rubygems       gem push to rubygems.org (public registry)
-#   5. rebuild-image           rebuild docker-registry.cbp-org.internal/predictability-engine
-#                              at :v<new-version> and :latest
-#   6. verify-fresh-install    gem install predictability-engine on a clean image,
-#                              run `batch` + smoke matrix on shipped samples + XL synth
-#   7. badge                   always report
+# Single-step pipeline (one container) to minimise container-spin-up overhead.
+# Uses docker-registry.cbp-org.internal/predictability-engine-ci:latest — a
+# pre-built image with nodejs/npm/openssh-client baked in (see Dockerfile.ci).
 #
-# Triggers:
-#   - push to main (every merge auto-bumps patch if needed)
-#   - tag push refs/tags/v*   (re-release, no bump)
-#   - manual
+# Pipeline sequence (all in one container):
+#   1. ./bin/setup                       install gems + Playwright Chromium
+#   2. bundle exec rake verify           full test gate
+#   3. scripts/auto-bump.sh              patch-bump version on push to main only
+#   4. scripts/build-rc-gem.sh           build X.Y.Z.rc1 gem (version.rb temporarily patched)
+#   5. scripts/publish-gem.sh            push X.Y.Z.rc1 to gems.cbp-org.internal
+#
+# After this workflow succeeds, verify-linux.yml and verify-windows.yml run in
+# parallel (depends_on: publish), then promote.yml runs (depends_on: verify-linux
+# + verify-windows) to publish the final X.Y.Z gem to both registries and GitHub.
 #
 # Required Woodpecker secrets (org-level cbp-org):
+#   forgejo_push_token    — Forgejo PAT with write on this repo (for auto-bump)
+#   cbp_org_ca_cert       — Base64-encoded cbp-org root CA certificate
 #   gem_user              — Geminabox username
 #   gem_password          — Geminabox password
-#   cbp_org_ca_cert       — Base64-encoded cbp-org root CA certificate
 #   badge_service_token   — Write token for badge.cbp-org.internal
-#   forgejo_push_token    — Forgejo PAT with write on this repo (for auto-bump)
-#   nexus_deploy_key      — SSH private key for root@nexus.cbp-org.internal
-#   rubygems_api_key      — rubygems.org API key with "Push gem" scope
-#                           Generate: https://rubygems.org/profile/api_keys
-#   rubygems_otp_seed     — TOTP seed (base-32) for rubygems.org MFA; used by
-#                           OtpProvider to generate a one-time code on each push
-#   rubygems_username     — rubygems.org username; used by ApiKeyRenewer to
-#                           request a fresh API key when the current one expires
-#   rubygems_password     — rubygems.org password; paired with rubygems_username
-#                           for unattended key renewal via the rubygems.org API
-#   woodpecker_api_token  — Woodpecker API token; ApiKeyRenewer writes the new
-#                           key back to the rubygems_api_key org secret automatically
 
 labels:
   platform: linux
@@ -56,113 +43,31 @@ when:
   - event: manual
 
 steps:
-  - name: test
-    image: ruby:4.0.3
+  - name: publish-rc
+    image: docker-registry.cbp-org.internal/predictability-engine-ci:latest
     backend_options:
       docker:
         network_mode: host
-    environment:
-      CUCUMBER_PUBLISH_QUIET: "true"
-    commands:
-      - apt-get update -qq && apt-get install -y --no-install-recommends nodejs npm && rm -rf /var/lib/apt/lists/*
-      - mkdir -p /root/.local/share/ruby-advisory-db/gems
-      - ./bin/setup
-      - bundle exec rake verify
-
-  - name: auto-bump
-    image: ruby:4.0.3
-    when:
-      event: push
-      branch: main
-    backend_options:
-      docker:
         extra_hosts:
           - "git.cbp-org.internal:192.168.16.23"
           - "gems.cbp-org.internal:192.168.16.23"
     environment:
+      CUCUMBER_PUBLISH_QUIET: "true"
       FORGEJO_PUSH_TOKEN:
         from_secret: forgejo_push_token
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert
-    commands:
-      - sh scripts/auto-bump.sh
-
-  - name: build-gem
-    image: ruby:4.0.3
-    commands:
-      - gem build predictability-engine.gemspec
-
-  - name: publish-gem
-    image: ruby:4.0.3
-    backend_options:
-      docker:
-        extra_hosts:
-          - "gems.cbp-org.internal:192.168.16.23"
-    environment:
       GEM_USER:
         from_secret: gem_user
       GEM_PASSWORD:
         from_secret: gem_password
-      CBP_ORG_CA_CERT:
-        from_secret: cbp_org_ca_cert
     commands:
+      - mkdir -p /root/.local/share/ruby-advisory-db/gems
+      - ./bin/setup
+      - bundle exec rake verify
+      - if [ "${CI_PIPELINE_EVENT}" = "push" ] && [ "${CI_COMMIT_BRANCH}" = "main" ]; then sh scripts/auto-bump.sh; fi
+      - sh scripts/build-rc-gem.sh
       - sh scripts/publish-gem.sh
-
-  - name: publish-rubygems
-    image: ruby:4.0.3
-    environment:
-      GEM_HOST_API_KEY:
-        from_secret: rubygems_api_key
-      RUBYGEMS_OTP_SEED:
-        from_secret: rubygems_otp_seed
-      RUBYGEMS_USERNAME:
-        from_secret: rubygems_username
-      RUBYGEMS_PASSWORD:
-        from_secret: rubygems_password
-      WOODPECKER_TOKEN:
-        from_secret: woodpecker_api_token
-      WOODPECKER_SERVER: https://ci.cbp-org.internal
-      WOODPECKER_ORG: cbp-org
-      CI: "true"
-      JIRA_ENV: gha
-    commands:
-      - bundle install --jobs 4 --retry 3
-      - bundle exec rake publish:rubygems
-
-  - name: rebuild-image
-    image: ruby:4.0.3
-    backend_options:
-      docker:
-        extra_hosts:
-          - "nexus.cbp-org.internal:192.168.16.23"
-    environment:
-      CBP_ORG_CA_CERT:
-        from_secret: cbp_org_ca_cert
-      NEXUS_DEPLOY_KEY:
-        from_secret: nexus_deploy_key
-    commands:
-      - apt-get update -qq && apt-get install -y --no-install-recommends openssh-client && rm -rf /var/lib/apt/lists/*
-      - export GEM_VERSION=$(ruby -e "load 'lib/predictability_engine/version.rb'; puts PredictabilityEngine::VERSION")
-      - export IMAGE_TAG=v$GEM_VERSION
-      - sh scripts/build-engine-image.sh
-
-  - name: verify-fresh-install
-    image: ruby:4.0.3
-    backend_options:
-      docker:
-        extra_hosts:
-          - "gems.cbp-org.internal:192.168.16.23"
-    environment:
-      CBP_ORG_CA_CERT:
-        from_secret: cbp_org_ca_cert
-    commands:
-      - apt-get update -qq && apt-get install -y --no-install-recommends nodejs npm && rm -rf /var/lib/apt/lists/*
-      - printf '%s' "$CBP_ORG_CA_CERT" | base64 -d > /usr/local/share/ca-certificates/cbp-org.crt
-      - update-ca-certificates
-      - export GEM_VERSION=$(ruby -e "load 'lib/predictability_engine/version.rb'; puts PredictabilityEngine::VERSION")
-      - gem install predictability-engine --version "$GEM_VERSION" --source https://gems.cbp-org.internal --no-document
-      - predictability-engine setup
-      - sh scripts/verify-fresh-install.sh
 
   - name: badge
     image: docker-registry.cbp-org.internal/badge-reporter:latest

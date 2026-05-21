@@ -20,20 +20,9 @@ IMAGE_TAG=${IMAGE_TAG:-}
 GEM_VERSION=${GEM_VERSION:-}
 REGISTRY=docker-registry.cbp-org.internal/predictability-engine
 
-mkdir -p ~/.ssh && chmod 700 ~/.ssh
-printf '%s\n' "${NEXUS_DEPLOY_KEY}" | sed 's/\\n/\n/g' | tr -d '\r' > ~/.ssh/ci_deploy
-chmod 600 ~/.ssh/ci_deploy
-echo "[nexus.cbp-org.internal]:32523 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPaRph2p4g/e4VpJHSn6mL5Qe32tPciyNCYsM5iEcuBB" >> ~/.ssh/known_hosts
+. scripts/nexus-ssh-init.sh
 
 printf '%s' "${CBP_ORG_CA_CERT}" > /tmp/cbp-ca.b64
-
-SSH_BASE="ssh -i ~/.ssh/ci_deploy -p 32523 -o StrictHostKeyChecking=yes -o BatchMode=yes root@nexus.cbp-org.internal"
-SCP_BASE="scp -O -i ~/.ssh/ci_deploy -P 32523 -o StrictHostKeyChecking=yes"
-
-# shellcheck disable=SC2086
-REMOTE_TMPDIR=$($SSH_BASE 'mktemp -d')
-cleanup() { $SSH_BASE "rm -rf ${REMOTE_TMPDIR}" || true; }
-trap cleanup EXIT
 
 $SCP_BASE Dockerfile.predictability-engine /tmp/cbp-ca.b64 "root@nexus.cbp-org.internal:${REMOTE_TMPDIR}/"
 

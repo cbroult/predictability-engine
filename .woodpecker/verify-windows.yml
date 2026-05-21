@@ -1,7 +1,9 @@
-# verify-windows.yml — Windows smoke test on a native photocenter agent.
+# verify-windows.yml — Windows fresh-install validation of the RC gem.
 #
-# Runs after the verify workflow passes. Installs from rubygems.org (the
-# same source end users use) so it does not depend on the internal registry.
+# Runs after publish.yml succeeds (depends_on: publish). Installs
+# X.Y.Z.rc1 from gems.cbp-org.internal — the RC just published by the
+# publish workflow — then runs `predictability-engine setup` and the
+# full verify-fresh-install smoke suite.
 #
 # Agent targeting: photocenter via labels matching custom_labels {platform: windows}.
 # platform: field is NOT a routing directive — labels: is.
@@ -17,6 +19,9 @@
 labels:
   platform: windows
 
+depends_on:
+  - publish
+
 when:
   - event: push
     branch: main
@@ -27,5 +32,8 @@ when:
 steps:
   - name: verify-fresh-install-windows
     image: powershell
+    environment:
+      CBP_ORG_CA_CERT:
+        from_secret: cbp_org_ca_cert
     commands:
       - pwsh -ExecutionPolicy Bypass -File scripts\verify-fresh-install-windows.ps1
