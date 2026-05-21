@@ -24,9 +24,6 @@ when:
     ref: refs/tags/v*
   - event: manual
 
-depends_on:
-  - verify
-
 steps:
   - name: verify-fresh-install-windows
     image: powershell
