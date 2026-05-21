@@ -1,7 +1,7 @@
 # verify-windows.yml — Windows smoke test on a native photocenter agent.
 #
-# Runs after the publish workflow (depends_on ensures the gem is already
-# pushed to gems.cbp-org.internal before we try to install it).
+# Runs after the verify workflow passes. Installs from rubygems.org (the
+# same source end users use) so it does not depend on the internal registry.
 #
 # Agent targeting: photocenter via labels matching custom_labels {platform: windows}.
 # platform: field is NOT a routing directive — labels: is.
@@ -25,7 +25,7 @@ when:
   - event: manual
 
 depends_on:
-  - publish
+  - verify
 
 steps:
   - name: verify-fresh-install-windows
