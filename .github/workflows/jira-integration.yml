@@ -28,6 +28,7 @@ on:
   workflow_dispatch:
 
 env:
+  BUNDLE_WITHOUT:   internal_ci
   JIRA_SITE:      ${{ secrets.JIRA_SITE }}
   JIRA_EMAIL:     ${{ secrets.JIRA_EMAIL }}
   JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
