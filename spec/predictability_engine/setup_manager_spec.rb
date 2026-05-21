@@ -44,7 +44,18 @@ RSpec.describe PredictabilityEngine::SetupManager do
     let(:bundle_args) { ['bundle', 'install', '--jobs', '4', '--retry', '3'] }
     let(:gemfile_path) { File.join(gem_root, 'Gemfile') }
 
-    before { allow(File).to receive(:exist?).and_call_original }
+    around do |example|
+      old = ENV.fetch('BUNDLE_WITHOUT', nil)
+      ENV.delete('BUNDLE_WITHOUT')
+      example.run
+    ensure
+      ENV['BUNDLE_WITHOUT'] = old
+    end
+
+    before do
+      allow(File).to receive(:exist?).and_call_original
+      allow(manager).to receive(:bundle_check).and_return(false)
+    end
 
     context 'when no Gemfile exists in gem_root' do
       before { allow(File).to receive(:exist?).with(gemfile_path).and_return(false) }
@@ -63,10 +74,27 @@ RSpec.describe PredictabilityEngine::SetupManager do
     context 'when Gemfile exists in gem_root' do
       before { allow(File).to receive(:exist?).with(gemfile_path).and_return(true) }
 
+      it 'skips bundle install when dependencies are already satisfied' do
+        allow(manager).to receive(:bundle_check).and_return(true)
+        expect(manager).not_to receive(:bundle_install)
+        install_ruby_deps!
+      end
+
       it 'runs bundle install inside an unbundled env' do
         expect(Bundler).to receive(:with_unbundled_env).and_yield
         expect(manager).to receive(:system).with(*bundle_args)
         install_ruby_deps!
+      end
+
+      it 'preserves BUNDLE_WITHOUT for nested bundle installs' do
+        env = { 'BUNDLE_WITHOUT' => 'internal_ci' }
+        old = ENV.fetch('BUNDLE_WITHOUT', nil)
+        ENV['BUNDLE_WITHOUT'] = env.fetch('BUNDLE_WITHOUT')
+
+        expect(manager).to receive(:system).with(env, *bundle_args)
+        install_ruby_deps!
+      ensure
+        ENV['BUNDLE_WITHOUT'] = old
       end
 
       it 'raises when bundle install fails' do
