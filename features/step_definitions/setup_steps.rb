@@ -16,6 +16,13 @@ def path_without_commands(commands)
      .join(File::PATH_SEPARATOR)
 end
 
+def propagate_optional_environment(*names)
+  names.each do |name|
+    value = ENV.fetch(name, nil)
+    set_environment_variable(name, value) if value
+  end
+end
+
 When('I run {command} with an unsatisfiable Ruby version requirement') do |cmd|
   set_environment_variable('REQUIRED_RUBY_MAJOR', '99')
   set_environment_variable('PATH', path_without_commands(%w[mise asdf rbenv rvm]))
@@ -23,11 +30,13 @@ When('I run {command} with an unsatisfiable Ruby version requirement') do |cmd|
 end
 
 When('I run {command} with PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD set') do |cmd|
+  propagate_optional_environment('BUNDLE_WITHOUT')
   set_environment_variable('PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD', '1')
   run_command_and_stop("bash #{resolve_bin_script(cmd)}", exit_timeout: 120)
 end
 
 When('I run setup with PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD set') do
+  propagate_optional_environment('BUNDLE_WITHOUT')
   set_environment_variable('PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD', '1')
   run_command_and_stop('predictability-engine setup', exit_timeout: 120)
 end

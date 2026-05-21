@@ -10,6 +10,7 @@ AllCops:
     - ".githooks/*"
     - "scripts/*.ps1"
     - "scripts/*.sh"
+    - "vendor/**/*"
 
 # --- Style ---
 

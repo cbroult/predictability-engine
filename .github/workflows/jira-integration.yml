@@ -28,6 +28,7 @@ on:
   workflow_dispatch:
 
 env:
+  BUNDLE_WITHOUT:   internal_ci
   JIRA_SITE:      ${{ secrets.JIRA_SITE }}
   JIRA_EMAIL:     ${{ secrets.JIRA_EMAIL }}
   JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
@@ -37,6 +38,7 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/ruby-setup
       - name: Provision Jira projects
         run: bundle exec ruby scripts/jira_project_setup.rb setup --env gha --count 25 --profile gha
@@ -45,6 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/ruby-setup
       - name: Verify summary report
         run: bundle exec ./bin/predictability-engine summary  PEGHATBD
@@ -61,6 +64,7 @@ jobs:
     env:
       CUCUMBER_PUBLISH_QUIET: "true"
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/ruby-setup
       - name: Run Jira BDD scenarios
         run: bundle exec cucumber features/jira_pipeline.feature --tags @real_jira
