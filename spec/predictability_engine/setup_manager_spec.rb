@@ -44,6 +44,14 @@ RSpec.describe PredictabilityEngine::SetupManager do
     let(:bundle_args) { ['bundle', 'install', '--jobs', '4', '--retry', '3'] }
     let(:gemfile_path) { File.join(gem_root, 'Gemfile') }
 
+    around do |example|
+      old = ENV.fetch('BUNDLE_WITHOUT', nil)
+      ENV.delete('BUNDLE_WITHOUT')
+      example.run
+    ensure
+      ENV['BUNDLE_WITHOUT'] = old
+    end
+
     before { allow(File).to receive(:exist?).and_call_original }
 
     context 'when no Gemfile exists in gem_root' do
