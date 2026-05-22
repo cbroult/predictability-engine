@@ -1,25 +1,25 @@
-# publish.yml — RC phase: test → auto-bump → build X.Y.Z.rc1 → publish RC to internal registry.
+# publish.yml — build phase: test → auto-bump → build X.Y.Z gem → upload artifact.
 #
 # Single-step pipeline (one container) to minimise container-spin-up overhead.
 # Uses docker-registry.cbp-org.internal/predictability-engine-ci:latest — a
 # pre-built image with nodejs/npm/openssh-client baked in (see Dockerfile.ci).
 #
 # Pipeline sequence (all in one container):
-#   1. ./bin/setup                       install gems + Playwright Chromium
-#   2. bundle exec rake verify           full test gate
-#   3. scripts/auto-bump.sh              patch-bump version on push to main only
-#   4. scripts/build-rc-gem.sh           build X.Y.Z.rc1 gem (version.rb temporarily patched)
-#   5. scripts/publish-gem.sh            push X.Y.Z.rc1 to gems.cbp-org.internal
+#   1. ./bin/setup                         install gems + Playwright Chromium
+#   2. bundle exec rake verify             full test gate
+#   3. scripts/auto-bump.sh               patch-bump version on push to main only
+#   4. gem build                           build final X.Y.Z gem (no .rc1 suffix)
+#   5. scripts/upload-gem-artifact.sh      upload to nexus raw artifact store
 #
-# After this workflow succeeds, verify-linux.yml and verify-windows.yml run in
-# parallel (depends_on: publish), then promote.yml runs (depends_on: verify-linux
-# + verify-windows) to publish the final X.Y.Z gem to both registries and GitHub.
+# The gem is NOT pushed to the gem registry here — only to the raw artifact
+# store on nexus. verify-linux.yml and verify-windows.yml download and install
+# it locally. Only after both pass does promote.yml push to the gem registries.
 #
 # Required Woodpecker secrets (org-level cbp-org):
 #   forgejo_push_token    — Forgejo PAT with write on this repo (for auto-bump)
 #   cbp_org_ca_cert       — Base64-encoded cbp-org root CA certificate
-#   gem_user              — Geminabox username
-#   gem_password          — Geminabox password
+#   nexus_user            — Nexus username for raw artifact repo
+#   nexus_password        — Nexus password for raw artifact repo
 #   badge_service_token   — Write token for badge.cbp-org.internal
 
 labels:
@@ -43,31 +43,31 @@ when:
   - event: manual
 
 steps:
-  - name: publish-rc
+  - name: build-artifact
     image: docker-registry.cbp-org.internal/predictability-engine-ci:latest
     backend_options:
       docker:
         network_mode: host
         extra_hosts:
           - "git.cbp-org.internal:192.168.16.23"
-          - "gems.cbp-org.internal:192.168.16.23"
+          - "nexus.cbp-org.internal:192.168.16.23"
     environment:
       CUCUMBER_PUBLISH_QUIET: "true"
       FORGEJO_PUSH_TOKEN:
         from_secret: forgejo_push_token
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert
-      GEM_USER:
-        from_secret: gem_user
-      GEM_PASSWORD:
-        from_secret: gem_password
+      NEXUS_USER:
+        from_secret: nexus_user
+      NEXUS_PASSWORD:
+        from_secret: nexus_password
     commands:
       - mkdir -p /root/.local/share/ruby-advisory-db/gems
       - ./bin/setup
       - bundle exec rake verify
       - if [ "${CI_PIPELINE_EVENT}" = "push" ] && [ "${CI_COMMIT_BRANCH}" = "main" ]; then sh scripts/auto-bump.sh; fi
-      - sh scripts/build-rc-gem.sh
-      - sh scripts/publish-gem.sh
+      - gem build predictability-engine.gemspec
+      - sh scripts/upload-gem-artifact.sh
 
   - name: badge
     image: docker-registry.cbp-org.internal/badge-reporter:latest

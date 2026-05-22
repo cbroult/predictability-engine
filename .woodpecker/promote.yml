@@ -1,13 +1,13 @@
-# promote.yml — final promotion after RC validation passes on all platforms.
+# promote.yml — final promotion after validation passes on all platforms.
 #
 # Runs after verify-linux.yml AND verify-windows.yml both succeed
 # (depends_on: [verify-linux, verify-windows]).
 #
 # Single-step pipeline (one container):
-#   1. gem build                        build final X.Y.Z gem (no RC suffix)
-#   2. scripts/publish-gem.sh           push X.Y.Z to gems.cbp-org.internal
+#   1. gem build                        build final X.Y.Z gem (same commit as publish → identical)
+#   2. scripts/publish-gem.sh           push X.Y.Z to gems.cbp-org.internal (first registry entry)
 #   3. bundle exec rake publish:rubygems push X.Y.Z to rubygems.org (with OTP)
-#   4. git push github                  mirror main + tags to GitHub
+#   4. git push github                  mirror main + tags to GitHub via SSH deploy key
 #   5. scripts/build-engine-image.sh    rebuild docker-registry.cbp-org.internal/predictability-engine
 #
 # Required Woodpecker secrets (org-level cbp-org):
@@ -20,7 +20,7 @@
 #   rubygems_password     — rubygems.org password (for key renewal)
 #   woodpecker_api_token  — Woodpecker API token (for key renewal write-back)
 #   nexus_deploy_key      — SSH private key for root@nexus.cbp-org.internal
-#   github_push_token     — GitHub PAT with Contents: write scope
+#   github_deploy_key     — SSH private key for GitHub deploy key (repo-scoped, write access)
 #   badge_service_token   — Write token for badge.cbp-org.internal
 
 labels:
@@ -79,15 +79,18 @@ steps:
       JIRA_ENV: gha
       NEXUS_DEPLOY_KEY:
         from_secret: nexus_deploy_key
-      GITHUB_PUSH_TOKEN:
-        from_secret: github_push_token
+      GITHUB_DEPLOY_KEY:
+        from_secret: github_deploy_key
     commands:
       - gem build predictability-engine.gemspec
       - sh scripts/publish-gem.sh
       - bundle install --jobs 4 --retry 3
       - bundle exec rake publish:rubygems
-      - git remote add github https://x-token:${GITHUB_PUSH_TOKEN}@github.com/cbroult/predictability-engine.git || true
-      - git push github HEAD:main --follow-tags
+      - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+      - printf '%s\n' "${GITHUB_DEPLOY_KEY}" | sed 's/\\n/\n/g' | tr -d '\r' > ~/.ssh/github_deploy
+      - chmod 600 ~/.ssh/github_deploy
+      - ssh-keyscan github.com >> ~/.ssh/known_hosts
+      - GIT_SSH_COMMAND="ssh -i ~/.ssh/github_deploy -o StrictHostKeyChecking=yes" git push git@github.com:cbroult/predictability-engine.git HEAD:main --follow-tags
       - export GEM_VERSION=$(ruby -e "load 'lib/predictability_engine/version.rb'; puts PredictabilityEngine::VERSION")
       - export IMAGE_TAG=v${GEM_VERSION}
       - sh scripts/build-engine-image.sh

@@ -1,9 +1,9 @@
-# verify-windows.yml — Windows fresh-install validation of the RC gem.
+# verify-windows.yml — Windows fresh-install validation of the built gem.
 #
-# Runs after publish.yml succeeds (depends_on: publish). Installs
-# X.Y.Z.rc1 from gems.cbp-org.internal — the RC just published by the
-# publish workflow — then runs `predictability-engine setup` and the
-# full verify-fresh-install smoke suite.
+# Runs after publish.yml succeeds (depends_on: publish). Downloads the
+# X.Y.Z gem from the Nexus raw artifact store (uploaded by publish.yml)
+# and installs it locally, then runs `predictability-engine setup` and
+# the full verify-fresh-install smoke suite.
 #
 # Agent targeting: photocenter via labels matching custom_labels {platform: windows}.
 # platform: field is NOT a routing directive — labels: is.
@@ -35,5 +35,9 @@ steps:
     environment:
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert
+      NEXUS_USER:
+        from_secret: nexus_user
+      NEXUS_PASSWORD:
+        from_secret: nexus_password
     commands:
       - pwsh -ExecutionPolicy Bypass -File scripts\verify-fresh-install-windows.ps1

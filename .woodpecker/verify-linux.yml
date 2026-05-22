@@ -1,9 +1,9 @@
-# verify-linux.yml — Linux fresh-install validation of the RC gem.
+# verify-linux.yml — Linux fresh-install validation of the built gem.
 #
-# Runs after publish.yml succeeds (depends_on: publish). Installs
-# X.Y.Z.rc1 from gems.cbp-org.internal — the RC just published by the
-# publish workflow — then runs `predictability-engine setup` and the
-# full verify-fresh-install smoke suite.
+# Runs after publish.yml succeeds (depends_on: publish). Downloads the
+# X.Y.Z gem from the Nexus raw artifact store (uploaded by publish.yml)
+# and installs it locally, then runs `predictability-engine setup` and
+# the full verify-fresh-install smoke suite.
 #
 # Single-step pipeline (one container) using the pre-built CI image.
 
@@ -36,14 +36,18 @@ steps:
     backend_options:
       docker:
         extra_hosts:
-          - "gems.cbp-org.internal:192.168.16.23"
+          - "nexus.cbp-org.internal:192.168.16.23"
     environment:
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert
+      NEXUS_USER:
+        from_secret: nexus_user
+      NEXUS_PASSWORD:
+        from_secret: nexus_password
     commands:
       - printf '%s' "$CBP_ORG_CA_CERT" | base64 -d > /usr/local/share/ca-certificates/cbp-org.crt
       - update-ca-certificates
-      - export GEM_VERSION=$(ruby -e "load 'lib/predictability_engine/version.rb'; puts PredictabilityEngine::VERSION").rc1
-      - gem install predictability-engine --version "$GEM_VERSION" --source https://gems.cbp-org.internal --no-document
+      - sh scripts/download-gem-artifact.sh
+      - gem install predictability-engine-*.gem --local --no-document
       - predictability-engine setup
       - sh scripts/verify-fresh-install.sh
