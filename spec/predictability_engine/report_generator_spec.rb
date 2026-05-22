@@ -5,11 +5,6 @@ require 'tmpdir'
 
 RSpec.describe PredictabilityEngine::ReportGenerator do
   let(:tmpdir) { Dir.mktmpdir('report-generator-spec') }
-
-  after do
-    FileUtils.remove_entry(tmpdir) if File.exist?(tmpdir)
-  end
-
   let(:input_file) { File.join(tmpdir, 'sample.csv') }
   let(:all_report) do
     instance_double(PredictabilityEngine::Report, render: 'all content', generate_chart_images: 'images')
@@ -19,6 +14,10 @@ RSpec.describe PredictabilityEngine::ReportGenerator do
   end
   let(:high_report) do
     instance_double(PredictabilityEngine::Report, render: 'high content', generate_chart_images: 'images')
+  end
+
+  after do
+    FileUtils.rm_rf(tmpdir)
   end
 
   describe '.run_report' do
@@ -136,8 +135,8 @@ RSpec.describe PredictabilityEngine::ReportGenerator do
       expect(File.binread(File.join(tmpdir, 'sample', 'types', 'Bug.html'))).to eq('bug content')
       expect(all_report).to have_received(:render).with(:html, output_dir: tmpdir,
                                                                sub_reports: described_class.build_nav_links(:html,
-                                                                                                             reports,
-                                                                                                             :all))
+                                                                                                            reports,
+                                                                                                            :all))
       bug_links = described_class.build_nav_links(:html, reports, [:type, 'Bug'])
       expect(bug_report).to have_received(:render).with(:html, output_dir: tmpdir, sub_reports: bug_links)
       expect(logger).to have_received(:info).twice
