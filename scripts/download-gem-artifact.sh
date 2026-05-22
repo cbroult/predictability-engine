@@ -6,7 +6,7 @@
 # any gem registry.
 #
 # Required env:
-#   FORGEJO_API_TOKEN — Forgejo API token (secret: forgejo_api_token)
+#   FORGEJO_PUSH_TOKEN — Forgejo API token (secret: forgejo_api_token)
 #   CBP_ORG_CA_CERT   — Base64-encoded cbp-org CA cert (secret: cbp_org_ca_cert)
 
 set -eu
@@ -20,7 +20,7 @@ FORGEJO_URL="https://git.cbp-org.internal/api/packages/cbp-org/generic/predictab
 
 curl -fsSL -o "${GEM_FILE}" \
   --cacert "$CA_CERT_FILE" \
-  -H "Authorization: token ${FORGEJO_API_TOKEN}" \
+  -H "Authorization: token ${FORGEJO_PUSH_TOKEN}" \
   "$FORGEJO_URL"
 
 echo "Downloaded ${GEM_FILE} from Forgejo generic packages"

@@ -40,8 +40,8 @@ steps:
     environment:
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert
-      FORGEJO_API_TOKEN:
-        from_secret: forgejo_api_token
+      FORGEJO_PUSH_TOKEN:
+        from_secret: forgejo_push_token
     commands:
       - printf '%s' "$CBP_ORG_CA_CERT" | base64 -d > /usr/local/share/ca-certificates/cbp-org.crt
       - update-ca-certificates

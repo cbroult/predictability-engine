@@ -7,7 +7,7 @@
 # Only promote.yml pushes to the actual gem registries after all platforms pass.
 #
 # Required env:
-#   FORGEJO_API_TOKEN — Forgejo API token (secret: forgejo_api_token)
+#   FORGEJO_PUSH_TOKEN — Forgejo API token (secret: forgejo_api_token)
 #   CBP_ORG_CA_CERT   — Base64-encoded cbp-org CA cert (secret: cbp_org_ca_cert)
 
 set -eu
@@ -21,7 +21,7 @@ FORGEJO_URL="https://git.cbp-org.internal/api/packages/cbp-org/generic/predictab
 
 HTTP_STATUS=$(curl -s -o /dev/null -w '%{http_code}' \
   --cacert "$CA_CERT_FILE" \
-  -H "Authorization: token ${FORGEJO_API_TOKEN}" \
+  -H "Authorization: token ${FORGEJO_PUSH_TOKEN}" \
   --upload-file "${GEM_FILE}" \
   "$FORGEJO_URL")
 

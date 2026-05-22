@@ -17,7 +17,7 @@
 #
 # Required Woodpecker secrets (org-level cbp-org):
 #   forgejo_push_token    — Forgejo PAT with write on this repo (for auto-bump)
-#   forgejo_api_token     — Forgejo API token for package upload
+#   forgejo_push_token    — already present; also used for package upload
 #   cbp_org_ca_cert       — Base64-encoded cbp-org root CA certificate
 #   badge_service_token   — Write token for badge.cbp-org.internal
 
@@ -55,8 +55,8 @@ steps:
         from_secret: forgejo_push_token
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert
-      FORGEJO_API_TOKEN:
-        from_secret: forgejo_api_token
+      FORGEJO_PUSH_TOKEN:
+        from_secret: forgejo_push_token
     commands:
       - mkdir -p /root/.local/share/ruby-advisory-db/gems
       - ./bin/setup

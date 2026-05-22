@@ -8,7 +8,7 @@
 #   - Ruby is available (installed on the photocenter Windows agent)
 #   - Chocolatey is available
 #   - CBP_ORG_CA_CERT env var holds the base64-encoded cbp-org root CA certificate
-#   - FORGEJO_API_TOKEN env var holds a Forgejo API token with package read access
+#   - FORGEJO_PUSH_TOKEN env var holds a Forgejo API token with package read access
 
 $ErrorActionPreference = 'Stop'
 
@@ -33,7 +33,7 @@ $gemFile = "predictability-engine-${gemVersion}.gem"
 # Download gem artifact from Forgejo generic packages.
 $forgejoUrl = "https://git.cbp-org.internal/api/packages/cbp-org/generic/predictability-engine/${gemVersion}/${gemFile}"
 curl.exe -fsSL --cacert C:\cbp-org.crt `
-    -H "Authorization: token $($env:FORGEJO_API_TOKEN)" `
+    -H "Authorization: token $($env:FORGEJO_PUSH_TOKEN)" `
     -o $gemFile `
     $forgejoUrl
 
