@@ -11,6 +11,18 @@ RSpec.describe PredictabilityEngine::Cli do
   let(:items) { [PredictabilityEngine::Models::WorkItem.new(item_id: '1', title: 'Task 1', start_date: '2024-01-01', end_date: '2024-01-05')] }
   let(:source) { 'sample.csv' }
 
+  describe '#version' do
+    it 'prints the version to stdout' do
+      expect { cli.version }.to output("#{PredictabilityEngine::VERSION}\n").to_stdout
+    end
+  end
+
+  describe 'package name' do
+    it 'includes the version number' do
+      expect(described_class.instance_variable_get(:@package_name)).to include(PredictabilityEngine::VERSION)
+    end
+  end
+
   describe '#init' do
     it 'appends .yml if missing' do
       allow(File).to receive(:write)
