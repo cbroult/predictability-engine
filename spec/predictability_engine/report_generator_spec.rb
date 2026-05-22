@@ -15,6 +15,8 @@ RSpec.describe PredictabilityEngine::ReportGenerator do
   let(:high_report) do
     instance_double(PredictabilityEngine::Report, render: 'high content', generate_chart_images: 'images')
   end
+  let(:faceted_reports) { { all: all_report, type: { 'Bug' => bug_report } } }
+  let(:prioritized_reports) { { all: all_report, priority: { 'High' => high_report }, type: { 'Bug' => bug_report } } }
 
   after do
     FileUtils.rm_rf(tmpdir)
@@ -26,63 +28,51 @@ RSpec.describe PredictabilityEngine::ReportGenerator do
     before do
       allow(PredictabilityEngine).to receive(:load_items).with(input_file, color: true).and_return(items)
       allow(PredictabilityEngine::Report).to receive(:generate_all).with(items).and_return(all: all_report)
+      allow(described_class).to receive(:generate_multi_reports).and_return('2 reports generated')
     end
 
     it 'loads items, builds reports, and generates a single report when there are no facets' do
       allow(described_class).to receive(:generate_single_report).and_return('single report')
 
-      result = described_class.run_report(input_file, :html, color: true)
-
-      expect(result).to eq('single report')
+      expect(described_class.run_report(input_file, :html, color: true)).to eq('single report')
       expect(described_class).to have_received(:generate_single_report).with(input_file, :html, all_report, color: true)
     end
 
     it 'uses provided items and reports without loading or rebuilding them' do
-      reports = { all: all_report }
       allow(described_class).to receive(:generate_single_report).and_return('provided report')
 
-      result = described_class.run_report(input_file, :html, items: items, reports: reports)
-
-      expect(result).to eq('provided report')
+      expect(described_class.run_report(input_file, :html, items: items,
+                                                           reports: { all: all_report })).to eq('provided report')
       expect(PredictabilityEngine).not_to have_received(:load_items)
       expect(PredictabilityEngine::Report).not_to have_received(:generate_all)
     end
 
     it 'generates terminal output as a single report even when facet reports exist' do
-      reports = { all: all_report, type: { 'Bug' => bug_report } }
       allow(described_class).to receive(:generate_single_report).and_return('terminal report')
 
-      result = described_class.run_report(input_file, :terminal, items: items, reports: reports)
-
-      expect(result).to eq('terminal report')
+      expect(described_class.run_report(input_file, :terminal, items: items,
+                                                               reports: faceted_reports)).to eq('terminal report')
       expect(described_class).to have_received(:generate_single_report).with(input_file, :terminal, all_report)
     end
 
     it 'generates multiple reports when facet reports exist for non-terminal formats' do
-      reports = { all: all_report, type: { 'Bug' => bug_report } }
-      allow(described_class).to receive(:generate_multi_reports).and_return('2 reports generated')
-
-      result = described_class.run_report(input_file, :html, items: items, reports: reports)
-
-      expect(result).to eq('2 reports generated')
-      expect(described_class).to have_received(:generate_multi_reports).with(input_file, :html, reports)
+      expect(described_class.run_report(input_file, :html, items: items,
+                                                           reports: faceted_reports)).to eq('2 reports generated')
+      expect(described_class).to have_received(:generate_multi_reports).with(input_file, :html, faceted_reports)
     end
   end
 
   describe '.facet_total' do
     it 'counts all configured facet entries' do
-      reports = { all: all_report, priority: { 'High' => high_report }, type: { 'Bug' => bug_report } }
-
-      expect(described_class.facet_total(reports)).to eq(2)
+      expect(described_class.facet_total(prioritized_reports)).to eq(2)
     end
   end
 
   describe '.each_facet_entry' do
     it 'yields the all report first and then each facet report' do
-      reports = { all: all_report, priority: { 'High' => high_report }, type: { 'Bug' => bug_report } }
       entries = []
 
-      described_class.each_facet_entry(reports) { |slot, report| entries << [slot, report] }
+      described_class.each_facet_entry(prioritized_reports) { |slot, report| entries << [slot, report] }
 
       expect(entries).to eq([
                               [:all, all_report],
@@ -102,42 +92,38 @@ RSpec.describe PredictabilityEngine::ReportGenerator do
       expect(all_report).to have_received(:render).with(:terminal, color: true)
     end
 
-    it 'adds export links when rendering an HTML dashboard without explicit sub-reports' do
-      allow(described_class).to receive(:write_report).and_return('written')
+    context 'when writing to a file' do
+      before { allow(described_class).to receive(:write_report).and_return('written') }
 
-      described_class.generate_single_report(input_file, :html, all_report, output_dir: tmpdir)
+      it 'adds export links when rendering an HTML dashboard without explicit sub-reports' do
+        described_class.generate_single_report(input_file, :html, all_report, output_dir: tmpdir)
 
-      expect(all_report).to have_received(:render).with(:html, output_dir: tmpdir,
-                                                               sub_reports: described_class.export_links_for(:all))
-    end
+        expected_links = described_class.export_links_for(:all)
+        expect(all_report).to have_received(:render).with(:html, output_dir: tmpdir, sub_reports: expected_links)
+      end
 
-    it 'generates inline chart images before rendering markdown' do
-      allow(described_class).to receive(:write_report).and_return('written')
+      it 'generates inline chart images before rendering markdown' do
+        described_class.generate_single_report(input_file, :markdown, all_report, output_dir: tmpdir)
 
-      described_class.generate_single_report(input_file, :markdown, all_report, output_dir: tmpdir)
-
-      expect(all_report).to have_received(:generate_chart_images)
-        .with(File.join(tmpdir, 'sample'))
-      expect(all_report).to have_received(:render).with(:markdown, output_dir: tmpdir)
+        expect(all_report).to have_received(:generate_chart_images).with(File.join(tmpdir, 'sample'))
+        expect(all_report).to have_received(:render).with(:markdown, output_dir: tmpdir)
+      end
     end
   end
 
   describe '.generate_multi_reports' do
     it 'writes one dashboard and one file per facet value with matching navigation links' do
       logger = instance_double(SemanticLogger::Logger, info: nil)
-      reports = { all: all_report, type: { 'Bug' => bug_report } }
       allow(PredictabilityEngine).to receive(:logger).and_return(logger)
 
-      result = described_class.generate_multi_reports(input_file, :html, reports, output_dir: tmpdir)
+      result = described_class.generate_multi_reports(input_file, :html, faceted_reports, output_dir: tmpdir)
 
       expect(result).to eq('2 reports generated')
       expect(File.binread(File.join(tmpdir, 'sample', 'dashboard.html'))).to eq('all content')
       expect(File.binread(File.join(tmpdir, 'sample', 'types', 'Bug.html'))).to eq('bug content')
-      expect(all_report).to have_received(:render).with(:html, output_dir: tmpdir,
-                                                               sub_reports: described_class.build_nav_links(:html,
-                                                                                                            reports,
-                                                                                                            :all))
-      bug_links = described_class.build_nav_links(:html, reports, [:type, 'Bug'])
+      expected_all_links = described_class.build_nav_links(:html, faceted_reports, :all)
+      expect(all_report).to have_received(:render).with(:html, output_dir: tmpdir, sub_reports: expected_all_links)
+      bug_links = described_class.build_nav_links(:html, faceted_reports, [:type, 'Bug'])
       expect(bug_report).to have_received(:render).with(:html, output_dir: tmpdir, sub_reports: bug_links)
       expect(logger).to have_received(:info).twice
     end
@@ -149,9 +135,7 @@ RSpec.describe PredictabilityEngine::ReportGenerator do
     end
 
     it 'builds relative links from a facet dashboard back to the main dashboard and sibling facets' do
-      reports = { all: all_report, priority: { 'High' => high_report }, type: { 'Bug' => bug_report } }
-
-      links = described_class.build_nav_links(:html, reports, [:type, 'Bug'])
+      links = described_class.build_nav_links(:html, prioritized_reports, [:type, 'Bug'])
 
       expect(links).to include(label: 'All', url: '../dashboard.html', active: false)
       expect(links).to include(label: 'High', url: '../priorities/High.html', active: false)
@@ -161,12 +145,14 @@ RSpec.describe PredictabilityEngine::ReportGenerator do
   end
 
   describe '.write_report' do
+    def assert_report_written(output_path, content, result_message)
+      expect(File.binread(output_path)).to eq(content)
+      expect(result_message).to eq("Report generated at #{output_path}")
+    end
+
     it 'writes the main report to the dashboard filename for aliased formats' do
       message = described_class.write_report(input_file, :landscape, 'html', nil, output_dir: tmpdir)
-      output = File.join(tmpdir, 'sample', 'dashboard.html')
-
-      expect(File.binread(output)).to eq('html')
-      expect(message).to eq("Report generated at #{output}")
+      assert_report_written(File.join(tmpdir, 'sample', 'dashboard.html'), 'html', message)
     end
 
     it 'writes facet reports below the facet directory' do
@@ -177,11 +163,8 @@ RSpec.describe PredictabilityEngine::ReportGenerator do
 
     it 'honors an explicit output path for the all report' do
       output = File.join(tmpdir, 'custom.conf')
-
       message = described_class.write_report(input_file, :confluence, 'content', output, output_dir: tmpdir)
-
-      expect(File.binread(output)).to eq('content')
-      expect(message).to eq("Report generated at #{output}")
+      assert_report_written(output, 'content', message)
     end
   end
 

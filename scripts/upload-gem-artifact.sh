@@ -14,10 +14,7 @@ set -eu
 
 GEM_FILE=$(ls predictability-engine-*.gem | head -1)
 GEM_VERSION=$(echo "$GEM_FILE" | sed 's/predictability-engine-\(.*\)\.gem/\1/')
-CA_CERT_FILE=/tmp/cbp-ca.crt
-printf '%s' "$CBP_ORG_CA_CERT" | base64 -d > "$CA_CERT_FILE"
-
-FORGEJO_URL="https://git.cbp-org.internal/api/packages/cbp-org/generic/predictability-engine/${GEM_VERSION}/${GEM_FILE}"
+. "$(dirname "$0")/lib/forgejo-setup.sh"
 
 HTTP_STATUS=$(curl -s -o /dev/null -w '%{http_code}' \
   --cacert "$CA_CERT_FILE" \

@@ -13,10 +13,7 @@ set -eu
 
 GEM_VERSION=$(ruby -e "load 'lib/predictability_engine/version.rb'; puts PredictabilityEngine::VERSION")
 GEM_FILE="predictability-engine-${GEM_VERSION}.gem"
-CA_CERT_FILE=/tmp/cbp-ca.crt
-printf '%s' "$CBP_ORG_CA_CERT" | base64 -d > "$CA_CERT_FILE"
-
-FORGEJO_URL="https://git.cbp-org.internal/api/packages/cbp-org/generic/predictability-engine/${GEM_VERSION}/${GEM_FILE}"
+. "$(dirname "$0")/lib/forgejo-setup.sh"
 
 curl -fsSL -o "${GEM_FILE}" \
   --cacert "$CA_CERT_FILE" \
