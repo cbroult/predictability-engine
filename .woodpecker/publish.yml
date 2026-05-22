@@ -17,9 +17,8 @@
 #
 # Required Woodpecker secrets (org-level cbp-org):
 #   forgejo_push_token    — Forgejo PAT with write on this repo (for auto-bump)
+#   forgejo_api_token     — Forgejo API token for package upload
 #   cbp_org_ca_cert       — Base64-encoded cbp-org root CA certificate
-#   nexus_user            — Nexus username for raw artifact repo
-#   nexus_password        — Nexus password for raw artifact repo
 #   badge_service_token   — Write token for badge.cbp-org.internal
 
 labels:
@@ -50,17 +49,14 @@ steps:
         network_mode: host
         extra_hosts:
           - "git.cbp-org.internal:192.168.16.23"
-          - "nexus.cbp-org.internal:192.168.16.23"
     environment:
       CUCUMBER_PUBLISH_QUIET: "true"
       FORGEJO_PUSH_TOKEN:
         from_secret: forgejo_push_token
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert
-      NEXUS_USER:
-        from_secret: nexus_user
-      NEXUS_PASSWORD:
-        from_secret: nexus_password
+      FORGEJO_API_TOKEN:
+        from_secret: forgejo_api_token
     commands:
       - mkdir -p /root/.local/share/ruby-advisory-db/gems
       - ./bin/setup

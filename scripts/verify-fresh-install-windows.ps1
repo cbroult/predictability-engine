@@ -1,14 +1,14 @@
 # verify-fresh-install-windows.ps1 - CI entrypoint for the Windows verify-fresh-install step.
 #
 # Run by .woodpecker/verify-windows.yml after the publish workflow succeeds.
-# Downloads the X.Y.Z gem from the Nexus raw artifact store, installs it locally,
+# Downloads the X.Y.Z gem from Forgejo generic packages, installs it locally,
 # runs `predictability-engine setup`, then delegates to scripts\verify-fresh-install.ps1.
 #
 # Preconditions:
 #   - Ruby is available (installed on the photocenter Windows agent)
 #   - Chocolatey is available
 #   - CBP_ORG_CA_CERT env var holds the base64-encoded cbp-org root CA certificate
-#   - NEXUS_USER / NEXUS_PASSWORD env vars hold Nexus raw artifact repo credentials
+#   - FORGEJO_API_TOKEN env var holds a Forgejo API token with package read access
 
 $ErrorActionPreference = 'Stop'
 
@@ -21,7 +21,7 @@ if (Get-Command node -ErrorAction SilentlyContinue) {
                 [System.Environment]::GetEnvironmentVariable('PATH','User')
 }
 
-# Trust the cbp-org root CA so nexus.cbp-org.internal SSL is accepted.
+# Trust the cbp-org root CA so git.cbp-org.internal SSL is accepted.
 $certBytes = [System.Convert]::FromBase64String($env:CBP_ORG_CA_CERT)
 [System.IO.File]::WriteAllBytes('C:\cbp-org.crt', $certBytes)
 Import-Certificate -FilePath 'C:\cbp-org.crt' -CertStoreLocation Cert:\LocalMachine\Root
@@ -30,11 +30,12 @@ Import-Certificate -FilePath 'C:\cbp-org.crt' -CertStoreLocation Cert:\LocalMach
 $gemVersion = (ruby -e "load 'lib/predictability_engine/version.rb'; puts PredictabilityEngine::VERSION")
 $gemFile = "predictability-engine-${gemVersion}.gem"
 
-# Download gem artifact from nexus raw repo.
+# Download gem artifact from Forgejo generic packages.
+$forgejoUrl = "https://git.cbp-org.internal/api/packages/cbp-org/generic/predictability-engine/${gemVersion}/${gemFile}"
 curl.exe -fsSL --cacert C:\cbp-org.crt `
-    -u "${env:NEXUS_USER}:${env:NEXUS_PASSWORD}" `
+    -H "Authorization: token $($env:FORGEJO_API_TOKEN)" `
     -o $gemFile `
-    "https://nexus.cbp-org.internal/repository/gem-artifacts/$gemFile"
+    $forgejoUrl
 
 # Install from local file (not from any gem registry).
 gem install $gemFile --local --no-document
