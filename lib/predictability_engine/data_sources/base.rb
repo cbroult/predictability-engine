@@ -74,6 +74,14 @@ module PredictabilityEngine
         (@priority_aliases || {})[name.to_s] || name
       end
 
+      def resolve_path(path)
+        return path if Pathname.new(path).absolute? || File.exist?(path)
+
+        gem_root = File.expand_path('../../..', __dir__)
+        gem_relative = File.join(gem_root, path)
+        File.exist?(gem_relative) ? gem_relative : path
+      end
+
       def mock_data(env_key)
         json = ENV.fetch(env_key, '[]')
         JSON.parse(json, symbolize_names: true)
