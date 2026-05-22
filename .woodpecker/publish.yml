@@ -55,8 +55,6 @@ steps:
         from_secret: forgejo_push_token
       CBP_ORG_CA_CERT:
         from_secret: cbp_org_ca_cert
-      FORGEJO_PUSH_TOKEN:
-        from_secret: forgejo_push_token
     commands:
       - mkdir -p /root/.local/share/ruby-advisory-db/gems
       - ./bin/setup
