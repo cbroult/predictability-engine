@@ -12,11 +12,12 @@ module PredictabilityEngine
       }.freeze
 
       def perform_load(path)
-        config = load_csv_config(path)
+        resolved = resolve_path(path)
+        config = load_csv_config(resolved)
         @url_prefix ||= config['url_prefix']
         @done_statuses = load_done_statuses(config)
-        @source_url = "file://#{File.expand_path(path)}"
-        CSV.open(path, headers: true, header_converters: :symbol, encoding: 'bom|UTF-8', row_sep: :auto)
+        @source_url = "file://#{File.expand_path(resolved)}"
+        CSV.open(resolved, headers: true, header_converters: :symbol, encoding: 'bom|UTF-8', row_sep: :auto)
            .then { |csv| load_data(csv.map { |row| apply_jira_header_map(row.to_h) }) }
       end
 

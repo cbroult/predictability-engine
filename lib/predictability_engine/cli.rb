@@ -196,6 +196,8 @@ module PredictabilityEngine
     include CliBase
     include JiraConfigPrompter
 
+    package_name "predictability-engine #{VERSION}"
+
     desc 'viz SUBCOMMAND ...ARGS', 'Visualization commands'
     subcommand 'viz', Viz
     desc 'summary SOURCE', 'Load data from SOURCE and show flow metrics summary'
@@ -388,6 +390,12 @@ module PredictabilityEngine
     end
 
     public
+
+    desc 'version', 'Print the predictability-engine version'
+    def version
+      say VERSION
+    end
+    map '--version' => :version
 
     desc 'ask_ai SOURCE QUESTION', 'Ask the AI assistant about the data in SOURCE'
     def ask_ai(source, question)

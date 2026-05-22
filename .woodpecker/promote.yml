@@ -1,0 +1,110 @@
+# promote.yml — final promotion after validation passes on all platforms.
+#
+# Runs after verify-linux.yml AND verify-windows.yml both succeed
+# (depends_on: [verify-linux, verify-windows]).
+#
+# Single-step pipeline (one container):
+#   1. gem build                        build final X.Y.Z gem (same commit as publish → identical)
+#   2. scripts/publish-gem.sh           push X.Y.Z to gems.cbp-org.internal (first registry entry)
+#   3. bundle exec rake publish:rubygems push X.Y.Z to rubygems.org (with OTP)
+#   4. git push github                  mirror main + tags to GitHub via SSH deploy key
+#   5. scripts/build-engine-image.sh    rebuild docker-registry.cbp-org.internal/predictability-engine
+#
+# Required Woodpecker secrets (org-level cbp-org):
+#   gem_user              — Geminabox username
+#   gem_password          — Geminabox password
+#   cbp_org_ca_cert       — Base64-encoded cbp-org root CA certificate
+#   rubygems_api_key      — rubygems.org API key with "Push gem" scope
+#   rubygems_otp_seed     — TOTP seed (base-32) for rubygems.org MFA
+#   rubygems_username     — rubygems.org username (for key renewal)
+#   rubygems_password     — rubygems.org password (for key renewal)
+#   woodpecker_api_token  — Woodpecker API token (for key renewal write-back)
+#   nexus_deploy_key      — SSH private key for root@nexus.cbp-org.internal
+#   github_deploy_key     — SSH private key for GitHub deploy key (repo-scoped, write access)
+#   badge_service_token   — Write token for badge.cbp-org.internal
+
+labels:
+  platform: linux
+
+depends_on:
+  - verify-linux
+  - verify-windows
+
+clone:
+  git:
+    image: woodpeckerci/plugin-git:2.8.0
+    settings:
+      skip_verify: true
+    backend_options:
+      docker:
+        extra_hosts:
+          - "git.cbp-org.internal:192.168.16.23"
+
+when:
+  - event: push
+    branch: main
+  - event: tag
+    ref: refs/tags/v*
+  - event: manual
+
+steps:
+  - name: promote
+    image: docker-registry.cbp-org.internal/predictability-engine-ci:latest
+    backend_options:
+      docker:
+        extra_hosts:
+          - "git.cbp-org.internal:192.168.16.23"
+          - "gems.cbp-org.internal:192.168.16.23"
+          - "nexus.cbp-org.internal:192.168.16.23"
+    environment:
+      CBP_ORG_CA_CERT:
+        from_secret: cbp_org_ca_cert
+      GEM_USER:
+        from_secret: gem_user
+      GEM_PASSWORD:
+        from_secret: gem_password
+      GEM_HOST_API_KEY:
+        from_secret: rubygems_api_key
+      RUBYGEMS_OTP_SEED:
+        from_secret: rubygems_otp_seed
+      RUBYGEMS_USERNAME:
+        from_secret: rubygems_username
+      RUBYGEMS_PASSWORD:
+        from_secret: rubygems_password
+      WOODPECKER_TOKEN:
+        from_secret: woodpecker_api_token
+      WOODPECKER_SERVER: https://ci.cbp-org.internal
+      WOODPECKER_ORG: cbp-org
+      CI: "true"
+      JIRA_ENV: gha
+      NEXUS_DEPLOY_KEY:
+        from_secret: nexus_deploy_key
+      GITHUB_DEPLOY_KEY:
+        from_secret: github_deploy_key
+    commands:
+      - gem build predictability-engine.gemspec
+      - sh scripts/publish-gem.sh
+      - bundle install --jobs 4 --retry 3
+      - bundle exec rake publish:rubygems
+      - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+      - printf '%s\n' "${GITHUB_DEPLOY_KEY}" | sed 's/\\n/\n/g' | tr -d '\r' > ~/.ssh/github_deploy
+      - chmod 600 ~/.ssh/github_deploy
+      - ssh-keyscan github.com >> ~/.ssh/known_hosts
+      - GIT_SSH_COMMAND="ssh -i ~/.ssh/github_deploy -o StrictHostKeyChecking=yes" git push git@github.com:cbroult/predictability-engine.git HEAD:main --follow-tags
+      - export GEM_VERSION=$(ruby -e "load 'lib/predictability_engine/version.rb'; puts PredictabilityEngine::VERSION")
+      - export IMAGE_TAG=v${GEM_VERSION}
+      - sh scripts/build-engine-image.sh
+
+  - name: badge
+    image: docker-registry.cbp-org.internal/badge-reporter:latest
+    when:
+      status: [success, failure]
+    backend_options:
+      docker:
+        extra_hosts:
+          - "badge.cbp-org.internal:192.168.16.23"
+    environment:
+      BADGE_SECRET:
+        from_secret: badge_service_token
+    commands:
+      - badge report publish

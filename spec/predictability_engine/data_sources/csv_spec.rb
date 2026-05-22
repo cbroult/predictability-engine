@@ -12,6 +12,37 @@ RSpec.describe PredictabilityEngine::DataSources::Csv do
     end
   end
 
+  context 'with path resolution' do
+    let(:csv_content) do
+      <<~CSV
+        id,title,type,priority,start_date,end_date
+        ITEM-1,Task,Story,High,2026-01-10,2026-01-20
+      CSV
+    end
+
+    it 'loads a file given as an absolute path regardless of CWD' do
+      Tempfile.create(['abs', '.csv']) do |f|
+        f.write(csv_content)
+        f.flush
+        Dir.chdir('/tmp') do
+          items = described_class.new.load(f.path)
+          expect(items.first.id).to eq('ITEM-1')
+        end
+      end
+    end
+
+    it 'resolves a relative path against the gem root when the file does not exist in CWD' do
+      gem_root = File.expand_path('../../..', __dir__)
+      relative = 'data/samples/sample_data.csv'
+      skip 'sample data not present in gem root' unless File.exist?(File.join(gem_root, relative))
+
+      Dir.chdir('/tmp') do
+        items = described_class.new.load(relative)
+        expect(items).not_to be_empty
+      end
+    end
+  end
+
   context 'with standard CSV headers' do
     let(:items) do
       load_csv(<<~CSV)

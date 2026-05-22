@@ -1,0 +1,16 @@
+# Dockerfile.ci — base CI image for predictability-engine workflows.
+#
+# Extends ruby:4.0.3 (Debian bookworm) with pre-installed system dependencies so
+# CI steps skip the apt-get overhead on every run. Playwright Chromium is still
+# downloaded at runtime by `predictability-engine setup` (it is runtime-version-pinned).
+#
+# Rebuild when: Ruby version changes, system packages change, or openssh-client is
+# no longer needed. Push to docker-registry.cbp-org.internal/predictability-engine-ci:latest
+# via scripts/build-ci-image.sh.
+
+FROM ruby:4.0.3
+
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+      nodejs npm openssh-client && \
+    rm -rf /var/lib/apt/lists/*
