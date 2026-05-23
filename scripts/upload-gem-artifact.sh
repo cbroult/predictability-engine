@@ -22,7 +22,11 @@ HTTP_STATUS=$(curl -s -o /dev/null -w '%{http_code}' \
   --upload-file "${GEM_FILE}" \
   "$FORGEJO_URL")
 
-[ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ] || \
-  { echo "ERROR: Forgejo package upload returned HTTP ${HTTP_STATUS}" >&2; exit 1; }
-
-echo "Uploaded ${GEM_FILE} to Forgejo generic packages"
+if [ "$HTTP_STATUS" -eq 409 ]; then
+  echo "Package ${GEM_FILE} already exists in Forgejo (HTTP 409) — treating as success (idempotent)"
+elif [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+  echo "Uploaded ${GEM_FILE} to Forgejo generic packages"
+else
+  echo "ERROR: Forgejo package upload returned HTTP ${HTTP_STATUS}" >&2
+  exit 1
+fi
