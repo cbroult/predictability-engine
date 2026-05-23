@@ -43,8 +43,9 @@ steps:
       FORGEJO_PUSH_TOKEN:
         from_secret: forgejo_push_token
     commands:
-      - printf '%s' "$CBP_ORG_CA_CERT" | base64 -d > /usr/local/share/ca-certificates/cbp-org.crt
-      - update-ca-certificates
+      - printf '%s' "$CBP_ORG_CA_CERT" | base64 -d > /tmp/cbp-ca.crt
+      - cat /etc/ssl/certs/ca-certificates.crt /tmp/cbp-ca.crt > /tmp/ca-bundle.crt
+      - export SSL_CERT_FILE=/tmp/ca-bundle.crt NODE_EXTRA_CA_CERTS=/tmp/cbp-ca.crt
       - sh scripts/download-gem-artifact.sh
       - gem install predictability-engine-*.gem --local --no-document
       - predictability-engine setup
