@@ -2,7 +2,7 @@
   "threshold": 0,
   "minLines": 2,
   "minTokens": 16,
-  "format": "ruby,yaml,javascript,bash,json,markdown",
+  "format": "ruby,yaml,javascript,bash,json,markdown,powershell",
   "reporters": [
     "html",
     "console"
@@ -16,7 +16,6 @@
     "node_modules/**",
     "coverage/**",
     "doc/**",
-    "bin/**",
     "package-lock.json",
     "package.json",
     "Gemfile.lock",
