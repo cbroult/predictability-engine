@@ -41,17 +41,10 @@ The **Predictability Engine** is designed to help teams and organizations move f
 <!-- RUBY_PREREQUISITES_START -->
 ## 💎 Prerequisites: Ruby
 
-The engine requires **Ruby >= 4.0.3**. Most systems do not ship this version by default — use a version manager or the platform installer below.
-
-| Platform | Recommended method |
-|----------|--------------------|
-| **macOS** | `brew install rbenv && rbenv install 4.0.3 && rbenv global 4.0.3` |
-| **Linux** | `curl -fsSL https://mise.run \| sh && mise install` |
-| **Windows** | [RubyInstaller for Windows](https://rubyinstaller.org) (select Ruby+Devkit 4.0.x) |
-| **Docker** | `FROM ruby:4.0.3-alpine` |
-| **Any OS** | [asdf](https://asdf-vm.com) or [mise](https://mise.jdx.dev) with the `.tool-versions` file in this repo |
-
-`./bin/setup` auto-detects mise / asdf / rbenv / rvm and calls the appropriate install command. If none are present it prints the above options and exits with a clear error.
+**None** — `./bin/setup` (macOS/Linux/WSL) and `bin\setup.bat` (Windows) are fully
+self-bootstrapping. They install [mise](https://mise.jdx.dev) automatically if no Ruby version
+manager is found, then provision Ruby 4.0.3 + Node.js from `.tool-versions` before bundling
+gems and setting up Playwright. Just clone and run the setup script for your platform.
 <!-- RUBY_PREREQUISITES_END -->
 
 ---
@@ -67,8 +60,9 @@ predictability-engine summary data/samples/sample_data.csv
 
 **If cloning the repo:**
 ```bash
-./bin/setup                   # bundle install + Playwright + Chromium
-                              # Set PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 to skip browser on pre-provisioned systems
+./bin/setup          # macOS / Linux / WSL — installs mise if needed, then bundle + Playwright
+bin\setup.bat        # Windows native     — installs Ruby via winget if needed, then bundle + Playwright
+                     # Set PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 to skip browser on pre-provisioned systems
 ```
 
 Then:
@@ -186,9 +180,9 @@ The engine expects a standard CSV with the following headers:
 ### JIRA Integration
 
 Four steps to connect to Jira:
-1. **Store credentials**: `predictability-engine jira_config my-team` (once per instance)
-2. **Create a source config**: `predictability-engine init my-team.MYPROJ` (once per project)
-3. **Map workflow statuses**: `predictability-engine jira_workflow my-team` (recommended)
+1. **Store credentials**: `predictability-engine jira config my-team` (once per instance)
+2. **Create a source config**: `predictability-engine jira init my-team.MYPROJ` (once per project)
+3. **Map workflow statuses**: `predictability-engine jira workflow my-team` (recommended)
 4. **Run analysis**: `predictability-engine summary my-team.MYPROJ.yml`
 
 See the [JIRA Integration Guide](documentation/jira.md) for the full walkthrough with example output at every step.
