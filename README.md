@@ -41,29 +41,51 @@ The **Predictability Engine** is designed to help teams and organizations move f
 <!-- RUBY_PREREQUISITES_START -->
 ## 💎 Prerequisites: Ruby
 
-**None** — `./bin/setup` (macOS/Linux/WSL) and `bin\setup.bat` (Windows) are fully
-self-bootstrapping. They install [mise](https://mise.jdx.dev) automatically if no Ruby version
-manager is found, then provision Ruby 4.0.3 + Node.js from `.tool-versions` before bundling
-gems and setting up Playwright. Just clone and run the setup script for your platform.
+None — the setup scripts are fully self-bootstrapping. They install
+[mise](https://mise.jdx.dev) automatically when no Ruby version manager is found, then
+provision Ruby 4.0.3 + Node.js from `.tool-versions` before bundling gems and setting up
+Playwright.
 <!-- RUBY_PREREQUISITES_END -->
 
 ---
 
 ## 🚀 Quick Start
 
-**Global install (recommended):**
+### 🌐 Global install (recommended — all platforms)
+
 ```bash
 gem install predictability-engine
 predictability-engine setup   # installs Playwright + Chromium
 predictability-engine summary data/samples/sample_data.csv
 ```
 
-**If cloning the repo:**
+### 🍎 macOS — clone & run
+
 ```bash
-./bin/setup          # macOS / Linux / WSL — installs mise if needed, then bundle + Playwright
-bin\setup.bat        # Windows native     — installs Ruby via winget if needed, then bundle + Playwright
-                     # Set PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 to skip browser on pre-provisioned systems
+./bin/setup
 ```
+
+Installs [mise](https://mise.jdx.dev) via Homebrew if needed, then Ruby + Node.js + Playwright.
+
+### 🐧 Linux / WSL — clone & run
+
+```bash
+./bin/setup
+```
+
+Installs [mise](https://mise.jdx.dev) via curl if needed, then Ruby + Node.js + Playwright.
+
+### 🪟 Windows — clone & run
+
+```
+bin\setup.bat
+```
+
+Installs Ruby 4.x via [winget](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
+if needed, then bundles gems and sets up Playwright + Chromium.
+No winget? Download [RubyInstaller+Devkit](https://rubyinstaller.org/downloads/) manually, then re-run.
+
+> Set `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` to skip the Chromium download on pre-provisioned systems.
 
 Then:
 1.  **Setup AI (Optional)**:
