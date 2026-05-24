@@ -44,7 +44,23 @@ ensure_ruby() {
   fi
 
   install_mise
-  mise install
+  if ! mise install; then
+    ruby_version=$(sed 's/ruby-//' .ruby-version 2>/dev/null || echo "${REQUIRED_RUBY_MAJOR}.x")
+    echo ""
+    echo "ERROR: Could not auto-install Ruby ${ruby_version}."
+    echo "       Install Ruby ${ruby_version} manually:"
+    echo ""
+    echo "  macOS:   brew install rbenv && rbenv install ${ruby_version}"
+    echo "  Linux:   curl -fsSL https://mise.run | sh && mise install"
+    echo "           -- or --"
+    echo "           curl -fsSL https://rvm.io/install | bash && rvm install ${ruby_version}"
+    echo "  Windows: https://rubyinstaller.org"
+    echo "           -- or -- winget install RubyInstallerTeam.Ruby"
+    echo "  Docker:  FROM ruby:${ruby_version}-alpine"
+    echo ""
+    echo "  Then re-run: ./bin/setup"
+    exit 1
+  fi
 }
 
 ensure_ruby
