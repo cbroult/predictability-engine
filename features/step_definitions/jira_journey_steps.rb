@@ -70,7 +70,7 @@ Then('a workflow file should exist at {string}') do |path_template|
   expect(File.exist?(File.expand_path(expand_path_template(path_template)))).to be true
 end
 
-When('I run the jira_workflow command for the current profile') do
+When('I run the jira workflow command for the current profile') do
   profile = aruba.environment.fetch('JIRA_PROFILE', ENV.fetch('JIRA_PROFILE', ''))
-  run_command_and_stop("predictability-engine jira_workflow #{profile}", fail_on_error: true)
+  run_command_and_stop("predictability-engine jira workflow #{profile}", fail_on_error: true)
 end

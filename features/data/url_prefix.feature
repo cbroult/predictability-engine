@@ -11,7 +11,7 @@ Feature: URL prefix for item links
       | PROJ-2 | Second item | Task  | 2026-01-15 |            |
 
   Scenario: --url-prefix builds clickable URLs from item IDs
-    When I run `predictability-engine viz landscape items.csv --url-prefix https://jira.example.com/browse/`
+    When I run `predictability-engine viz html_all items.csv --url-prefix https://jira.example.com/browse/`
     Then the exit status should be 0
     And the HTML file "reports/items/dashboard.html" should embed url "https://jira.example.com/browse/PROJ-1" for item "PROJ-1"
 
@@ -20,7 +20,7 @@ Feature: URL prefix for item links
       """
       url_prefix: https://jira.example.com/browse/
       """
-    When I run `predictability-engine viz landscape items.csv`
+    When I run `predictability-engine viz html_all items.csv`
     Then the exit status should be 0
     And the HTML file "reports/items/dashboard.html" should embed url "https://jira.example.com/browse/PROJ-1" for item "PROJ-1"
 
@@ -31,6 +31,6 @@ Feature: URL prefix for item links
       PROJ-1,First item,Story,2026-01-10,2026-01-20,https://custom.example.com/PROJ-1
       PROJ-2,Second item,Task,2026-01-15,,
       """
-    When I run `predictability-engine viz landscape items.csv --url-prefix https://jira.example.com/browse/`
+    When I run `predictability-engine viz html_all items.csv --url-prefix https://jira.example.com/browse/`
     Then the exit status should be 0
     And the HTML file "reports/items/dashboard.html" should embed url "https://custom.example.com/PROJ-1" for item "PROJ-1"

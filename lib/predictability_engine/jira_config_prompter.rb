@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module PredictabilityEngine
-  # Mixin providing interactive credential prompts for `jira_config --auth-mode`.
-  # Relies on `ask` / `ask_secret` being defined by the including class (Thor).
+  # Mixin providing interactive credential prompts for `jira config --auth-mode`.
+  # Relies on `ask` being available from the including Thor class.
   module JiraConfigPrompter
     def build_profile_data(site, context_path, mode)
       data = { 'site' => site }
@@ -28,6 +28,16 @@ module PredictabilityEngine
     end
 
     private
+
+    def ask_secret(prompt)
+      if $stdin.isatty
+        result = ask(prompt, echo: false)
+        puts ''
+        result
+      else
+        ask(prompt)
+      end
+    end
 
     def prompt_mfa_api_fields
       field = ask('Token field in login response (default: access_token):').strip

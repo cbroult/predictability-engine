@@ -20,7 +20,7 @@ Feature: Jira Workflow Status Mapping
           category: done
           role: departure
       """
-    When I run `predictability-engine jira_workflow_merge merged.workflow.yml solo.workflow.yml`
+    When I run `predictability-engine jira workflow_merge merged.workflow.yml solo.workflow.yml`
     Then the exit status should be 0
     And the workflow file "merged.workflow.yml" should contain exactly:
       """
@@ -147,7 +147,7 @@ Feature: Jira Workflow Status Mapping
           category: done
           role: departure
       """
-    When I run `predictability-engine jira_workflow_merge common.workflow.yml team-a.workflow.yml team-b.workflow.yml`
+    When I run `predictability-engine jira workflow_merge common.workflow.yml team-a.workflow.yml team-b.workflow.yml`
     Then the exit status should be 0
     And the workflow file "common.workflow.yml" should contain exactly:
       """
@@ -200,7 +200,7 @@ Feature: Jira Workflow Status Mapping
           category: done
           role: departure
       """
-    When I run `predictability-engine jira_workflow_merge common.workflow.yml alpha.workflow.yml beta.workflow.yml gamma.workflow.yml`
+    When I run `predictability-engine jira workflow_merge common.workflow.yml alpha.workflow.yml beta.workflow.yml gamma.workflow.yml`
     Then the exit status should be 0
     And the workflow file "common.workflow.yml" should contain exactly:
       """
@@ -238,7 +238,7 @@ Feature: Jira Workflow Status Mapping
           category: in progress
           role: arrival
       """
-    When I run `predictability-engine jira_workflow_merge result.workflow.yml unset.workflow.yml setter.workflow.yml`
+    When I run `predictability-engine jira workflow_merge result.workflow.yml unset.workflow.yml setter.workflow.yml`
     Then the exit status should be 0
     And the workflow file "result.workflow.yml" should contain exactly:
       """
@@ -249,7 +249,7 @@ Feature: Jira Workflow Status Mapping
       """
 
   Scenario: Merge with a missing source file exits with a descriptive error
-    When I run `predictability-engine jira_workflow_merge output.workflow.yml nonexistent.workflow.yml`
+    When I run `predictability-engine jira workflow_merge output.workflow.yml nonexistent.workflow.yml`
     Then the exit status should not be 0
     And the output should contain "Workflow not found"
 
@@ -277,7 +277,7 @@ Feature: Jira Workflow Status Mapping
           category: to do
           role:
       """
-    When I run `predictability-engine jira_workflow_merge full.workflow.yml project.workflow.yml`
+    When I run `predictability-engine jira workflow_merge full.workflow.yml project.workflow.yml`
     Then the exit status should be 0
     And the workflow file "full.workflow.yml" should contain exactly:
       """

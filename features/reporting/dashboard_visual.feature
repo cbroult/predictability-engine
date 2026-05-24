@@ -9,7 +9,7 @@ Feature: Dashboard visual completeness
     Given the sample file "sample_data.csv" is copied into the working directory
 
   Scenario: HTML dashboard renders all 6 chart panels
-    When I run `predictability-engine viz landscape sample_data.csv`
+    When I run `predictability-engine viz html_all sample_data.csv`
     Then the exit status should be 0
     And the HTML file "reports/sample_data/dashboard.html" should have 6 chart panels
 

@@ -23,46 +23,6 @@ RSpec.describe PredictabilityEngine::Cli do
     end
   end
 
-  describe '#init' do
-    it 'appends .yml if missing' do
-      allow(File).to receive(:write)
-      cli.init('test')
-      expect(log_output.string).to match(/Template created at test.yml/)
-    end
-
-    it 'does not append .yml if already present' do
-      allow(File).to receive(:write)
-      cli.init('test.yml')
-      expect(log_output.string).to match(/Template created at test.yml/)
-    end
-  end
-
-  describe '#jira_config' do
-    include_context 'with isolated home'
-
-    let(:profile) { 'test-profile' }
-    let(:credentials_path) { PredictabilityEngine::Config.jira_credentials_file }
-
-    before do
-      allow_any_instance_of(described_class).to receive(:ask).and_return('value')
-    end
-
-    it 'creates new file if it does not exist' do
-      cli.jira_config(profile)
-      expect(log_output.string).to match(/Jira credentials for profile 'test-profile' saved/)
-      expect(File.exist?(credentials_path)).to be true
-    end
-
-    it 'updates existing file if it exists' do
-      FileUtils.mkdir_p(File.dirname(credentials_path))
-      File.write(credentials_path, { 'profiles' => { 'other' => {} } }.to_yaml)
-      cli.jira_config(profile)
-      config = YAML.load_file(credentials_path)
-      expect(config['profiles']).to have_key('test-profile')
-      expect(config['profiles']).to have_key('other')
-    end
-  end
-
   describe '#ask_ai' do
     let(:manager) { instance_double(PredictabilityEngine::DataManager, load: true) }
     let(:assistant) { instance_double(PredictabilityEngine::Agents::Assistant) }

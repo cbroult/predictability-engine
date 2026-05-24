@@ -10,28 +10,28 @@ Feature: Jira data source journey
   # URL, email address, and API token, then stores them under a named profile in
   # ~/.config/jira/jira_credentials.yml (inside fake HOME during tests).
 
-  Scenario: Phase 1 — jira_config stores profile credentials to the home config
-    When I run `predictability-engine jira_config my-team` interactively with input "https://my-org.atlassian.net\n\nteam@example.com\nmy-api-token"
+  Scenario: Phase 1 — jira config stores profile credentials to the home config
+    When I run `predictability-engine jira config my-team` interactively with input "https://my-org.atlassian.net\n\nteam@example.com\nmy-api-token"
     Then the exit status should be 0
     And the output should contain "saved to"
     And a credentials file should exist at "$HOME/.config/jira/jira_credentials.yml"
     And the credentials file should contain profile "my-team"
 
-  Scenario: Phase 1b — jira_config stores context_path for on-premise Jira
-    When I run `predictability-engine jira_config on-prem` interactively with input "https://jira.example.com\n/jira\nteam@example.com\nmy-api-token"
+  Scenario: Phase 1b — jira config stores context_path for on-premise Jira
+    When I run `predictability-engine jira config on-prem` interactively with input "https://jira.example.com\n/jira\nteam@example.com\nmy-api-token"
     Then the exit status should be 0
     And the output should contain "saved to"
     And the credentials file should contain profile "on-prem" with context_path "/jira"
 
-  Scenario: Phase 1c — jira_config stores bearer token for SSO-gated Jira
-    When I run `predictability-engine jira_config sso-bearer --auth-mode bearer` interactively with input "https://jira.corp.com\n\ney.my-bearer-token"
+  Scenario: Phase 1c — jira config stores bearer token for SSO-gated Jira
+    When I run `predictability-engine jira config sso-bearer --auth-mode bearer` interactively with input "https://jira.corp.com\n\ney.my-bearer-token"
     Then the exit status should be 0
     And the output should contain "saved to"
     And the credentials file should contain profile "sso-bearer" with auth_mode "bearer"
     And the credentials file should contain profile "sso-bearer" with bearer_token "ey.my-bearer-token"
 
-  Scenario: Phase 1d — jira_config stores session cookie for SSO-gated Jira
-    When I run `predictability-engine jira_config sso-cookie --auth-mode cookie` interactively with input "https://jira.corp.com\n\nJSESSIONID=abc123; crowd.token_key=xyz"
+  Scenario: Phase 1d — jira config stores session cookie for SSO-gated Jira
+    When I run `predictability-engine jira config sso-cookie --auth-mode cookie` interactively with input "https://jira.corp.com\n\nJSESSIONID=abc123; crowd.token_key=xyz"
     Then the exit status should be 0
     And the output should contain "saved to"
     And the credentials file should contain profile "sso-cookie" with auth_mode "cookie"
@@ -43,7 +43,7 @@ Feature: Jira data source journey
   # profile and the JQL query without requiring explicit settings.
 
   Scenario: Phase 2 — init creates a Jira YAML config template
-    When I successfully run `predictability-engine init my-team.MYPROJ`
+    When I successfully run `predictability-engine jira init my-team.MYPROJ`
     Then the file "my-team.MYPROJ.yml" should exist
     And the file "my-team.MYPROJ.yml" should contain "jira_profile"
     And the file "my-team.MYPROJ.yml" should contain "project:"
@@ -66,14 +66,14 @@ Feature: Jira data source journey
     And the Jira query for "my-team.my-filter.yml" is "filter = \"my-filter\""
 
   # ─── Phase 3 — Extract workflow config (live Jira required) ─────────────────
-  # jira_workflow fetches all board statuses from Jira and writes an editable
+  # jira workflow fetches all board statuses from Jira and writes an editable
   # YAML file. You then set role: arrival / departure / null per status.
   # Re-running refreshes the snapshot while preserving your existing role assignments.
 
   @jira_live
-  Scenario: Phase 3 — jira_workflow extracts workflow statuses for a profile
+  Scenario: Phase 3 — jira workflow extracts workflow statuses for a profile
     Given the JIRA_PROFILE environment variable is set
-    When I run the jira_workflow command for the current profile
+    When I run the jira workflow command for the current profile
     Then the exit status should be 0
     And the output should contain "workflow"
     And a workflow file should exist at "$HOME/.config/jira/$JIRA_PROFILE.workflow.yml"

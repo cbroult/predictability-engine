@@ -104,21 +104,6 @@ module PredictabilityEngine
       run_and_print_report(source, :html, output: output)
     end
 
-    desc 'landscape SOURCE [OUTPUT]', 'Alias for html_all'
-    def landscape(source, output = nil)
-      run_and_print_report(source, :landscape, output: output)
-    end
-
-    desc 'dashboard SOURCE [OUTPUT]', 'Alias for landscape'
-    def dashboard(source, output = nil)
-      landscape(source, output)
-    end
-
-    desc 'all_html SOURCE [OUTPUT]', 'Alias for html_all'
-    def all_html(source, output = nil)
-      html_all(source, output)
-    end
-
     desc 'pdf SOURCE [OUTPUT]', 'Generate a PDF report'
     def pdf(source, output = nil)
       run_and_print_report(source, :pdf, output: output)
@@ -134,19 +119,9 @@ module PredictabilityEngine
       run_and_print_report(source, :markdown, output: output)
     end
 
-    desc 'md SOURCE [OUTPUT]', 'Alias for markdown'
-    def md(source, output = nil)
-      markdown(source, output)
-    end
-
     desc 'confluence SOURCE [OUTPUT]', 'Generate a Confluence markup report'
     def confluence(source, output = nil)
       run_and_print_report(source, :confluence, output: output)
-    end
-
-    desc 'conf SOURCE [OUTPUT]', 'Alias for confluence'
-    def conf(source, output = nil)
-      confluence(source, output)
     end
 
     desc 'png SOURCE [OUTPUT]', 'Generate a PNG report'
@@ -192,43 +167,29 @@ module PredictabilityEngine
     end
   end
 
-  class Cli < Thor
+  class Jira < Thor
     include CliBase
     include JiraConfigPrompter
 
-    package_name "predictability-engine #{VERSION}"
-
-    desc 'viz SUBCOMMAND ...ARGS', 'Visualization commands'
-    subcommand 'viz', Viz
-    desc 'summary SOURCE', 'Load data from SOURCE and show flow metrics summary'
-    method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
-    def summary(source)
-      items = PredictabilityEngine.load_items(source)
-      PredictabilityEngine.logger.info { SummaryVisualizer.metrics_terminal(items, color: options[:color]) }
+    desc 'config PROFILE', 'Generate/Update Jira credentials in ~/.config/jira/jira_credentials.yml'
+    method_option :auth_mode, aliases: '-a', default: 'basic',
+                              desc: 'Auth mode: basic | bearer | cookie | mfa_api | mfa_browser'
+    def config(profile)
+      site = ask('Jira site (e.g., https://your-domain.atlassian.net):')
+      context_path = ask('Context path, if any (e.g., /jira — leave blank for Atlassian Cloud):')
+      mode = options[:auth_mode]
+      profile_data = build_profile_data(site, context_path, mode)
+      path = Config.jira_credentials_file
+      FileUtils.mkdir_p(File.dirname(path))
+      cfg = File.exist?(path) ? Config.load_yaml_file(path) : {}
+      cfg ||= {}
+      cfg['profiles'] ||= {}
+      cfg['profiles'][profile] = profile_data
+      File.write(path, cfg.to_yaml)
+      PredictabilityEngine.logger.info { "Jira credentials for profile '#{profile}' saved to #{path}" }
     end
 
-    desc 'report SOURCE FORMAT [OUTPUT]', 'Generate a full report in various formats (terminal, html, pdf, md, conf)'
-    method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
-    method_option :clean, type: :boolean, default: true, desc: 'Clean the report directory before generation'
-    def report(input_source, format = 'terminal', output = nil)
-      if format.to_sym != :terminal && output.nil? && options[:clean]
-        ReportGenerator.clean_report_dir(input_source, **options)
-      end
-      PredictabilityEngine.run_and_print_report(input_source, format, options, output: output)
-    end
-
-    desc 'batch SOURCE', 'Run all report formats for the given SOURCE'
-    method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
-    def batch(source)
-      Viz.new([], options).all_formats(source)
-    end
-
-    desc 'setup', 'Install/update all dependencies (Ruby gems + Node.js + Playwright + Chromium)'
-    def setup
-      SetupManager.new.run
-    end
-
-    desc 'init FILENAME', 'Create a template YAML file for JIRA source'
+    desc 'init FILENAME', 'Create a template YAML file for Jira source'
     def init(filename)
       filename += '.yml' unless filename.end_with?('.yml', '.yaml')
       content = <<~YAML
@@ -243,47 +204,25 @@ module PredictabilityEngine
       PredictabilityEngine.logger.info { "Template created at #{filename}" }
     end
 
-    desc 'jira_config PROFILE', 'Generate/Update JIRA credentials in ~/.config/jira/jira_credentials.yml'
-    method_option :auth_mode, aliases: '-a', default: 'basic',
-                              desc: 'Auth mode: basic | bearer | cookie | mfa_api | mfa_browser'
-    def jira_config(profile)
-      site = ask('Jira site (e.g., https://your-domain.atlassian.net):')
-      context_path = ask('Context path, if any (e.g., /jira — leave blank for Atlassian Cloud):')
-      mode = options[:auth_mode]
-
-      profile_data = build_profile_data(site, context_path, mode)
-
-      path = Config.jira_credentials_file
-      FileUtils.mkdir_p(File.dirname(path))
-
-      config = File.exist?(path) ? Config.load_yaml_file(path) : {}
-      config ||= {}
-      config['profiles'] ||= {}
-      config['profiles'][profile] = profile_data
-
-      File.write(path, config.to_yaml)
-      PredictabilityEngine.logger.info { "Jira credentials for profile '#{profile}' saved to #{path}" }
-    end
-
-    desc 'jira_workflow PROFILE [OUTPUT]',
+    desc 'workflow PROFILE [OUTPUT]',
          'Extract Jira workflow statuses for PROFILE into an editable YAML mapping ' \
          '(default: ~/.config/jira/<profile>.workflow.yml). Re-running refreshes the ' \
          'snapshot while preserving any roles you already set.'
-    def jira_workflow(profile, output = nil)
+    def workflow(profile, output = nil)
       path = output || JiraWorkflow.default_path(profile)
       fresh = JiraWorkflow.extract(profile)
-      workflow = File.exist?(path) ? JiraWorkflow.load(path).refresh(fresh) : fresh
-      workflow.write(path)
+      wf = File.exist?(path) ? JiraWorkflow.load(path).refresh(fresh) : fresh
+      wf.write(path)
       action = File.exist?(path) ? 'refreshed' : 'written'
       PredictabilityEngine.logger.info { "Workflow for profile '#{profile}' #{action}: #{path}" }
       PredictabilityEngine.logger.info { "Review #{path} and set role: arrival / departure / null per status." }
     end
 
-    desc 'jira_workflow_merge OUTPUT SOURCES...',
+    desc 'workflow_merge OUTPUT SOURCES...',
          'Merge multiple workflow configs into a shared config. Each SOURCE is ' \
          'either a profile name (resolved to ~/.config/jira/<profile>.workflow.yml) ' \
          'or an explicit path to a workflow YAML file.'
-    def jira_workflow_merge(output, *sources)
+    def workflow_merge(output, *sources)
       raise Error, 'Need at least one workflow source to merge' if sources.empty?
 
       configs = sources.map do |src|
@@ -292,6 +231,35 @@ module PredictabilityEngine
       end
       JiraWorkflow.merge(configs).write(output)
       PredictabilityEngine.logger.info { "Merged workflow from #{sources.join(', ')} written to #{output}" }
+    end
+  end
+
+  class Cli < Thor
+    include CliBase
+
+    package_name "predictability-engine #{VERSION}"
+
+    desc 'batch SOURCE', 'Run all report formats for the given SOURCE'
+    method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
+    def batch(source)
+      Viz.new([], options).all_formats(source)
+    end
+
+    desc 'report SOURCE FORMAT [OUTPUT]', 'Generate a full report in various formats (terminal, html, pdf, md, conf)'
+    method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
+    method_option :clean, type: :boolean, default: true, desc: 'Clean the report directory before generation'
+    def report(input_source, format = 'terminal', output = nil)
+      if format.to_sym != :terminal && output.nil? && options[:clean]
+        ReportGenerator.clean_report_dir(input_source, **options)
+      end
+      PredictabilityEngine.run_and_print_report(input_source, format, options, output: output)
+    end
+
+    desc 'summary SOURCE', 'Load data from SOURCE and show flow metrics summary'
+    method_option :color, type: :boolean, default: true, desc: 'Enable/disable color output'
+    def summary(source)
+      items = PredictabilityEngine.load_items(source)
+      PredictabilityEngine.logger.info { SummaryVisualizer.metrics_terminal(items, color: options[:color]) }
     end
 
     desc 'forecast SOURCE BACKLOG_COUNT', 'Run Monte Carlo simulation for BACKLOG_COUNT items'
@@ -345,17 +313,40 @@ module PredictabilityEngine
       PredictabilityEngine.logger.info { "Synthetic #{options[:size]} dataset written to #{path}" }
     end
 
-    private
+    desc 'viz SUBCOMMAND ...ARGS', 'Visualization commands (individual charts and format-specific reports)'
+    subcommand 'viz', Viz
 
-    def ask_secret(prompt)
-      if $stdin.isatty
-        result = ask(prompt, echo: false)
-        puts ''
-        result
+    desc 'setup', 'Install/update all dependencies (Ruby gems + Node.js + Playwright + Chromium)'
+    def setup
+      SetupManager.new.run
+    end
+
+    desc 'ask_ai SOURCE QUESTION', 'Ask the AI assistant about the data in SOURCE'
+    def ask_ai(source, question)
+      manager = DataManager.new
+      manager.load(source)
+      assistant = Agents::Assistant.new(manager)
+      PredictabilityEngine.logger.info { 'AI Thinking...' }
+      response = assistant.ask(question)
+      PredictabilityEngine.logger.info { 'AI Response:' }
+      PredictabilityEngine.logger.info { '------------' }
+      if response.respond_to?(:content)
+        PredictabilityEngine.logger.info { response.content }
       else
-        ask(prompt)
+        PredictabilityEngine.logger.info { response }
       end
     end
+
+    desc 'jira SUBCOMMAND ...ARGS', 'Jira connection and workflow configuration'
+    subcommand 'jira', Jira
+
+    desc 'version', 'Print the predictability-engine version'
+    def version
+      say VERSION
+    end
+    map '--version' => :version
+
+    private
 
     def print_calibration_results(result)
       PredictabilityEngine.logger.info { 'Monte Carlo Hindcast Calibration' }
@@ -386,36 +377,6 @@ module PredictabilityEngine
       PredictabilityEngine::DEFAULT_PERCENTILES.each do |p|
         val = Simulators::MonteCarlo.percentile(results, p)
         PredictabilityEngine.logger.info { "  #{p}% confidence: Done in #{val} days" }
-      end
-    end
-
-    public
-
-    desc 'version', 'Print the predictability-engine version'
-    def version
-      say VERSION
-    end
-    map '--version' => :version
-
-    desc 'ask_ai SOURCE QUESTION', 'Ask the AI assistant about the data in SOURCE'
-    def ask_ai(source, question)
-      # Assistant needs the manager or at least items.
-      manager = DataManager.new
-      manager.load(source)
-
-      assistant = Agents::Assistant.new(manager)
-      PredictabilityEngine.logger.info { 'AI Thinking...' }
-      response = assistant.ask(question)
-
-      # response is an array of messages or similar depending on langchain version
-      # In recent langchainrb versions assistant.run returns the last message
-      PredictabilityEngine.logger.info { 'AI Response:' }
-      PredictabilityEngine.logger.info { '------------' }
-      # Assuming response is a message object with .content
-      if response.respond_to?(:content)
-        PredictabilityEngine.logger.info { response.content }
-      else
-        PredictabilityEngine.logger.info { response }
       end
     end
   end
