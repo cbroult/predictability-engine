@@ -1,0 +1,53 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# verify-fresh-install — clean-room smoke test for a freshly-installed gem.
+#
+# Cross-platform (Linux + Windows). Confirms that an end user can:
+#   1. locate shipped sample CSVs via the gem
+#   2. generate synthetic stress data with the CLI
+#   3. run `batch` end-to-end (all formats, incl. Playwright: png/pptx/pdf)
+#   4. run `summary` and `forecast` subcommands
+# and that every expected artefact lands on disk non-empty.
+
+require 'predictability_engine'
+require 'fileutils'
+require 'tmpdir'
+
+WORK = File.join(Dir.tmpdir, 'verify-fresh-install')
+FileUtils.rm_rf(WORK)
+FileUtils.mkdir_p(WORK)
+Dir.chdir(WORK)
+
+gem_data = File.dirname(PredictabilityEngine.sample_data_path)
+puts "verify-fresh-install: using shipped samples from #{gem_data}"
+
+%w[sample_data.csv sample_data_large.csv wip_data.csv].each do |f|
+  FileUtils.cp(File.join(gem_data, f), File.join(WORK, f))
+end
+
+system('predictability-engine', 'generate', '--size=xl', File.join(WORK, 'xl_data.csv')) or
+  abort('FAIL: generate')
+abort('FAIL: xl_data.csv not produced') unless File.size?(File.join(WORK, 'xl_data.csv'))
+
+%w[sample_data.csv sample_data_large.csv wip_data.csv xl_data.csv].each do |csv|
+  puts "verify-fresh-install: batch #{csv}"
+  system('predictability-engine', 'batch', File.join(WORK, csv)) or abort("FAIL: batch #{csv}")
+end
+
+system('predictability-engine', 'summary',  File.join(WORK, 'sample_data.csv')) or abort('FAIL: summary')
+system('predictability-engine', 'forecast', File.join(WORK, 'wip_data.csv'), '10') or abort('FAIL: forecast')
+
+artefacts = %w[dashboard.html dashboard.md dashboard.conf dashboard.pdf
+               dashboard.pptx dashboard.png dashboard.csv dashboard.xlsx]
+all_paths = %w[sample_data sample_data_large wip_data xl_data].flat_map do |base|
+  artefacts.map { |a| File.join(WORK, 'reports', base, a) }
+end
+failures = all_paths.reject { |p| File.size?(p) }
+
+if failures.any?
+  lines = failures.map { |p| "FAIL: missing or empty artefact #{p}" }
+  abort("#{lines.join("\n")}\nverify-fresh-install: FAILED")
+end
+
+puts 'verify-fresh-install: all artefacts generated successfully'

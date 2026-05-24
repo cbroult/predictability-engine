@@ -43,7 +43,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'cucumber'
   spec.add_development_dependency 'gem-release'
   spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'rake-gem-maintenance'
+  spec.add_development_dependency 'rake-gem-maintenance', '~> 0.3'
   spec.add_development_dependency 'redcarpet'
   spec.add_development_dependency 'rspec'
   spec.add_development_dependency 'rubocop'

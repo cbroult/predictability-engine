@@ -1,0 +1,36 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# upload-gem-artifact — upload the built gem to Forgejo generic packages.
+#
+# Uses CI_PIPELINE_NUMBER as the artifact slot so all workflows in the same
+# pipeline event share the same download URL — version-agnostic.
+# HTTP 409 (already exists) is treated as success (idempotent).
+#
+# Required env:
+#   CI_PIPELINE_NUMBER  — Woodpecker pipeline number (always set by Woodpecker)
+#   FORGEJO_PUSH_TOKEN  — Forgejo API token (secret: forgejo_push_token)
+#   CBP_ORG_CA_CERT     — Base64-encoded cbp-org CA cert (secret: cbp_org_ca_cert)
+
+load File.join(__dir__, 'lib/forgejo_client')
+
+gem_file = Dir['predictability-engine-*.gem'].first || abort('No predictability-engine-*.gem found')
+url = ForgejoCiClient.artifact_url
+
+Net::HTTP.start(url.host, url.port,
+                use_ssl: true, cert_store: ForgejoCiClient.cert_store,
+                verify_mode: OpenSSL::SSL::VERIFY_PEER) do |http|
+  req = Net::HTTP::Put.new(url)
+  req['Authorization'] = "token #{ForgejoCiClient.token}"
+  req['Content-Type']  = 'application/octet-stream'
+  req.body = File.binread(gem_file)
+  res = http.request(req)
+  case res.code.to_i
+  when 200..299
+    puts "Uploaded #{gem_file} as #{ForgejoCiClient::CI_GEM_NAME} (pipeline #{ENV.fetch('CI_PIPELINE_NUMBER', nil)})"
+  when 409
+    puts "#{ForgejoCiClient::CI_GEM_NAME} already exists (HTTP 409) — treating as success (idempotent)"
+  else
+    abort("ERROR: Forgejo package upload returned HTTP #{res.code}")
+  end
+end

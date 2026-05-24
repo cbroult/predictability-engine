@@ -5,15 +5,17 @@
 # pre-built image with nodejs/npm/openssh-client baked in (see Dockerfile.ci).
 #
 # Pipeline sequence (all in one container):
-#   1. ./bin/setup                         install gems + Playwright Chromium
-#   2. bundle exec rake verify             full test gate
-#   3. scripts/auto-bump.sh               patch-bump version on push to main only
-#   4. gem build                           build final X.Y.Z gem (no .rc1 suffix)
-#   5. scripts/upload-gem-artifact.sh      upload to nexus raw artifact store
+#   1. ./bin/setup                              install gems + Playwright Chromium
+#   2. bundle exec rake verify                  full test gate
+#   3. bundle exec rake version:ci_bump         patch-bump version on push to main only
+#   4. gem build                                build final X.Y.Z gem (no .rc1 suffix)
+#   5. ruby scripts/upload-gem-artifact         upload to Forgejo generic packages
 #
 # The gem is NOT pushed to the gem registry here — only to the raw artifact
-# store on nexus. verify-linux.yml and verify-windows.yml download and install
+# store on Forgejo. verify-linux.yml and verify-windows.yml download and install
 # it locally. Only after both pass does promote.yml push to the gem registries.
+# The artifact slot is CI_PIPELINE_NUMBER-based (pipeline-N/predictability-engine-ci.gem)
+# so all workflows in this pipeline event share the same URL, regardless of version.
 #
 # Required Woodpecker secrets (org-level cbp-org):
 #   forgejo_push_token    — Forgejo PAT with write on this repo (for auto-bump)
@@ -59,9 +61,9 @@ steps:
       - mkdir -p /root/.local/share/ruby-advisory-db/gems
       - ./bin/setup
       - bundle exec rake verify
-      - if [ "${CI_PIPELINE_EVENT}" = "push" ] && [ "${CI_COMMIT_BRANCH}" = "main" ]; then sh scripts/auto-bump.sh; fi
+      - if [ "${CI_PIPELINE_EVENT}" = "push" ] && [ "${CI_COMMIT_BRANCH}" = "main" ]; then bundle exec rake version:ci_bump; fi
       - gem build predictability-engine.gemspec
-      - sh scripts/upload-gem-artifact.sh
+      - ruby scripts/upload-gem-artifact
 
   - name: badge
     image: docker-registry.cbp-org.internal/badge-reporter:latest

@@ -1,9 +1,9 @@
 # verify-windows.yml — Windows fresh-install validation of the built gem.
 #
 # Runs after publish.yml succeeds (depends_on: publish). Downloads the
-# X.Y.Z gem from Forgejo generic packages (uploaded by publish.yml)
-# and installs it locally, then runs `predictability-engine setup` and
-# the full verify-fresh-install smoke suite.
+# gem from Forgejo generic packages using CI_PIPELINE_NUMBER as the slot
+# (pipeline-N/predictability-engine-ci.gem) — version-agnostic, matching
+# exactly what publish uploaded.
 #
 # Agent targeting: photocenter via labels matching custom_labels {platform: windows}.
 # platform: field is NOT a routing directive — labels: is.
@@ -38,4 +38,4 @@ steps:
       FORGEJO_PUSH_TOKEN:
         from_secret: forgejo_push_token
     commands:
-      - pwsh -ExecutionPolicy Bypass -File scripts\verify-fresh-install-windows.ps1
+      - ruby scripts\verify-fresh-install-windows

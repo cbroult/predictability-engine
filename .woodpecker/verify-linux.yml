@@ -1,9 +1,9 @@
 # verify-linux.yml — Linux fresh-install validation of the built gem.
 #
 # Runs after publish.yml succeeds (depends_on: publish). Downloads the
-# X.Y.Z gem from Forgejo generic packages (uploaded by publish.yml)
-# and installs it locally, then runs `predictability-engine setup` and
-# the full verify-fresh-install smoke suite.
+# gem from Forgejo generic packages (uploaded by publish.yml) using
+# CI_PIPELINE_NUMBER as the artifact slot (pipeline-N/predictability-engine-ci.gem)
+# so the download URL is version-agnostic and matches exactly what publish uploaded.
 #
 # Single-step pipeline (one container) using the pre-built CI image.
 
@@ -44,9 +44,8 @@ steps:
         from_secret: forgejo_push_token
     commands:
       - printf '%s' "$CBP_ORG_CA_CERT" | base64 -d > /tmp/cbp-ca.crt
-      - cat /etc/ssl/certs/ca-certificates.crt /tmp/cbp-ca.crt > /tmp/ca-bundle.crt
-      - export SSL_CERT_FILE=/tmp/ca-bundle.crt NODE_EXTRA_CA_CERTS=/tmp/cbp-ca.crt
-      - sh scripts/download-gem-artifact.sh
-      - gem install predictability-engine-*.gem --no-document
+      - export NODE_EXTRA_CA_CERTS=/tmp/cbp-ca.crt
+      - ruby scripts/download-gem-artifact
+      - gem install predictability-engine-ci.gem --no-document
       - predictability-engine setup
-      - sh scripts/verify-fresh-install.sh
+      - ruby scripts/verify-fresh-install

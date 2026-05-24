@@ -1,0 +1,35 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# verify-fresh-install-windows — Windows CI entrypoint.
+#
+# Node install → CA cert trust → download gem → install → Playwright setup → smoke test.
+#
+# Required env:
+#   CI_PIPELINE_NUMBER  — Woodpecker pipeline number (always set by Woodpecker)
+#   FORGEJO_PUSH_TOKEN  — Forgejo API token
+#   CBP_ORG_CA_CERT     — Base64-encoded cbp-org CA cert
+
+require 'base64'
+require 'fileutils'
+
+unless system('node --version', out: File::NULL, err: File::NULL)
+  system('choco install -y nodejs --no-progress') or abort('FAIL: nodejs install')
+  machine = `powershell -Command "[Environment]::GetEnvironmentVariable('PATH','Machine')"`.strip
+  user    = `powershell -Command "[Environment]::GetEnvironmentVariable('PATH','User')"`.strip
+  ENV['PATH'] = "#{machine};#{user}"
+end
+
+cert_pem  = Base64.decode64(ENV.fetch('CBP_ORG_CA_CERT'))
+cert_file = 'C:\cbp-org.crt'
+File.binwrite(cert_file, cert_pem)
+ENV['NODE_EXTRA_CA_CERTS'] = cert_file
+
+load File.join(__dir__, 'lib/forgejo_client')
+system(RbConfig.ruby, File.join(__dir__, 'download-gem-artifact')) or abort('FAIL: download')
+system('gem', 'install', ForgejoCiClient::CI_GEM_NAME, '--no-document') or abort('FAIL: gem install')
+
+ENV['PLAYWRIGHT_BROWSERS_PATH'] = 'C:\ProgramData\ms-playwright'
+system('predictability-engine', 'setup') or abort('FAIL: setup')
+
+load File.join(__dir__, 'verify-fresh-install')

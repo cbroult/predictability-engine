@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# download-gem-artifact — download the built gem from Forgejo generic packages.
+#
+# Uses CI_PIPELINE_NUMBER as the artifact slot — must match what upload-gem-artifact
+# stored during the publish step of this same pipeline event.
+#
+# Required env:
+#   CI_PIPELINE_NUMBER  — Woodpecker pipeline number (always set by Woodpecker)
+#   FORGEJO_PUSH_TOKEN  — Forgejo API token (secret: forgejo_push_token)
+#   CBP_ORG_CA_CERT     — Base64-encoded cbp-org CA cert (secret: cbp_org_ca_cert)
+
+load File.join(__dir__, 'lib/forgejo_client')
+
+url = ForgejoCiClient.artifact_url
+
+Net::HTTP.start(url.host, url.port,
+                use_ssl: true, cert_store: ForgejoCiClient.cert_store,
+                verify_mode: OpenSSL::SSL::VERIFY_PEER) do |http|
+  req = Net::HTTP::Get.new(url)
+  req['Authorization'] = "token #{ForgejoCiClient.token}"
+  http.request(req) do |res|
+    abort("Download failed: HTTP #{res.code}") unless res.is_a?(Net::HTTPSuccess)
+    File.open(ForgejoCiClient::CI_GEM_NAME, 'wb') { |f| res.read_body { |chunk| f << chunk } }
+  end
+end
+
+puts "Downloaded #{ForgejoCiClient::CI_GEM_NAME} (pipeline #{ENV.fetch('CI_PIPELINE_NUMBER', nil)})"
