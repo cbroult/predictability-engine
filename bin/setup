@@ -1,10 +1,30 @@
 #!/usr/bin/env bash
-# bin/setup — ensures Ruby, then bootstraps Bundler and delegates to the PE CLI.
+# bin/setup — ensures Ruby + Node.js, then bootstraps Bundler and delegates to the PE CLI.
+#
+# Works on macOS, Linux, and WSL with zero prerequisites:
+#   - If mise/asdf/rbenv/rvm is already installed, uses it.
+#   - Otherwise, installs mise automatically (brew on macOS, curl on Linux/WSL).
+#     mise reads .ruby-version AND .tool-versions, so Ruby + Node.js land in one shot.
+#
+# For Windows native, use: bin\setup.bat (invokes bin\setup.ps1 via PowerShell)
 set -euo pipefail
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # ── Ruby version guard ────────────────────────────────────────────────────────
 REQUIRED_RUBY_MAJOR=${REQUIRED_RUBY_MAJOR:-4}
+
+install_mise() {
+  echo "==> Installing mise (manages Ruby + Node.js from .tool-versions)..."
+  if [[ "$(uname)" == "Darwin" ]] && command -v brew &>/dev/null; then
+    brew install mise
+  else
+    curl -fsSL https://mise.run | sh
+    export PATH="$HOME/.local/bin:$PATH"
+  fi
+  if command -v mise &>/dev/null; then
+    eval "$(mise activate bash)" 2>/dev/null || true
+  fi
+}
 
 ensure_ruby() {
   if command -v ruby &>/dev/null; then
@@ -16,27 +36,15 @@ ensure_ruby() {
   fi
 
   echo "==> Trying version managers..."
-  if command -v mise &>/dev/null;  then mise install && return 0; fi
-  if command -v asdf &>/dev/null;  then asdf install && return 0; fi
+  if command -v mise  &>/dev/null; then mise install  && return 0; fi
+  if command -v asdf  &>/dev/null; then asdf install  && return 0; fi
   if command -v rbenv &>/dev/null; then rbenv install --skip-existing && return 0; fi
-  if command -v rvm  &>/dev/null;  then
+  if command -v rvm   &>/dev/null; then
     rvm install "$(cat .ruby-version)" && rvm use "$(cat .ruby-version)" && return 0
   fi
 
-  ruby_version=$(sed 's/ruby-//' .ruby-version)
-  echo ""
-  echo "ERROR: No Ruby version manager found. Install Ruby ${ruby_version} manually:"
-  echo ""
-  echo "  macOS:   brew install rbenv && rbenv install ${ruby_version}"
-  echo "  Linux:   curl -fsSL https://mise.run | sh && mise install"
-  echo "           -- or --"
-  echo "           curl -fsSL https://rvm.io/install | bash && rvm install ${ruby_version}"
-  echo "  Windows: https://rubyinstaller.org"
-  echo "           -- or -- winget install RubyInstallerTeam.Ruby"
-  echo "  Docker:  FROM ruby:${ruby_version}-alpine"
-  echo ""
-  echo "  Then re-run: ./bin/setup"
-  exit 1
+  install_mise
+  mise install
 }
 
 ensure_ruby
