@@ -124,10 +124,7 @@ A single `./bin/predictability-engine batch <source>` produces a full responsive
 
 ## 📦 Installation
 
-```bash
-gem install predictability-engine
-predictability-engine setup   # installs Playwright + Chromium for PDF/PNG/PPTX
-```
+See [Quick Start](#-quick-start) above for per-platform setup instructions.
 
 To embed in an application's Gemfile:
 
