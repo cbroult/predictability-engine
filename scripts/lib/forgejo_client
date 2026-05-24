@@ -1,28 +1,41 @@
 # frozen_string_literal: true
 
-require "openssl"
-require "base64"
-require "uri"
-require "net/http"
+require 'openssl'
+require 'base64'
+require 'uri'
+require 'net/http'
 
 module ForgejoCiClient
-  CI_GEM_NAME = "predictability-engine-ci.gem"
+  CI_GEM_NAME = 'predictability-engine-ci.gem'
 
   def self.artifact_url
-    n = ENV.fetch("CI_PIPELINE_NUMBER")
-    URI("https://git.cbp-org.internal/api/packages/cbp-org/generic/" \
+    n = ENV.fetch('CI_PIPELINE_NUMBER')
+    URI('https://git.cbp-org.internal/api/packages/cbp-org/generic/' \
         "predictability-engine/pipeline-#{n}/#{CI_GEM_NAME}")
   end
 
   def self.cert_store
     store = OpenSSL::X509::Store.new
     store.set_default_paths
-    ca = OpenSSL::X509::Certificate.new(Base64.decode64(ENV.fetch("CBP_ORG_CA_CERT")))
+    ca = OpenSSL::X509::Certificate.new(Base64.decode64(ENV.fetch('CBP_ORG_CA_CERT')))
     store.add_cert(ca)
     store
   end
 
   def self.token
-    ENV.fetch("FORGEJO_PUSH_TOKEN")
+    ENV.fetch('FORGEJO_PUSH_TOKEN')
+  end
+
+  def self.http_start(&)
+    url = artifact_url
+    Net::HTTP.start(url.host, url.port,
+                    use_ssl: true, cert_store: cert_store,
+                    verify_mode: OpenSSL::SSL::VERIFY_PEER, &)
+  end
+
+  def self.authenticated_request(method)
+    req = Net::HTTP.const_get(method.to_s.capitalize).new(artifact_url)
+    req['Authorization'] = "token #{token}"
+    req
   end
 end

@@ -13,13 +13,8 @@
 
 load File.join(__dir__, 'lib/forgejo_client')
 
-url = ForgejoCiClient.artifact_url
-
-Net::HTTP.start(url.host, url.port,
-                use_ssl: true, cert_store: ForgejoCiClient.cert_store,
-                verify_mode: OpenSSL::SSL::VERIFY_PEER) do |http|
-  req = Net::HTTP::Get.new(url)
-  req['Authorization'] = "token #{ForgejoCiClient.token}"
+ForgejoCiClient.http_start do |http|
+  req = ForgejoCiClient.authenticated_request(:get)
   http.request(req) do |res|
     abort("Download failed: HTTP #{res.code}") unless res.is_a?(Net::HTTPSuccess)
     File.open(ForgejoCiClient::CI_GEM_NAME, 'wb') { |f| res.read_body { |chunk| f << chunk } }

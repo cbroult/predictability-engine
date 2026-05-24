@@ -15,14 +15,10 @@
 load File.join(__dir__, 'lib/forgejo_client')
 
 gem_file = Dir['predictability-engine-*.gem'].first || abort('No predictability-engine-*.gem found')
-url = ForgejoCiClient.artifact_url
 
-Net::HTTP.start(url.host, url.port,
-                use_ssl: true, cert_store: ForgejoCiClient.cert_store,
-                verify_mode: OpenSSL::SSL::VERIFY_PEER) do |http|
-  req = Net::HTTP::Put.new(url)
-  req['Authorization'] = "token #{ForgejoCiClient.token}"
-  req['Content-Type']  = 'application/octet-stream'
+ForgejoCiClient.http_start do |http|
+  req = ForgejoCiClient.authenticated_request(:put)
+  req['Content-Type'] = 'application/octet-stream'
   req.body = File.binread(gem_file)
   res = http.request(req)
   case res.code.to_i
