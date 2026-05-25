@@ -4,12 +4,13 @@
 # When running from the source tree (not an installed gem), point Bundler
 # at this gem's Gemfile so the binary works from any CWD.
 gemfile = File.expand_path('../Gemfile', __dir__)
-ENV['BUNDLE_GEMFILE'] ||= gemfile if File.exist?(gemfile)
-
-begin
-  require 'bundler/setup'
-rescue LoadError
-  # Bundler not available, hope for the best with system gems
+if File.exist?(gemfile)
+  ENV['BUNDLE_GEMFILE'] ||= gemfile
+  begin
+    require 'bundler/setup'
+  rescue LoadError
+    # Bundler not available, hope for the best with system gems
+  end
 end
 
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
