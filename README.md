@@ -107,7 +107,7 @@ Then:
 
 A single `./bin/predictability-engine batch <source>` produces a full responsive dashboard with Aging WIP, Forecasted CFD, Cycle Time Scatter, Throughput, and per-type sub-dashboards — plus matching PDF, PNG, PPTX, Markdown, and Confluence outputs.
 
-![Sample Dashboard](data/samples/reports/sample_data_large/dashboard.png)
+[📊 View Sample HTML Dashboard](data/samples/reports/sample_data_large/dashboard.html)
 
 ---
 

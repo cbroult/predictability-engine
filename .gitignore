@@ -1,6 +1,15 @@
 node_modules/
 reports/
 !data/samples/reports/
+!data/samples/reports/**/*.html
+data/samples/reports/**/*.pdf
+data/samples/reports/**/*.png
+data/samples/reports/**/*.pptx
+data/samples/reports/**/*.xlsx
+data/samples/reports/**/*.csv
+data/samples/reports/**/*.conf
+data/samples/reports/**/*.md
+data/samples/reports/*/images/
 tmp/
 coverage/
 .cache/
