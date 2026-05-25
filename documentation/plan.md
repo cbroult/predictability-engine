@@ -39,3 +39,69 @@ Woodpecker pipeline artifacts so they can be downloaded without living in git.
 ### Status
 
 Implemented in `chore(reports): only commit HTML dashboards, drop binary formats`.
+
+---
+
+## README Link Checker in `verify`
+
+### Problem
+
+The README references several relative file links (e.g. the HTML dashboard, JIRA
+docs, ARCHITECTURE.md). These can silently break when files are renamed or deleted.
+The HTML dashboard link is particularly important because it is the primary showcase
+entry point.
+
+### Options
+
+| Option | Tool | Pros | Cons |
+|--------|------|------|------|
+| **A — markdown-link-check (npm)** | `npx markdown-link-check README.md` | Widely used, checks anchors + external + relative; available anywhere Node is present; zero config needed | Slower on external URLs (rate limits); needs network for external checks; requires `--no-progress` flag in CI |
+| **B — lychee (Rust binary)** | `lychee README.md` | Very fast, parallel, built-in caching, offline-friendly; excellent anchor checking | Extra binary to install; not in typical Ruby CI image |
+| **C — mdfmt / custom grep** | Shell `grep` + `test -f` | Zero deps, works in any shell | Fragile, misses anchors, hard to maintain |
+| **D — mdl / markdownlint** | `bundle exec mdl` or `npx markdownlint-cli` | Already in CI lint flow if added | Does not check link targets — only validates syntax |
+
+### Recommendation: Option A — `markdown-link-check`
+
+`markdown-link-check` is the pragmatic choice: it is already available in the CI
+environment (Node.js + Playwright image), covers relative file paths and internal
+anchors, and needs no additional binary install. Use `--quiet` to suppress passing
+lines and `--config .markdown-link-check.json` to skip external badge URLs (badges
+and internal `cbp-org.internal` URLs are unreachable from CI).
+
+#### Implementation
+
+1. Add `.markdown-link-check.json` to the repo root:
+   ```json
+   {
+     "ignorePatterns": [
+       { "pattern": "^https?://badge\\.cbp-org\\.internal" },
+       { "pattern": "^https?://ci\\.cbp-org\\.internal" },
+       { "pattern": "^https?://github\\.com/cbroult/predictability-engine/actions" }
+     ],
+     "aliveStatusCodes": [200, 206]
+   }
+   ```
+
+2. Add a Rake task in `Rakefile`:
+   ```ruby
+   desc 'Check all links in README.md'
+   task :linkcheck do
+     sh 'npx --yes markdown-link-check README.md --quiet --config .markdown-link-check.json'
+   end
+   ```
+
+3. Add `:linkcheck` to the `verify` task dependencies (after `:jscpd`).
+
+#### Caveats
+
+- First run downloads `markdown-link-check` via npx — subsequent runs use the npm
+  cache. Pin a version in `package.json` if repeatability matters.
+- External links (shields.io, rubygems.org) are checked by default; add them to the
+  ignore list if they become flaky in CI.
+- Anchor links (`#section-name`) are verified against headings in the file — emoji
+  in headings are normalised by GitHub/Forgejo using the same algorithm, so test
+  with `--config` rather than relying on exact anchor strings.
+
+### Status
+
+Planned — not yet implemented.

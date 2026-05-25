@@ -1,4 +1,5 @@
 node_modules/
+.idea/
 reports/
 !data/samples/reports/
 !data/samples/reports/**/*.html
