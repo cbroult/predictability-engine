@@ -11,14 +11,10 @@
 
 | Platform | Status |
 |----------|--------|
-| Linux | ✅ Full CI on every push (`verify.yml` + `publish.yml`). Debian image; Playwright's own Chromium (glibc). All scenarios including `@npm_required` run. |
-| Windows | ✅ Fresh-install smoke test after every publish (`verify-windows.yml`). Non-blocking (`failure: ignore`) — Windows agent is best-effort; Linux is the release gate. |
+| Linux | ✅ Full CI on every push (`verify.yml` + `publish.yml`). Node 26 via NodeSource. Playwright's own Chromium (glibc). All scenarios including `@npm_required` run. |
+| Windows | ✅ Fresh-install smoke test after every publish (`verify-windows.yml`). Blocking (no `failure: ignore`). Windows agent (photocenter) runs with a self-healing restart loop. |
 | Mac | No CI agent available. Code supports Mac (SetupManager uses `chdir: gem_root` for npm; no platform-specific assumptions). |
 | Docker | Covered by Linux CI (all steps run in Docker containers). |
-
-## Remaining
-
-* Promote Windows CI from best-effort to blocking once the Windows agent (photocenter) is confirmed stable, by removing `failure: ignore` from `verify-windows.yml`.
 
 # Performance of batch
 
