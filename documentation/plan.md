@@ -102,6 +102,11 @@ and internal `cbp-org.internal` URLs are unreachable from CI).
   in headings are normalised by GitHub/Forgejo using the same algorithm, so test
   with `--config` rather than relying on exact anchor strings.
 
-### Status
+### Implemented
 
-Planned — not yet implemented.
+`markdown-link-check@3.9.3` (last version compatible with Node 18) with a config that:
+- Skips all `https?://` external links (avoids flaky CI due to rate limits/network)
+- Skips anchor-only `#` links (GitHub/Forgejo render these dynamically from headings)
+- Only checks relative file paths (the primary concern: files must exist)
+
+Files: `.markdown-link-check.json`, `Rakefile` (`:linkcheck` task in `lint` and `verify`).

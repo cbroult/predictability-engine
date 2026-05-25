@@ -51,6 +51,12 @@ task :jscpd do
   sh 'npx jscpd . --config .jscpd.gherkin.json'
 end
 
+# Quality: README link checking (relative file paths only; external URLs excluded)
+desc 'Check relative file links in README.md'
+task :linkcheck do
+  sh 'npx --yes markdown-link-check@3.9.3 README.md --quiet --config .markdown-link-check.json'
+end
+
 # Quality: documentation
 desc 'Generate YARD documentation'
 task :docs do
@@ -76,11 +82,11 @@ namespace :reports do
 end
 
 # Aggregation tasks
-desc 'Run rubocop + bundler-audit + jscpd'
-task lint: %i[rubocop audit jscpd]
+desc 'Run rubocop + bundler-audit + jscpd + linkcheck'
+task lint: %i[rubocop audit jscpd linkcheck]
 
 desc 'Run lint + spec + features (default + npm) + jira_integrated_tests (fail-fast: style/audit before slow suites)'
-task verify: %i[rubocop audit spec features features_npm jscpd jira_integrated_tests]
+task verify: %i[rubocop audit spec features features_npm jscpd linkcheck jira_integrated_tests]
 
 desc 'Alias for verify — mirrors exactly what verify.yml CI runs'
 task ci: :verify
