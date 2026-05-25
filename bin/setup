@@ -18,12 +18,35 @@ install_mise() {
   if [[ "$(uname)" == "Darwin" ]] && command -v brew &>/dev/null; then
     brew install mise
   else
-    curl -fsSL https://mise.run | sh
+    curl -fsSL https://mise.run | sh || true
     export PATH="$HOME/.local/bin:$PATH"
   fi
   if command -v mise &>/dev/null; then
     eval "$(mise activate bash)" 2>/dev/null || true
   fi
+}
+
+_ruby_version_file_major() {
+  sed 's/ruby-//' .ruby-version 2>/dev/null | cut -d. -f1 || echo 0
+}
+
+_setup_error() {
+  local ruby_version
+  ruby_version=$(sed 's/ruby-//' .ruby-version 2>/dev/null || echo "${REQUIRED_RUBY_MAJOR}.x")
+  echo ""
+  echo "ERROR: Could not auto-install Ruby ${ruby_version}."
+  echo "       Install Ruby ${ruby_version} manually:"
+  echo ""
+  echo "  macOS:   brew install rbenv && rbenv install ${ruby_version}"
+  echo "  Linux:   curl -fsSL https://mise.run | sh && mise install"
+  echo "           -- or --"
+  echo "           curl -fsSL https://rvm.io/install | bash && rvm install ${ruby_version}"
+  echo "  Windows: https://rubyinstaller.org"
+  echo "           -- or -- winget install RubyInstallerTeam.Ruby"
+  echo "  Docker:  FROM ruby:${ruby_version}-alpine"
+  echo ""
+  echo "  Then re-run: ./bin/setup"
+  exit 1
 }
 
 ensure_ruby() {
@@ -43,24 +66,16 @@ ensure_ruby() {
     rvm install "$(cat .ruby-version)" && rvm use "$(cat .ruby-version)" && return 0
   fi
 
-  install_mise
-  if ! mise install; then
-    ruby_version=$(sed 's/ruby-//' .ruby-version 2>/dev/null || echo "${REQUIRED_RUBY_MAJOR}.x")
-    echo ""
-    echo "ERROR: Could not auto-install Ruby ${ruby_version}."
-    echo "       Install Ruby ${ruby_version} manually:"
-    echo ""
-    echo "  macOS:   brew install rbenv && rbenv install ${ruby_version}"
-    echo "  Linux:   curl -fsSL https://mise.run | sh && mise install"
-    echo "           -- or --"
-    echo "           curl -fsSL https://rvm.io/install | bash && rvm install ${ruby_version}"
-    echo "  Windows: https://rubyinstaller.org"
-    echo "           -- or -- winget install RubyInstallerTeam.Ruby"
-    echo "  Docker:  FROM ruby:${ruby_version}-alpine"
-    echo ""
-    echo "  Then re-run: ./bin/setup"
-    exit 1
+  # Only attempt mise auto-install when .ruby-version can satisfy the requirement;
+  # skip immediately to the error when it cannot (e.g. REQUIRED_RUBY_MAJOR=99).
+  if [ "$(_ruby_version_file_major)" -ge "$REQUIRED_RUBY_MAJOR" ] 2>/dev/null; then
+    install_mise
+    if command -v mise &>/dev/null && mise install; then
+      return 0
+    fi
   fi
+
+  _setup_error
 }
 
 ensure_ruby
