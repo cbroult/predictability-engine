@@ -8,9 +8,10 @@ require_relative '../../rakelib/erb_processor'
 
 RSpec.describe ErbProcessor do
   let(:ruby_version) { '4.0.3' }
+  let(:node_version) { '26.2.0' }
 
   before do
-    allow(described_class).to receive(:ruby_version).and_return(ruby_version)
+    allow(described_class).to receive_messages(ruby_version: ruby_version, node_version: node_version)
   end
 
   def with_temp_erb(content)
@@ -30,6 +31,15 @@ RSpec.describe ErbProcessor do
     end
   end
 
+  describe '.node_version' do
+    it 'reads the version from .tool-versions nodejs line' do
+      allow(described_class).to receive(:node_version).and_call_original
+      allow(File).to receive(:read).with(ErbProcessor::TOOL_VERSIONS_FILE)
+                                   .and_return("ruby 4.0.3\nnodejs #{node_version}\n")
+      expect(described_class.node_version).to eq(node_version)
+    end
+  end
+
   describe '#render' do
     it 'substitutes ruby_version in an ERB template' do
       with_temp_erb('ruby <%= ruby_version %>') do |path|
@@ -37,9 +47,15 @@ RSpec.describe ErbProcessor do
       end
     end
 
+    it 'substitutes node_version and node_major in an ERB template' do
+      with_temp_erb('nodejs <%= node_version %> (major: <%= node_major %>)') do |path|
+        expect(described_class.new(path).render).to eq("nodejs #{node_version} (major: 26)")
+      end
+    end
+
     it 'leaves non-ERB content unchanged' do
-      with_temp_erb("nodejs 22.15.0\n") do |path|
-        expect(described_class.new(path).render).to eq("nodejs 22.15.0\n")
+      with_temp_erb("static content\n") do |path|
+        expect(described_class.new(path).render).to eq("static content\n")
       end
     end
   end

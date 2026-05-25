@@ -9,6 +9,10 @@ fi
 echo "Pre-commit: Running RuboCop..."
 bundle exec rubocop
 
+echo "Pre-commit: Propagating versions to ERB-derived files..."
+bundle exec rake version:propagate
+git add .tool-versions .woodpecker/verify.yml
+
 echo "Pre-commit: Generating sample reports..."
 bundle exec rake reports:generate_samples
 git add data/samples/reports/

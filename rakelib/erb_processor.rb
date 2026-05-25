@@ -9,7 +9,8 @@ require 'erb'
 # Also updates marker sections in README.md (<!-- MARKER_START --> / <!-- MARKER_END -->)
 # using content from matching documentation/*.md.erb templates.
 class ErbProcessor
-  RUBY_VERSION_FILE = '.ruby-version'
+  RUBY_VERSION_FILE  = '.ruby-version'
+  TOOL_VERSIONS_FILE = '.tool-versions'
   README_PATH = 'README.md'
 
   README_SECTIONS = {
@@ -20,13 +21,18 @@ class ErbProcessor
     File.read(RUBY_VERSION_FILE).strip.split('-').last
   end
 
+  def self.node_version
+    File.read(TOOL_VERSIONS_FILE).then { |c| c[/^nodejs\s+(\S+)/, 1] }
+  end
+
   def self.process_all
     process_erb_files
     update_readme_sections
   end
 
   def self.process_erb_files
-    Dir['{**/*,**/.*}.erb'].reject { |f| f.start_with?('vendor/') }.each do |template_path|
+    Dir.glob('{**/*,**/.*}.erb', File::FNM_DOTMATCH).uniq
+       .reject { |f| f.start_with?('vendor/') }.each do |template_path|
       next if README_SECTIONS.value?(template_path)
 
       output_path = template_path.delete_suffix('.erb')
@@ -73,6 +79,8 @@ class ErbProcessor
 
   def render
     ruby_version = self.class.ruby_version
+    node_version = self.class.node_version
+    node_major   = node_version.split('.').first
     ERB.new(File.read(@template_path), trim_mode: '-').result(binding)
   end
 end

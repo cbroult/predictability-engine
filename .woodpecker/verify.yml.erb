@@ -1,0 +1,46 @@
+labels:
+  platform: linux
+
+when:
+  event: [push, pull_request, manual]
+
+clone:
+  git:
+    image: woodpeckerci/plugin-git:2.8.0
+    settings:
+      skip_verify: true
+    backend_options:
+      docker:
+        extra_hosts:
+          - "git.cbp-org.internal:192.168.16.23"
+
+steps:
+  - name: verify
+    image: ruby:4.0.3
+    backend_options:
+      docker:
+        network_mode: host
+    environment:
+      CUCUMBER_PUBLISH_QUIET: "true"
+    commands:
+      - apt-get update -qq && apt-get install -y --no-install-recommends curl ca-certificates && rm -rf /var/lib/apt/lists/*
+      - curl -fsSL https://deb.nodesource.com/setup_<%= node_major %>.x | bash -
+      - apt-get install -y --no-install-recommends nodejs && rm -rf /var/lib/apt/lists/*
+      - mkdir -p /root/.local/share/ruby-advisory-db/gems
+      - ./bin/setup
+      - bundle exec rake verify
+
+  - name: badge
+    image: docker-registry.cbp-org.internal/badge-reporter:latest
+    when:
+      status: [success, failure]
+    backend_options:
+      docker:
+        extra_hosts:
+          - "badge.cbp-org.internal:192.168.16.23"
+    environment:
+      BADGE_SECRET:
+        from_secret: badge_service_token
+    commands:
+      - badge report verify
+      - badge report code-quality
