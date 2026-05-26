@@ -8,7 +8,7 @@
 # Push to docker-registry.cbp-org.internal/predictability-engine-ci:latest
 # via scripts/build-ci-image.sh.
 #
-# Node version source: .tool-versions (nodejs 26.2.0)
+# Node version source: .tool-versions (nodejs <%= node_version %>)
 # Regenerate this file from the template: bundle exec rake version:propagate
 
 FROM ruby:4.0.3
@@ -16,6 +16,6 @@ FROM ruby:4.0.3
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends curl ca-certificates && \
     rm -rf /var/lib/apt/lists/* && \
-    curl -fsSL https://deb.nodesource.com/setup_26.x | bash - && \
+    curl -fsSL https://deb.nodesource.com/setup_<%= node_major %>.x | bash - && \
     apt-get install -y --no-install-recommends nodejs openssh-client && \
     rm -rf /var/lib/apt/lists/*
