@@ -3,8 +3,9 @@
 .SYNOPSIS
   Bootstrap Ruby and the Predictability Engine on Windows.
 .DESCRIPTION
-  Installs Ruby 4.x + MSYS2 DevKit via winget (if Ruby >= 4 is not already present),
-  then runs gem install bundler, bundle install, and predictability-engine setup
+  Ensures Ruby 4.x + MSYS2 DevKit is installed (tries winget, Chocolatey, Scoop,
+  then a direct SHA256-verified download from GitHub Releases), then runs
+  gem install bundler, bundle install, and predictability-engine setup
   (which handles Node.js, Playwright, and Chromium).
 
   Invoke via the thin CMD wrapper:  bin\setup.bat
@@ -29,36 +30,73 @@ function Get-RubyMajorVersion {
     return $null
 }
 
+function Test-RubyAdequate {
+    $m = Get-RubyMajorVersion
+    return ($null -ne $m) -and ($m -ge $RequiredRubyMajor)
+}
+
 function Refresh-Path {
     $machine = [System.Environment]::GetEnvironmentVariable('PATH', 'Machine')
     $user    = [System.Environment]::GetEnvironmentVariable('PATH', 'User')
     $env:PATH = "$machine;$user"
 }
 
+function Install-RubyDirect {
+    param([string]$RubyVersion)
+    $tag     = "RubyInstaller-$RubyVersion-1"
+    $exe     = "rubyinstaller-devkit-$RubyVersion-1-x64.exe"
+    $baseUrl = "https://github.com/oneclick/rubyinstaller2/releases/download/$tag"
+    $tmp     = Join-Path $env:TEMP $exe
+
+    Write-Host "==> Downloading Ruby $RubyVersion installer from GitHub Releases..."
+    Invoke-WebRequest -Uri "$baseUrl/$exe" -OutFile $tmp -UseBasicParsing
+
+    Write-Host "==> Verifying SHA256 checksum..."
+    $shaLines = (Invoke-WebRequest -Uri "$baseUrl/SHA256.txt" -UseBasicParsing).Content -split "`n"
+    $expected = ($shaLines | Where-Object { $_ -match [regex]::Escape($exe) } |
+                 ForEach-Object { ($_ -split '\s+')[0] } | Select-Object -First 1).ToUpper()
+    $actual   = (Get-FileHash $tmp -Algorithm SHA256).Hash.ToUpper()
+    if ($actual -ne $expected) {
+        Remove-Item $tmp -Force
+        throw "SHA256 mismatch for $exe`n  Expected: $expected`n  Got:      $actual"
+    }
+
+    Write-Host "==> Installing Ruby $RubyVersion (silent)..."
+    Start-Process -FilePath $tmp -ArgumentList '/verysilent /tasks="assocfiles,modpath"' -Wait
+    Remove-Item $tmp -Force
+}
+
 function Install-Ruby {
     $rubyVersion = (Get-Content .ruby-version).Trim() -replace '^ruby-', ''
 
+    # Priority 1: winget (built into Windows 10 1809+ / Windows 11)
     if (Get-Command winget -ErrorAction SilentlyContinue) {
-        Write-Host "==> Installing Ruby+Devkit 4.x via winget..."
+        Write-Host "==> Installing Ruby 4.x via winget..."
         winget install --id RubyInstallerTeam.RubyWithDevKit.4 --source winget --silent --accept-package-agreements --accept-source-agreements
         Refresh-Path
-    } else {
-        Write-Host @"
-
-ERROR: winget not found. Install Ruby $rubyVersion manually:
-
-  Option 1 (Recommended):
-    Download Ruby+Devkit $rubyVersion-x64 from https://rubyinstaller.org/downloads/
-    Run the installer and check "Add Ruby to PATH".
-
-  Option 2:
-    Install winget (App Installer) from the Microsoft Store, then re-run:
-      bin\setup.bat
-
-After installing Ruby, re-run: bin\setup.bat
-"@
-        exit 1
+        if (Test-RubyAdequate) { return }
     }
+
+    # Priority 2: Chocolatey
+    if (Get-Command choco -ErrorAction SilentlyContinue) {
+        Write-Host "==> Installing Ruby via Chocolatey..."
+        & choco install ruby --yes
+        Refresh-Path
+        if (Test-RubyAdequate) { return }
+    }
+
+    # Priority 3: Scoop
+    if (Get-Command scoop -ErrorAction SilentlyContinue) {
+        Write-Host "==> Installing Ruby via Scoop..."
+        & scoop install ruby
+        Refresh-Path
+        if (Test-RubyAdequate) { return }
+    }
+
+    # Priority 4: direct download from GitHub Releases with SHA256 verification
+    Write-Host "==> No package manager found — downloading Ruby directly..."
+    Install-RubyDirect -RubyVersion $rubyVersion
+    Refresh-Path
 }
 
 # ── Main ───────────────────────────────────────────────────────────────────────
@@ -73,12 +111,11 @@ if ($null -eq $major) {
     Write-Host "==> Ruby $major.x found."
 }
 
-# Verify Ruby is reachable after install (winget may require a new terminal on first install)
-$major = Get-RubyMajorVersion
-if ($null -eq $major -or $major -lt $RequiredRubyMajor) {
+# Verify Ruby is reachable after install (PATH refresh may not propagate to parent shell)
+if (-not (Test-RubyAdequate)) {
     Write-Host @"
 
-ERROR: Ruby is not in PATH after installation.
+ERROR: Ruby $RequiredRubyMajor+ is not in PATH after installation.
 Close this terminal, open a new one, and re-run: bin\setup.bat
 "@
     exit 1
